@@ -1,0 +1,6 @@
+[submodule "lib/cpp-httplib"]
+	path = lib/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git
+[submodule "lib/url-cpp"]
+	path = lib/url-cpp
+	url = https://github.com/seomoz/url-cpp.git
