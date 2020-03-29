@@ -1,0 +1,11 @@
+package vnx.search;
+
+class Response {
+	
+	string url;
+	
+	long date;
+	
+	long last_modified;
+	
+}

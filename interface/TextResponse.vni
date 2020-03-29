@@ -1,0 +1,7 @@
+package vnx.search;
+
+class TextResponse extends Response {
+	
+	string text;
+	
+}

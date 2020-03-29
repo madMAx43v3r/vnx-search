@@ -1,0 +1,11 @@
+package vnx.search;
+
+class PageIndex {
+	
+	long last_modified;
+	
+	vector<string> links;
+	
+	vector<string> words;
+	
+}

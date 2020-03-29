@@ -1,0 +1,9 @@
+package vnx.search;
+
+class HttpResponse extends Response {
+	
+	string content_type;
+	
+	vnx.Buffer payload;
+	
+}

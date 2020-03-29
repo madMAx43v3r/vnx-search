@@ -1,0 +1,11 @@
+package vnx.search;
+
+module PageProcessor {
+	
+	vnx.TopicPtr input;					// TextResponse
+	
+	string page_index_server;
+	
+	string page_content_server;
+	
+}

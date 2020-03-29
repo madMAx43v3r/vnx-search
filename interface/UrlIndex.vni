@@ -1,0 +1,11 @@
+package vnx.search;
+
+class UrlIndex {
+	
+	string content_type;
+	
+	long last_fetched;
+	
+	long last_modified;
+	
+}
