@@ -13,6 +13,11 @@
 
 #include <atomic>
 
+namespace httplib {
+	class Client;
+	class SSLClient;
+} // httplib
+
 
 namespace vnx {
 namespace search {
@@ -39,10 +44,8 @@ protected:
 private:
 	struct request_t {
 		std::string url;
-		std::string protocol;
-		std::string host;
 		std::string path;
-		int port = -1;
+		std::shared_ptr<httplib::Client> client;
 		std::vector<std::string> accept_content;
 		std::function<void()> callback;
 	};
@@ -51,12 +54,15 @@ private:
 	
 private:
 	Hash64 unique_service;
+	std::vector<std::thread> work_threads;
 	
 	mutable std::mutex mutex;
 	mutable std::condition_variable condition;
 	
 	mutable std::queue<std::shared_ptr<request_t>> work_queue;
-	std::vector<std::thread> work_threads;
+	
+	std::map<std::string, std::vector<std::shared_ptr<httplib::Client>>> http_clients;
+	std::map<std::string, std::vector<std::shared_ptr<httplib::SSLClient>>> https_clients;
 	
 	std::map<std::string, std::map<Hash64, std::shared_ptr<ContentParserAsyncClient>>> parser_map;
 	

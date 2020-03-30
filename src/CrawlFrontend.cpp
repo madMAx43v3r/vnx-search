@@ -57,21 +57,10 @@ void CrawlFrontend::main()
 	}
 	
 	// test
-	{
-		auto request = std::make_shared<request_t>();
-		request->url = "https://example.com/";
-		request->protocol = "https";
-		request->host = "example.com";
-		request->path = "/";
-		request->port = 443;
-		request->accept_content = {"text/plain", "text/html"};
-		request->callback = [](){};
-		{
-			std::lock_guard<std::mutex> lock(mutex);
-			work_queue.push(request);
-			condition.notify_one();
-		}
-	}
+	auto dummy = [](){};
+	fetch_async("https://example.com/", dummy, vnx::request_id_t());
+	::usleep(2000 * 1000);
+	fetch_async("https://example.com/", dummy, vnx::request_id_t());
 	
 	Super::main();
 	
@@ -87,7 +76,71 @@ void CrawlFrontend::fetch_async(const std::string& url,
 								const std::function<void()>& _callback,
 								const vnx::request_id_t& _request_id)
 {
+	std::string protocol;
+	std::string host;
+	std::string path;
+	int port = -1;
+	
 	// TODO
+	protocol = "https";
+	host = "amazon.de";
+	path = "/";
+	
+	std::shared_ptr<httplib::Client> client;
+	
+	if(protocol == "http") {
+		auto& list = http_clients[host];
+		for(const auto& client_ : list) {
+			if(client_.use_count() == 1) {
+				client = client_;
+				break;
+			}
+		}
+		if(!client) {
+			if(port < 0) {
+				port = 80;
+			}
+			client = std::make_shared<httplib::Client>(host, port);
+			list.push_back(client);
+		}
+	}
+	else if(protocol == "https") {
+		auto& list = https_clients[host];
+		for(const auto& client_ : list) {
+			if(client_.use_count() == 1) {
+				client = client_;
+				break;
+			}
+		}
+		if(!client) {
+			if(port < 0) {
+				port = 443;
+			}
+			auto ssl_client = std::make_shared<httplib::SSLClient>(host, port);
+			ssl_client->enable_server_certificate_verification(false);
+			list.push_back(ssl_client);
+			client = ssl_client;
+		}
+	}
+	else {
+		invalid_protocol_counter++;
+		throw std::logic_error("unsupported protocol: " + protocol);
+	}
+	
+	client->set_follow_location(true);
+	client->set_timeout_sec(response_timeout_ms / 1000);
+	
+	auto request = std::make_shared<request_t>();
+	request->url = url;
+	request->path = path;
+	request->client = client;
+	request->accept_content = {"text/plain", "text/html"};		// TODO
+	request->callback = _callback;
+	{
+		std::lock_guard<std::mutex> lock(mutex);
+		work_queue.push(request);
+		condition.notify_one();
+	}
 }
 
 void CrawlFrontend::register_parser(const vnx::Hash64& address,
@@ -103,9 +156,10 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 
 void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 {
-	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes";
+	// TODO
 	
-	log(INFO).out << *value;
+	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_time/1000
+			<< " ms (" << float(value->payload.size() / (value->fetch_time * 1e-6f) / 1024.) << " KB/s)";
 	
 	num_bytes_fetched += value->payload.size();
 }
@@ -135,7 +189,7 @@ void CrawlFrontend::fetch_loop()
 		out->payload.reserve(max_response_size);
 		
 		httplib::Headers headers = {
-				{"Connection", "close"},
+				{"Connection", "keep-alive"},
 				{"User-Agent", "Mozilla/5.0"},
 				{"Accept-Encoding", "gzip, deflate"}
 		};
@@ -148,7 +202,7 @@ void CrawlFrontend::fetch_loop()
 			headers.emplace("Accept", list);
 		}
 		
-		auto response_handler = [&](const httplib::Response& response) -> bool
+		auto response_handler = [&, request](const httplib::Response& response) -> bool
 		{
 			bool valid_type = false;
 			if(!response.has_header("Content-Type")) {
@@ -177,7 +231,7 @@ void CrawlFrontend::fetch_loop()
 			return true;
 		};
 		
-		auto content_receiver = [&](const char* buf, size_t len) -> bool
+		auto content_receiver = [out](const char* buf, size_t len) -> bool
 		{
 			if(out->payload.capacity() - out->payload.size() < len) {
 				return false;
@@ -187,26 +241,10 @@ void CrawlFrontend::fetch_loop()
 			return true;
 		};
 		
-		httplib::Client* client = 0;
 		const auto fetch_start = vnx::get_wall_time_micros();
 		
 		try {
-			if(request->protocol == "http") {
-				client = new httplib::Client(request->host, request->port);
-			}
-			else if(request->protocol == "https") {
-				auto ssl_client = new httplib::SSLClient(request->host, request->port);
-				ssl_client->enable_server_certificate_verification(false);
-				client = ssl_client;
-			}
-			else {
-				invalid_protocol_counter++;
-				throw std::logic_error("unsupported protocol");
-			}
-			client->set_follow_location(true);
-			client->set_timeout_sec(response_timeout_ms / 1000);
-			
-			auto response = client->Get(request->path.c_str(), headers, response_handler, content_receiver);
+			auto response = request->client->Get(request->path.c_str(), headers, response_handler, content_receiver);
 			
 			if(response) {
 				if(response->has_header("Date")) {
@@ -230,9 +268,9 @@ void CrawlFrontend::fetch_loop()
 		catch(...) {
 			general_fail_counter++;
 		}
-		delete client;
 		
 		request->callback();
+		request = 0;
 	}
 }
 

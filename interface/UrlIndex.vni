@@ -4,8 +4,8 @@ class UrlIndex {
 	
 	string content_type;
 	
-	long last_fetched;
+	uint last_fetched;
 	
-	long last_modified;
+	uint last_modified;
 	
 }
