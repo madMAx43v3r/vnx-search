@@ -2,6 +2,8 @@ package vnx.search;
 
 class HttpResponse extends Response {
 	
+	int status = -1;
+	
 	string content_type;
 	
 	vnx.Buffer payload;

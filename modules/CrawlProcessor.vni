@@ -1,0 +1,10 @@
+package vnx.search;
+
+module CrawlProcessor {
+	
+	int max_per_domain = 2;
+	
+	int max_per_minute = 120;
+	
+	
+}

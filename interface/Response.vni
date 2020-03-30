@@ -4,8 +4,10 @@ class Response {
 	
 	string url;
 	
-	long date;
+	long date;					// posix timestamp [s]
 	
-	long last_modified;
+	long last_modified;			// posix timestamp [s]
+	
+	int fetch_time;				// [usec]
 	
 }

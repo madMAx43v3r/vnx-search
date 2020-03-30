@@ -2,25 +2,25 @@ package vnx.search;
 
 module CrawlFrontend {
 	
-	vnx.TopicPtr output_http;
+	vnx.TopicPtr output_http = "frontend.http_responses";
 	
-	vnx.TopicPtr output_text;
+	vnx.TopicPtr output_text = "frontend.text_responses";
 	
 	int num_threads = 10;
-	
-	int max_per_domain = 2;
-	
-	int max_per_minute = 120;
 	
 	int response_timeout_ms = 30000;
 	
 	long max_response_size = 4194304;
 	
-	string url_index_server;
+	string url_index_server = "UrlIndex";
+	
+	string crawl_processor_server = "CrawlProcessor";
 	
 	
 	void fetch(string url) async;
 	
 	void register_parser(vnx.Hash64 address, string mime_type, int num_threads);
+	
+	void handle(HttpResponse sample);
 	
 }
