@@ -63,7 +63,7 @@ void CrawlFrontend::main()
 	auto dummy = [](const std::shared_ptr<const UrlIndex>&){};
 	fetch_async("https://example.com/", dummy, vnx::request_id_t());
 	::usleep(2000 * 1000);
-	fetch_async("https://example.com/", dummy, vnx::request_id_t());
+	fetch_async("https://google.de/", dummy, vnx::request_id_t());
 	
 	set_timer_millis(stats_interval_ms, std::bind(&CrawlFrontend::print_stats, this));
 	
@@ -149,6 +149,7 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 		auto& client = parser_map[type][address];
 		if(!client) {
 			client = std::make_shared<ContentParserAsyncClient>(address);
+			add_async_client(client);
 			log(INFO).out << "Got a '" << type << "' parser with " << num_threads << " threads";
 		}
 	}
@@ -159,12 +160,31 @@ void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_time/1000
 			<< " ms (" << float(value->payload.size() / (value->fetch_time * 1e-6f) / 1024.) << " KB/s)";
 	
+	bool parse_ok = false;
+	uint64_t parse_id = 0;
+	
 	auto iter = parser_map.find(value->content_type);
-	if(iter != parser_map.end() && iter->second.size() > 0)
+	if(iter != parser_map.end())
 	{
 		// TODO: proper load balancing
-		iter->second.begin()->second->parse(value, std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
-	} else {
+		std::vector<Hash64> failed_parsers;
+		for(const auto& parser : iter->second) {
+			try {
+				parse_id = parser.second->parse(value,
+						std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
+				parse_ok = true;
+				break;
+			}
+			catch(const std::exception& ex) {
+				failed_parsers.push_back(parser.first);
+				log(WARN).out << ex.what();
+			}
+		}
+		for(auto addr : failed_parsers) {
+			iter->second.erase(addr);
+		}
+	}
+	if(!parse_ok) {
 		log(WARN).out << "Cannot parse content type: " << value->content_type;
 	}
 	num_bytes_fetched += value->payload.size();
@@ -172,7 +192,8 @@ void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 
 void CrawlFrontend::parse_callback(std::shared_ptr<const TextResponse> value)
 {
-	log(INFO).out << "Parsed '" << value->url << "': " << value->text.size() << " bytes";
+	log(INFO).out << "Parsed '" << value->url << "': " << value->text.size() << " bytes, "
+			<< value->links.size() << " links, " << value->images.size() << " images";
 	
 	publish(value, output_text, BLOCKING);
 	num_bytes_parsed += value->text.size();
@@ -184,8 +205,8 @@ void CrawlFrontend::print_stats()
 	const uint64_t total_error_count = general_fail_counter + invalid_content_type_counter
 			+ invalid_protocol_counter + invalid_reponse_size_counter;
 	
-	log(INFO).out << 60000 * (fetch_count - last_fetch_count) / stats_interval_ms / 1000 << " pages/min, "
-			<< 60000 * (total_error_count - last_error_count) / stats_interval_ms / 1000 << " errors/min";
+	log(INFO).out << 60000 * (fetch_count - last_fetch_count) / stats_interval_ms << " pages/min, "
+			<< 60000 * (total_error_count - last_error_count) / stats_interval_ms << " errors/min";
 	
 	last_fetch_count = fetch_count;
 	last_error_count = total_error_count;
@@ -231,6 +252,8 @@ void CrawlFrontend::fetch_loop()
 		
 		auto response_handler = [&, request, out](const httplib::Response& response) -> bool
 		{
+			out->payload.clear();
+			
 			bool valid_type = false;
 			if(!response.has_header("Content-Type")) {
 				return false;
@@ -274,6 +297,7 @@ void CrawlFrontend::fetch_loop()
 		
 		auto index = UrlIndex::create();
 		index->last_fetched = std::time(0);
+		index->is_fail = true;
 		
 		try {
 			const auto fetch_start = vnx::get_wall_time_micros();
@@ -284,7 +308,6 @@ void CrawlFrontend::fetch_loop()
 			
 			if(response) {
 				index->http_status = response->status;
-				index->is_fail = response->status != 200;
 				index->fetch_time = fetch_time;
 			}
 			
@@ -299,8 +322,9 @@ void CrawlFrontend::fetch_loop()
 				if(response->has_header("Last-Modified")) {
 					out->last_modified = parse_http_date(response->get_header_value("Last-Modified"));
 				}
-				
 				publish(out, output_http, Message::BLOCKING);
+				
+				index->is_fail = false;
 				fetch_counter++;
 			}
 			else {

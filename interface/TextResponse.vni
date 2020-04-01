@@ -2,6 +2,10 @@ package vnx.search;
 
 class TextResponse extends Response {
 	
+	vector<string> links;
+	
+	vector<string> images;
+	
 	string text;
 	
 }
