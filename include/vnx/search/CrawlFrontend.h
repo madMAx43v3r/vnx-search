@@ -32,11 +32,11 @@ protected:
 	void main() override;
 	
 	void fetch_async(	const std::string& url,
-						const std::function<void()>& _callback,
-						const vnx::request_id_t& _request_id) override;
+						const std::function<void(const std::shared_ptr<const UrlIndex>&)>& _callback,
+						const vnx::request_id_t& _request_id) const override;
 	
 	void register_parser(	const vnx::Hash64& address,
-							const std::string& mime_type,
+							const std::vector<std::string>& mime_types,
 							const int32_t& num_threads) override;
 	
 	void handle(std::shared_ptr<const HttpResponse> value) override;
@@ -47,8 +47,12 @@ private:
 		std::string path;
 		std::shared_ptr<httplib::Client> client;
 		std::vector<std::string> accept_content;
-		std::function<void()> callback;
+		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;
 	};
+	
+	void parse_callback(std::shared_ptr<const TextResponse> value);
+	
+	void print_stats();
 	
 	void fetch_loop();
 	
@@ -61,19 +65,22 @@ private:
 	
 	mutable std::queue<std::shared_ptr<request_t>> work_queue;
 	
-	std::map<std::string, std::vector<std::shared_ptr<httplib::Client>>> http_clients;
-	std::map<std::string, std::vector<std::shared_ptr<httplib::SSLClient>>> https_clients;
+	mutable std::map<std::string, std::vector<std::shared_ptr<httplib::Client>>> http_clients;
+	mutable std::map<std::string, std::vector<std::shared_ptr<httplib::SSLClient>>> https_clients;
 	
 	std::map<std::string, std::map<Hash64, std::shared_ptr<ContentParserAsyncClient>>> parser_map;
 	
-	std::atomic<uint64_t> fetch_counter;
-	std::atomic<uint64_t> general_fail_counter;
-	std::atomic<uint64_t> invalid_protocol_counter;
-	std::atomic<uint64_t> invalid_content_type_counter;
-	std::atomic<uint64_t> invalid_reponse_size_counter;
+	mutable std::atomic<uint64_t> fetch_counter;
+	mutable std::atomic<uint64_t> general_fail_counter;
+	mutable std::atomic<uint64_t> invalid_protocol_counter;
+	mutable std::atomic<uint64_t> invalid_content_type_counter;
+	mutable std::atomic<uint64_t> invalid_reponse_size_counter;
 	
-	uint64_t num_bytes_fetched = 0;
-	uint64_t num_bytes_parsed = 0;
+	mutable uint64_t num_bytes_fetched = 0;
+	mutable uint64_t num_bytes_parsed = 0;
+	
+	uint64_t last_fetch_count = 0;
+	uint64_t last_error_count = 0;
 	
 };
 

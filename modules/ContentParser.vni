@@ -5,6 +5,6 @@ module ContentParser {
 	string frontend_server;
 	
 	
-	TextResponse parse(HttpResponse response) const;
+	TextResponse* parse(HttpResponse* response) const;
 	
 }

@@ -2,10 +2,16 @@ package vnx.search;
 
 class UrlIndex {
 	
-	string content_type;
+	string content_type;			// mime type
 	
-	uint last_fetched;
+	uint last_fetched;				// posix timestamp [sec]
 	
-	uint last_modified;
+	uint last_modified;				// posix timestamp [sec]
+	
+	int http_status;
+	
+	int fetch_time;					// [usec]
+	
+	bool is_fail;
 	
 }

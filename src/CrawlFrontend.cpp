@@ -7,10 +7,13 @@
 
 #include <vnx/search/CrawlFrontend.h>
 #include <vnx/search/HttpResponse.hxx>
+#include <vnx/search/CrawlProcessorClient.hxx>
 
 #define CPPHTTPLIB_ZLIB_SUPPORT
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
+
+#include <url.h>
 
 #include <sstream>
 #include <locale>
@@ -57,10 +60,12 @@ void CrawlFrontend::main()
 	}
 	
 	// test
-	auto dummy = [](){};
+	auto dummy = [](const std::shared_ptr<const UrlIndex>&){};
 	fetch_async("https://example.com/", dummy, vnx::request_id_t());
 	::usleep(2000 * 1000);
 	fetch_async("https://example.com/", dummy, vnx::request_id_t());
+	
+	set_timer_millis(stats_interval_ms, std::bind(&CrawlFrontend::print_stats, this));
 	
 	Super::main();
 	
@@ -72,19 +77,18 @@ void CrawlFrontend::main()
 	}
 }
 
-void CrawlFrontend::fetch_async(const std::string& url,
-								const std::function<void()>& _callback,
-								const vnx::request_id_t& _request_id)
+void CrawlFrontend::fetch_async(	const std::string& url,
+									const std::function<void(const std::shared_ptr<const UrlIndex>&)>& _callback,
+									const vnx::request_id_t& _request_id) const
 {
-	std::string protocol;
-	std::string host;
-	std::string path;
-	int port = -1;
+	const Url::Url parsed(url);
 	
-	// TODO
-	protocol = "https";
-	host = "amazon.de";
-	path = "/";
+	const std::string protocol = parsed.scheme();
+	const std::string host = parsed.host();
+	const std::string path = parsed.fullpath();
+	const int port = parsed.port();
+	
+	log(DEBUG).out << "Fetching '" << protocol << "://" << host << path << "' (port " << port << ")";
 	
 	std::shared_ptr<httplib::Client> client;
 	
@@ -97,10 +101,7 @@ void CrawlFrontend::fetch_async(const std::string& url,
 			}
 		}
 		if(!client) {
-			if(port < 0) {
-				port = 80;
-			}
-			client = std::make_shared<httplib::Client>(host, port);
+			client = std::make_shared<httplib::Client>(host, port > 0 ? port : 80);
 			list.push_back(client);
 		}
 	}
@@ -113,10 +114,7 @@ void CrawlFrontend::fetch_async(const std::string& url,
 			}
 		}
 		if(!client) {
-			if(port < 0) {
-				port = 443;
-			}
-			auto ssl_client = std::make_shared<httplib::SSLClient>(host, port);
+			auto ssl_client = std::make_shared<httplib::SSLClient>(host, port > 0 ? port : 443);
 			ssl_client->enable_server_certificate_verification(false);
 			list.push_back(ssl_client);
 			client = ssl_client;
@@ -144,24 +142,53 @@ void CrawlFrontend::fetch_async(const std::string& url,
 }
 
 void CrawlFrontend::register_parser(const vnx::Hash64& address,
-									const std::string& mime_type,
+									const std::vector<std::string>& mime_types,
 									const int32_t& num_threads)
 {
-	auto& client = parser_map[mime_type][address];
-	if(!client) {
-		client = std::make_shared<ContentParserAsyncClient>(address);
-		log(INFO).out << "Got a '" << mime_type << "' parser with " << num_threads << " threads";
+	for(auto type : mime_types) {
+		auto& client = parser_map[type][address];
+		if(!client) {
+			client = std::make_shared<ContentParserAsyncClient>(address);
+			log(INFO).out << "Got a '" << type << "' parser with " << num_threads << " threads";
+		}
 	}
 }
 
 void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 {
-	// TODO
-	
 	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_time/1000
 			<< " ms (" << float(value->payload.size() / (value->fetch_time * 1e-6f) / 1024.) << " KB/s)";
 	
+	auto iter = parser_map.find(value->content_type);
+	if(iter != parser_map.end() && iter->second.size() > 0)
+	{
+		// TODO: proper load balancing
+		iter->second.begin()->second->parse(value, std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
+	} else {
+		log(WARN).out << "Cannot parse content type: " << value->content_type;
+	}
 	num_bytes_fetched += value->payload.size();
+}
+
+void CrawlFrontend::parse_callback(std::shared_ptr<const TextResponse> value)
+{
+	log(INFO).out << "Parsed '" << value->url << "': " << value->text.size() << " bytes";
+	
+	publish(value, output_text, BLOCKING);
+	num_bytes_parsed += value->text.size();
+}
+
+void CrawlFrontend::print_stats()
+{
+	const uint64_t fetch_count = fetch_counter;
+	const uint64_t total_error_count = general_fail_counter + invalid_content_type_counter
+			+ invalid_protocol_counter + invalid_reponse_size_counter;
+	
+	log(INFO).out << 60000 * (fetch_count - last_fetch_count) / stats_interval_ms / 1000 << " pages/min, "
+			<< 60000 * (total_error_count - last_error_count) / stats_interval_ms / 1000 << " errors/min";
+	
+	last_fetch_count = fetch_count;
+	last_error_count = total_error_count;
 }
 
 void CrawlFrontend::fetch_loop()
@@ -186,7 +213,7 @@ void CrawlFrontend::fetch_loop()
 		
 		auto out = HttpResponse::create();
 		out->url = request->url;
-		out->payload.reserve(max_response_size);
+		out->payload.reserve(1048576);
 		
 		httplib::Headers headers = {
 				{"Connection", "keep-alive"},
@@ -202,7 +229,7 @@ void CrawlFrontend::fetch_loop()
 			headers.emplace("Accept", list);
 		}
 		
-		auto response_handler = [&, request](const httplib::Response& response) -> bool
+		auto response_handler = [&, request, out](const httplib::Response& response) -> bool
 		{
 			bool valid_type = false;
 			if(!response.has_header("Content-Type")) {
@@ -215,6 +242,8 @@ void CrawlFrontend::fetch_loop()
 					content_type = content_type.substr(0, pos);
 				}
 			}
+			out->content_type = content_type;
+			
 			for(const auto& mime_type : request->accept_content) {
 				if(content_type == mime_type) {
 					valid_type = true;
@@ -224,40 +253,53 @@ void CrawlFrontend::fetch_loop()
 				invalid_content_type_counter++;
 				return false;
 			}
-			if(response.content_length > max_response_size) {
+			if(response.content_length > max_content_length) {
 				invalid_reponse_size_counter++;
 				return false;
 			}
 			return true;
 		};
 		
-		auto content_receiver = [out](const char* buf, size_t len) -> bool
+		auto content_receiver = [&, out](const char* buf, size_t len) -> bool
 		{
-			if(out->payload.capacity() - out->payload.size() < len) {
+			const size_t offset = out->payload.size();
+			if(offset + len > max_response_size) {
+				invalid_reponse_size_counter++;
 				return false;
 			}
-			::memcpy(out->payload.data(out->payload.size()), buf, len);
-			out->payload.resize(out->payload.size() + len);
+			out->payload.resize(offset + len);
+			::memcpy(out->payload.data(offset), buf, len);
 			return true;
 		};
 		
-		const auto fetch_start = vnx::get_wall_time_micros();
+		auto index = UrlIndex::create();
+		index->last_fetched = std::time(0);
 		
 		try {
+			const auto fetch_start = vnx::get_wall_time_micros();
+			
 			auto response = request->client->Get(request->path.c_str(), headers, response_handler, content_receiver);
 			
+			const auto fetch_time = int32_t(vnx::get_wall_time_micros() - fetch_start);
+			
 			if(response) {
+				index->http_status = response->status;
+				index->is_fail = response->status != 200;
+				index->fetch_time = fetch_time;
+			}
+			
+			if(response && response->status == 200)
+			{
+				out->status = response->status;
+				out->fetch_time = fetch_time;
+				
 				if(response->has_header("Date")) {
 					out->date = parse_http_date(response->get_header_value("Date"));
 				}
 				if(response->has_header("Last-Modified")) {
 					out->last_modified = parse_http_date(response->get_header_value("Last-Modified"));
 				}
-				if(response->has_header("Content-Type")) {
-					out->content_type = response->get_header_value("Content-Type");
-				}
-				out->status = response->status;
-				out->fetch_time = int32_t(vnx::get_wall_time_micros() - fetch_start);
+				
 				publish(out, output_http, Message::BLOCKING);
 				fetch_counter++;
 			}
@@ -269,7 +311,10 @@ void CrawlFrontend::fetch_loop()
 			general_fail_counter++;
 		}
 		
-		request->callback();
+		index->content_type = out->content_type;
+		index->last_modified = out->last_modified;
+		
+		request->callback(index);
 		request = 0;
 	}
 }

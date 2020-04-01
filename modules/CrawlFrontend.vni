@@ -10,16 +10,18 @@ module CrawlFrontend {
 	
 	int response_timeout_ms = 30000;
 	
-	long max_response_size = 4194304;
+	int stats_interval_ms = 10000;
 	
-	string url_index_server = "UrlIndex";
+	long max_content_length = 4194304;
+	
+	long max_response_size = 16777216;
 	
 	string crawl_processor_server = "CrawlProcessor";
 	
 	
-	void fetch(string url) async;
+	UrlIndex* fetch(string url) const async;
 	
-	void register_parser(vnx.Hash64 address, string mime_type, int num_threads);
+	void register_parser(vnx.Hash64 address, vector<string> mime_types, int num_threads);
 	
 	void handle(HttpResponse sample);
 	
