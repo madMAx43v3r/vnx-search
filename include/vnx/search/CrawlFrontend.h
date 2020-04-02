@@ -74,7 +74,7 @@ private:
 	mutable std::atomic<uint64_t> general_fail_counter;
 	mutable std::atomic<uint64_t> invalid_protocol_counter;
 	mutable std::atomic<uint64_t> invalid_content_type_counter;
-	mutable std::atomic<uint64_t> invalid_reponse_size_counter;
+	mutable std::atomic<uint64_t> invalid_response_size_counter;
 	
 	mutable uint64_t num_bytes_fetched = 0;
 	mutable uint64_t num_bytes_parsed = 0;

@@ -21,7 +21,7 @@ HtmlParser::HtmlParser(const std::string& _vnx_name)
 
 void HtmlParser::main()
 {
-	service_pipe = vnx::open_pipe(Hash64::rand(), this, UNLIMITED);
+	service_pipe = vnx::open_pipe(Hash64::rand(), this, 10 * 1000);
 	
 	frontend = std::make_shared<CrawlFrontendClient>(frontend_server);
 	
@@ -73,7 +73,8 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	if(node->get_name() == "p") {
 		result->text += "\n";
 	}
-	if(parent_name != "script") {
+	if(parent_name != "script")
+	{
 		auto content = dynamic_cast<const xmlpp::ContentNode*>(node);
 		if(content) {
 			result->text += content->get_content();

@@ -59,12 +59,6 @@ void CrawlFrontend::main()
 		work_threads[i] = std::thread(&CrawlFrontend::fetch_loop, this);
 	}
 	
-	// test
-	auto dummy = [](const std::shared_ptr<const UrlIndex>&){};
-	fetch_async("https://example.com/", dummy, vnx::request_id_t());
-	::usleep(2000 * 1000);
-	fetch_async("https://google.de/", dummy, vnx::request_id_t());
-	
 	set_timer_millis(stats_interval_ms, std::bind(&CrawlFrontend::print_stats, this));
 	
 	Super::main();
@@ -81,7 +75,8 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 									const std::function<void(const std::shared_ptr<const UrlIndex>&)>& _callback,
 									const vnx::request_id_t& _request_id) const
 {
-	const Url::Url parsed(url);
+	Url::Url parsed(url);
+	parsed.defrag();
 	
 	const std::string protocol = parsed.scheme();
 	const std::string host = parsed.host();
@@ -132,7 +127,9 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 	request->url = url;
 	request->path = path;
 	request->client = client;
-	request->accept_content = {"text/plain", "text/html"};		// TODO
+	for(const auto& entry : parser_map) {
+		request->accept_content.push_back(entry.first);
+	}
 	request->callback = _callback;
 	{
 		std::lock_guard<std::mutex> lock(mutex);
@@ -203,7 +200,7 @@ void CrawlFrontend::print_stats()
 {
 	const uint64_t fetch_count = fetch_counter;
 	const uint64_t total_error_count = general_fail_counter + invalid_content_type_counter
-			+ invalid_protocol_counter + invalid_reponse_size_counter;
+			+ invalid_protocol_counter + invalid_response_size_counter;
 	
 	log(INFO).out << 60000 * (fetch_count - last_fetch_count) / stats_interval_ms << " pages/min, "
 			<< 60000 * (total_error_count - last_error_count) / stats_interval_ms << " errors/min";
@@ -254,30 +251,34 @@ void CrawlFrontend::fetch_loop()
 		{
 			out->payload.clear();
 			
-			bool valid_type = false;
-			if(!response.has_header("Content-Type")) {
-				return false;
-			}
-			auto content_type = response.get_header_value("Content-Type");
+			if(response.status == 200)
 			{
-				auto pos = content_type.find_first_of(';');
-				if(pos != std::string::npos) {
-					content_type = content_type.substr(0, pos);
+				if(!response.has_header("Content-Type")) {
+					return false;
 				}
-			}
-			out->content_type = content_type;
-			
-			for(const auto& mime_type : request->accept_content) {
-				if(content_type == mime_type) {
-					valid_type = true;
+				
+				bool valid_type = false;
+				auto content_type = response.get_header_value("Content-Type");
+				{
+					auto pos = content_type.find_first_of(';');
+					if(pos != std::string::npos) {
+						content_type = content_type.substr(0, pos);
+					}
 				}
-			}
-			if(!valid_type) {
-				invalid_content_type_counter++;
-				return false;
+				out->content_type = content_type;
+				
+				for(const auto& mime_type : request->accept_content) {
+					if(content_type == mime_type) {
+						valid_type = true;
+					}
+				}
+				if(!valid_type) {
+					invalid_content_type_counter++;
+					return false;
+				}
 			}
 			if(response.content_length > max_content_length) {
-				invalid_reponse_size_counter++;
+				invalid_response_size_counter++;
 				return false;
 			}
 			return true;
@@ -287,7 +288,7 @@ void CrawlFrontend::fetch_loop()
 		{
 			const size_t offset = out->payload.size();
 			if(offset + len > max_response_size) {
-				invalid_reponse_size_counter++;
+				invalid_response_size_counter++;
 				return false;
 			}
 			out->payload.resize(offset + len);

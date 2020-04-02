@@ -6,11 +6,14 @@
  */
 
 #include <vnx/search/CrawlFrontend.h>
+#include <vnx/search/CrawlFrontendClient.hxx>
 
 #include <vnx/Config.h>
 #include <vnx/Process.h>
 #include <vnx/Terminal.h>
 #include <vnx/Server.h>
+
+#include <unistd.h>
 
 
 int main(int argc, char** argv)
@@ -31,6 +34,13 @@ int main(int argc, char** argv)
 		vnx::Handle<vnx::search::CrawlFrontend> module = new vnx::search::CrawlFrontend("CrawlFrontend");
 		module.start_detached();
 	}
+	
+	// test
+	vnx::search::CrawlFrontendClient client("CrawlFrontend");
+	
+	::usleep(2000 * 1000);
+	client.fetch("https://example.com/");
+	client.fetch("https://google.de/");
 	
 	vnx::wait();
 }
