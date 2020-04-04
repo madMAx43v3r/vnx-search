@@ -15,6 +15,7 @@ add_library(vnx_search SHARED
 	src/CrawlFrontend.cpp
 	src/HtmlParser.cpp
 	src/PageProcessor.cpp
+	src/CrawlProcessor.cpp
 )
 
 target_include_directories(vnx_search

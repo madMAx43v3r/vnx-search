@@ -2,9 +2,29 @@ package vnx.search;
 
 module CrawlProcessor {
 	
-	int max_per_domain = 2;
+	vnx.TopicPtr input_url_index = "backend.url_index.updates";
+	
+	vnx.TopicPtr input_page_index = "backend.page_index.updates";
+	
+	int jump_cost = 3;
+	
+	int reload_interval = 3600;			// [seconds / (depth + 1)]
+	
+	int max_per_domain = 1;
 	
 	int max_per_minute = 120;
 	
+	int max_num_pending = 100;
+	
+	int update_interval_ms = 100;
+	
+	int max_queue_ms = 1000;
+	
+	vector<string> root_urls;
+	
+	string url_index_server = "UrlIndex";
+	
+	
+	void handle(vnx.keyvalue.KeyValuePair sample);
 	
 }
