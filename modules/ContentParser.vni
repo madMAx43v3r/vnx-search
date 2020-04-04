@@ -2,7 +2,7 @@ package vnx.search;
 
 module ContentParser {
 	
-	string frontend_server;
+	string frontend_server = "CrawlFrontend";
 	
 	
 	TextResponse* parse(HttpResponse* response) const;

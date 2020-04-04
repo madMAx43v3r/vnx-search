@@ -6,6 +6,7 @@
  */
 
 #include <vnx/search/CrawlFrontend.h>
+#include <vnx/search/HtmlParser.h>
 #include <vnx/search/CrawlFrontendClient.hxx>
 
 #include <vnx/Config.h>
@@ -32,6 +33,11 @@ int main(int argc, char** argv)
 	}
 	{
 		vnx::Handle<vnx::search::CrawlFrontend> module = new vnx::search::CrawlFrontend("CrawlFrontend");
+		module.start_detached();
+	}
+	{
+		vnx::Handle<vnx::search::HtmlParser> module = new vnx::search::HtmlParser("HtmlParser");
+		module->frontend_server = "CrawlFrontend";
 		module.start_detached();
 	}
 	
