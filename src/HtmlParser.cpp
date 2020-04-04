@@ -83,6 +83,13 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	}
 }
 
+template<typename T>
+std::vector<T> get_unique(std::vector<T> in)
+{
+	std::set<T> tmp(in.begin(), in.end());
+	return std::vector<T>(tmp.begin(), tmp.end());
+}
+
 std::shared_ptr<const TextResponse>
 HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 {
@@ -121,6 +128,9 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	delete root;
 	xmlFreeDoc(doc);
+	
+	result->links = get_unique(result->links);
+	result->images = get_unique(result->images);
 	
 	log(INFO).out << *result;
 	return result;
