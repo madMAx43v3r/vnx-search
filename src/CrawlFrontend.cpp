@@ -128,7 +128,9 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 	request->path = path;
 	request->client = client;
 	for(const auto& entry : parser_map) {
-		request->accept_content.push_back(entry.first);
+		if(!entry.second.empty()) {
+			request->accept_content.push_back(entry.first);
+		}
 	}
 	request->callback = _callback;
 	{
@@ -319,9 +321,13 @@ void CrawlFrontend::fetch_loop()
 				
 				if(response->has_header("Date")) {
 					out->date = parse_http_date(response->get_header_value("Date"));
+				} else {
+					out->date = index->last_fetched;
 				}
 				if(response->has_header("Last-Modified")) {
 					out->last_modified = parse_http_date(response->get_header_value("Last-Modified"));
+				} else {
+					out->last_modified = index->last_fetched;
 				}
 				publish(out, output_http, Message::BLOCKING);
 				

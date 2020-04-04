@@ -73,7 +73,7 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	if(node->get_name() == "p") {
 		result->text += "\n";
 	}
-	if(parent_name != "script")
+	if(parent_name != "script" && parent_name != "style")
 	{
 		auto content = dynamic_cast<const xmlpp::ContentNode*>(node);
 		if(content) {
