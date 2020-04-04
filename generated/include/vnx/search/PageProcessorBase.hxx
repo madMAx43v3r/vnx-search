@@ -7,6 +7,7 @@
 #include <vnx/search/package.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.h>
+#include <vnx/search/TextResponse.hxx>
 
 
 namespace vnx {
@@ -15,9 +16,9 @@ namespace search {
 class PageProcessorBase : public ::vnx::Module {
 public:
 	
-	::vnx::TopicPtr input;
-	::std::string page_index_server;
-	::std::string page_content_server;
+	::vnx::TopicPtr input = "frontend.text_responses";
+	::std::string page_index_server = "PageIndex";
+	::std::string page_content_server = "PageContent";
 	
 	typedef ::vnx::Module Super;
 	
@@ -45,6 +46,8 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;

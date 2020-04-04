@@ -18,7 +18,7 @@ namespace search {
 
 
 const vnx::Hash64 PageProcessorBase::VNX_TYPE_HASH(0xd130b1014d9ffc6full);
-const vnx::Hash64 PageProcessorBase::VNX_CODE_HASH(0xd5a3d7173ea0245ull);
+const vnx::Hash64 PageProcessorBase::VNX_CODE_HASH(0x59a3fabdfc680c32ull);
 
 PageProcessorBase::PageProcessorBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -114,25 +114,53 @@ std::shared_ptr<vnx::TypeCode> PageProcessorBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.PageProcessor";
 	type_code->type_hash = vnx::Hash64(0xd130b1014d9ffc6full);
-	type_code->code_hash = vnx::Hash64(0xd5a3d7173ea0245ull);
-	type_code->methods.resize(0);
+	type_code->code_hash = vnx::Hash64(0x59a3fabdfc680c32ull);
+	type_code->methods.resize(1);
+	{
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		call_type->name = "vnx.search.PageProcessor.handle_vnx_search_TextResponse";
+		call_type->type_hash = vnx::Hash64(0x1566b79c7e096d3ull);
+		call_type->code_hash = vnx::Hash64(0x8e5f5dace99b2ffbull);
+		call_type->is_method = true;
+		{
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			return_type->name = "vnx.search.PageProcessor.handle_vnx_search_TextResponse.return";
+			return_type->type_hash = vnx::Hash64(0x4118b7a166ff96c1ull);
+			return_type->code_hash = vnx::Hash64(0x1817a5b3263fd1a5ull);
+			return_type->is_return = true;
+			return_type->build();
+			call_type->return_type = vnx::register_type_code(return_type);
+		}
+		call_type->fields.resize(1);
+		{
+			vnx::TypeField& field = call_type->fields[0];
+			field.is_extended = true;
+			field.name = "sample";
+			field.code = {16};
+		}
+		call_type->build();
+		type_code->methods[0] = vnx::register_type_code(call_type);
+	}
 	type_code->fields.resize(3);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "input";
+		field.value = vnx::to_string("frontend.text_responses");
 		field.code = {12, 5};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "page_index_server";
+		field.value = vnx::to_string("PageIndex");
 		field.code = {12, 5};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "page_content_server";
+		field.value = vnx::to_string("PageContent");
 		field.code = {12, 5};
 	}
 	type_code->build();
@@ -141,9 +169,37 @@ std::shared_ptr<vnx::TypeCode> PageProcessorBase::static_create_type_code() {
 
 void PageProcessorBase::vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) {
 	const uint64_t _type_hash = _sample->value->get_type_hash();
+	if(_type_hash == 0x7cee1cd5b88ec569ull) {
+		std::shared_ptr<const vnx::search::TextResponse> _value = std::dynamic_pointer_cast<const vnx::search::TextResponse>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+		}
+	}
 }
 
 std::shared_ptr<vnx::Value> PageProcessorBase::vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) {
+	if(_call_type->type_hash == vnx::Hash64(0x1566b79c7e096d3ull)) {
+		::std::shared_ptr<const ::vnx::search::TextResponse> sample;
+		{
+			const char* const _buf = _in.read(_call_type->total_field_size);
+			if(_call_type->is_matched) {
+			}
+			for(const vnx::TypeField* _field : _call_type->ext_fields) {
+				switch(_field->native_index) {
+					case 0: vnx::read(_in, sample, _call_type, _field->code.data()); break;
+					default: vnx::skip(_in, _call_type, _field->code.data());
+				}
+			}
+		}
+		handle(sample);
+		std::shared_ptr<vnx::Binary> _return_value;
+		{
+			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_PageProcessor_handle_vnx_search_TextResponse_return;
+			_return_value = vnx::Binary::create();
+			_return_value->type_code = _return_type;
+		}
+		return _return_value;
+	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->method = _call_type->name;
 	return _ex;

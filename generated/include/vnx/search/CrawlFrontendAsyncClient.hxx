@@ -21,11 +21,11 @@ public:
 	
 	CrawlFrontendAsyncClient(vnx::Hash64 service_addr);
 	
-	uint64_t fetch(const ::std::string& url, const std::function<void(::std::shared_ptr<const ::vnx::search::UrlIndex>)>& _callback);
+	uint64_t fetch(const ::std::string& url, const std::function<void(::std::shared_ptr<const ::vnx::search::UrlIndex>)>& _callback = std::function<void(::std::shared_ptr<const ::vnx::search::UrlIndex>)>());
 	
-	uint64_t handle(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample, const std::function<void()>& _callback);
+	uint64_t handle(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample, const std::function<void()>& _callback = std::function<void()>());
 	
-	uint64_t register_parser(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads, const std::function<void()>& _callback);
+	uint64_t register_parser(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads, const std::function<void()>& _callback = std::function<void()>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	

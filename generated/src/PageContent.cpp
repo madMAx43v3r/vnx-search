@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 PageContent::VNX_TYPE_HASH(0x4cd00be0870fbe22ull);
-const vnx::Hash64 PageContent::VNX_CODE_HASH(0x8f137f8ce393e0c7ull);
+const vnx::Hash64 PageContent::VNX_CODE_HASH(0x12bf4eb00e88cb34ull);
 
 vnx::Hash64 PageContent::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -47,15 +47,13 @@ void PageContent::write(vnx::TypeOutput& _out, const vnx::TypeCode* _type_code, 
 void PageContent::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_PageContent;
 	_visitor.type_begin(*_type_code);
-	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, word_index);
-	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, words);
+	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, text);
 	_visitor.type_end(*_type_code);
 }
 
 void PageContent::write(std::ostream& _out) const {
 	_out << "{";
-	_out << "\"word_index\": "; vnx::write(_out, word_index);
-	_out << ", \"words\": "; vnx::write(_out, words);
+	_out << "\"text\": "; vnx::write(_out, text);
 	_out << "}";
 }
 
@@ -63,27 +61,22 @@ void PageContent::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "word_index") {
-			vnx::from_string(_entry.second, word_index);
-		} else if(_entry.first == "words") {
-			vnx::from_string(_entry.second, words);
+		if(_entry.first == "text") {
+			vnx::from_string(_entry.second, text);
 		}
 	}
 }
 
 vnx::Object PageContent::to_object() const {
 	vnx::Object _object;
-	_object["word_index"] = word_index;
-	_object["words"] = words;
+	_object["text"] = text;
 	return _object;
 }
 
 void PageContent::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "word_index") {
-			_entry.second.to(word_index);
-		} else if(_entry.first == "words") {
-			_entry.second.to(words);
+		if(_entry.first == "text") {
+			_entry.second.to(text);
 		}
 	}
 }
@@ -112,22 +105,16 @@ std::shared_ptr<vnx::TypeCode> PageContent::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.PageContent";
 	type_code->type_hash = vnx::Hash64(0x4cd00be0870fbe22ull);
-	type_code->code_hash = vnx::Hash64(0x8f137f8ce393e0c7ull);
+	type_code->code_hash = vnx::Hash64(0x12bf4eb00e88cb34ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageContent>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(2);
+	type_code->fields.resize(1);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
-		field.name = "word_index";
-		field.code = {12, 12, 5};
-	}
-	{
-		vnx::TypeField& field = type_code->fields[1];
-		field.is_extended = true;
-		field.name = "words";
-		field.code = {12, 3};
+		field.name = "text";
+		field.code = {12, 5};
 	}
 	type_code->build();
 	return type_code;
@@ -156,8 +143,7 @@ void read(TypeInput& in, ::vnx::search::PageContent& value, const TypeCode* type
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 0: vnx::read(in, value.word_index, type_code, _field->code.data()); break;
-			case 1: vnx::read(in, value.words, type_code, _field->code.data()); break;
+			case 0: vnx::read(in, value.text, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -172,8 +158,7 @@ void write(TypeOutput& out, const ::vnx::search::PageContent& value, const TypeC
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	vnx::write(out, value.word_index, type_code, type_code->fields[0].code.data());
-	vnx::write(out, value.words, type_code, type_code->fields[1].code.data());
+	vnx::write(out, value.text, type_code, type_code->fields[0].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::PageContent& value) {

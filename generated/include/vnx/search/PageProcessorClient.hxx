@@ -7,6 +7,7 @@
 #include <vnx/Client.h>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.h>
+#include <vnx/search/TextResponse.hxx>
 
 
 namespace vnx {
@@ -17,6 +18,10 @@ public:
 	PageProcessorClient(const std::string& service_name);
 	
 	PageProcessorClient(vnx::Hash64 service_addr);
+	
+	void handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample);
+	
+	void handle_async(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample);
 	
 };
 

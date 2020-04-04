@@ -14,6 +14,8 @@ namespace search {
 class TextResponse : public ::vnx::search::Response {
 public:
 	
+	::std::vector<::std::string> links;
+	::std::vector<::std::string> images;
 	::std::string text;
 	
 	typedef ::vnx::search::Response Super;

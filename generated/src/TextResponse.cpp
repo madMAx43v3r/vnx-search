@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 TextResponse::VNX_TYPE_HASH(0x7cee1cd5b88ec569ull);
-const vnx::Hash64 TextResponse::VNX_CODE_HASH(0x894a7eedf86bd177ull);
+const vnx::Hash64 TextResponse::VNX_CODE_HASH(0x151d0f8345bcc33eull);
 
 vnx::Hash64 TextResponse::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -51,7 +51,9 @@ void TextResponse::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, date);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, last_modified);
 	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, fetch_time);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, text);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, links);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, images);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, text);
 	_visitor.type_end(*_type_code);
 }
 
@@ -61,6 +63,8 @@ void TextResponse::write(std::ostream& _out) const {
 	_out << ", \"date\": "; vnx::write(_out, date);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
 	_out << ", \"fetch_time\": "; vnx::write(_out, fetch_time);
+	_out << ", \"links\": "; vnx::write(_out, links);
+	_out << ", \"images\": "; vnx::write(_out, images);
 	_out << ", \"text\": "; vnx::write(_out, text);
 	_out << "}";
 }
@@ -73,8 +77,12 @@ void TextResponse::read(std::istream& _in) {
 			vnx::from_string(_entry.second, date);
 		} else if(_entry.first == "fetch_time") {
 			vnx::from_string(_entry.second, fetch_time);
+		} else if(_entry.first == "images") {
+			vnx::from_string(_entry.second, images);
 		} else if(_entry.first == "last_modified") {
 			vnx::from_string(_entry.second, last_modified);
+		} else if(_entry.first == "links") {
+			vnx::from_string(_entry.second, links);
 		} else if(_entry.first == "text") {
 			vnx::from_string(_entry.second, text);
 		} else if(_entry.first == "url") {
@@ -89,6 +97,8 @@ vnx::Object TextResponse::to_object() const {
 	_object["date"] = date;
 	_object["last_modified"] = last_modified;
 	_object["fetch_time"] = fetch_time;
+	_object["links"] = links;
+	_object["images"] = images;
 	_object["text"] = text;
 	return _object;
 }
@@ -99,8 +109,12 @@ void TextResponse::from_object(const vnx::Object& _object) {
 			_entry.second.to(date);
 		} else if(_entry.first == "fetch_time") {
 			_entry.second.to(fetch_time);
+		} else if(_entry.first == "images") {
+			_entry.second.to(images);
 		} else if(_entry.first == "last_modified") {
 			_entry.second.to(last_modified);
+		} else if(_entry.first == "links") {
+			_entry.second.to(links);
 		} else if(_entry.first == "text") {
 			_entry.second.to(text);
 		} else if(_entry.first == "url") {
@@ -133,13 +147,13 @@ std::shared_ptr<vnx::TypeCode> TextResponse::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.TextResponse";
 	type_code->type_hash = vnx::Hash64(0x7cee1cd5b88ec569ull);
-	type_code->code_hash = vnx::Hash64(0x894a7eedf86bd177ull);
+	type_code->code_hash = vnx::Hash64(0x151d0f8345bcc33eull);
 	type_code->is_class = true;
 	type_code->parents.resize(1);
 	type_code->parents[0] = ::vnx::search::Response::static_get_type_code();
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<TextResponse>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(5);
+	type_code->fields.resize(7);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -163,6 +177,18 @@ std::shared_ptr<vnx::TypeCode> TextResponse::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[4];
+		field.is_extended = true;
+		field.name = "links";
+		field.code = {12, 12, 5};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[5];
+		field.is_extended = true;
+		field.name = "images";
+		field.code = {12, 12, 5};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[6];
 		field.is_extended = true;
 		field.name = "text";
 		field.code = {12, 5};
@@ -213,7 +239,9 @@ void read(TypeInput& in, ::vnx::search::TextResponse& value, const TypeCode* typ
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.url, type_code, _field->code.data()); break;
-			case 4: vnx::read(in, value.text, type_code, _field->code.data()); break;
+			case 4: vnx::read(in, value.links, type_code, _field->code.data()); break;
+			case 5: vnx::read(in, value.images, type_code, _field->code.data()); break;
+			case 6: vnx::read(in, value.text, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -233,7 +261,9 @@ void write(TypeOutput& out, const ::vnx::search::TextResponse& value, const Type
 	vnx::write_value(_buf + 4, value.last_modified);
 	vnx::write_value(_buf + 8, value.fetch_time);
 	vnx::write(out, value.url, type_code, type_code->fields[0].code.data());
-	vnx::write(out, value.text, type_code, type_code->fields[4].code.data());
+	vnx::write(out, value.links, type_code, type_code->fields[4].code.data());
+	vnx::write(out, value.images, type_code, type_code->fields[5].code.data());
+	vnx::write(out, value.text, type_code, type_code->fields[6].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::TextResponse& value) {

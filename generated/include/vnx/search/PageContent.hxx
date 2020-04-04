@@ -14,8 +14,7 @@ namespace search {
 class PageContent : public ::vnx::Value {
 public:
 	
-	::std::vector<::std::string> word_index;
-	::std::vector<::uint32_t> words;
+	::std::string text;
 	
 	typedef ::vnx::Value Super;
 	

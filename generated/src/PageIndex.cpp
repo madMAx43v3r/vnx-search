@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 PageIndex::VNX_TYPE_HASH(0x4c9c9cf43a382f0ull);
-const vnx::Hash64 PageIndex::VNX_CODE_HASH(0x52ac6c5095033d88ull);
+const vnx::Hash64 PageIndex::VNX_CODE_HASH(0xe86f5bb236054db3ull);
 
 vnx::Hash64 PageIndex::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -49,7 +49,8 @@ void PageIndex::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, last_modified);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, links);
-	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, words);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, images);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, words);
 	_visitor.type_end(*_type_code);
 }
 
@@ -57,6 +58,7 @@ void PageIndex::write(std::ostream& _out) const {
 	_out << "{";
 	_out << "\"last_modified\": "; vnx::write(_out, last_modified);
 	_out << ", \"links\": "; vnx::write(_out, links);
+	_out << ", \"images\": "; vnx::write(_out, images);
 	_out << ", \"words\": "; vnx::write(_out, words);
 	_out << "}";
 }
@@ -65,7 +67,9 @@ void PageIndex::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "last_modified") {
+		if(_entry.first == "images") {
+			vnx::from_string(_entry.second, images);
+		} else if(_entry.first == "last_modified") {
 			vnx::from_string(_entry.second, last_modified);
 		} else if(_entry.first == "links") {
 			vnx::from_string(_entry.second, links);
@@ -79,13 +83,16 @@ vnx::Object PageIndex::to_object() const {
 	vnx::Object _object;
 	_object["last_modified"] = last_modified;
 	_object["links"] = links;
+	_object["images"] = images;
 	_object["words"] = words;
 	return _object;
 }
 
 void PageIndex::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "last_modified") {
+		if(_entry.first == "images") {
+			_entry.second.to(images);
+		} else if(_entry.first == "last_modified") {
 			_entry.second.to(last_modified);
 		} else if(_entry.first == "links") {
 			_entry.second.to(links);
@@ -119,11 +126,11 @@ std::shared_ptr<vnx::TypeCode> PageIndex::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.PageIndex";
 	type_code->type_hash = vnx::Hash64(0x4c9c9cf43a382f0ull);
-	type_code->code_hash = vnx::Hash64(0x52ac6c5095033d88ull);
+	type_code->code_hash = vnx::Hash64(0xe86f5bb236054db3ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageIndex>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(3);
+	type_code->fields.resize(4);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.name = "last_modified";
@@ -137,6 +144,12 @@ std::shared_ptr<vnx::TypeCode> PageIndex::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];
+		field.is_extended = true;
+		field.name = "images";
+		field.code = {12, 12, 5};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[3];
 		field.is_extended = true;
 		field.name = "words";
 		field.code = {12, 12, 5};
@@ -175,7 +188,8 @@ void read(TypeInput& in, ::vnx::search::PageIndex& value, const TypeCode* type_c
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 1: vnx::read(in, value.links, type_code, _field->code.data()); break;
-			case 2: vnx::read(in, value.words, type_code, _field->code.data()); break;
+			case 2: vnx::read(in, value.images, type_code, _field->code.data()); break;
+			case 3: vnx::read(in, value.words, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -193,7 +207,8 @@ void write(TypeOutput& out, const ::vnx::search::PageIndex& value, const TypeCod
 	char* const _buf = out.write(8);
 	vnx::write_value(_buf + 0, value.last_modified);
 	vnx::write(out, value.links, type_code, type_code->fields[1].code.data());
-	vnx::write(out, value.words, type_code, type_code->fields[2].code.data());
+	vnx::write(out, value.images, type_code, type_code->fields[2].code.data());
+	vnx::write(out, value.words, type_code, type_code->fields[3].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::PageIndex& value) {

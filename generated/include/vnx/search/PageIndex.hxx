@@ -16,6 +16,7 @@ public:
 	
 	::int64_t last_modified = 0;
 	::std::vector<::std::string> links;
+	::std::vector<::std::string> images;
 	::std::vector<::std::string> words;
 	
 	typedef ::vnx::Value Super;

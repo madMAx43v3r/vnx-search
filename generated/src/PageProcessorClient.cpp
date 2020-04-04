@@ -20,6 +20,24 @@ PageProcessorClient::PageProcessorClient(vnx::Hash64 service_addr)
 {
 }
 
+void PageProcessorClient::handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample) {
+	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
+	vnx::BinaryOutputStream _stream_out(_argument_data.get());
+	vnx::TypeOutput _out(&_stream_out);
+	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_PageProcessor_handle_vnx_search_TextResponse;
+	{
+		vnx::write(_out, sample, _type_code, _type_code->fields[0].code.data());
+	}
+	_out.flush();
+	_argument_data->type_code = _type_code;
+	vnx_request(_argument_data);
+}
+
+void PageProcessorClient::handle_async(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample) {
+	vnx_is_async = true;
+	handle(sample);
+}
+
 
 } // namespace vnx
 } // namespace search

@@ -38,6 +38,8 @@ extern const vnx::TypeCode* const vnx_native_type_code_HttpResponse; ///< \priva
 extern const vnx::TypeCode* const vnx_native_type_code_PageContent; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_PageIndex; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_PageProcessor; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_PageProcessor_handle_vnx_search_TextResponse; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_PageProcessor_handle_vnx_search_TextResponse_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_Response; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_TextResponse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_UrlIndex; ///< \private
