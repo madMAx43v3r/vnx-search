@@ -88,7 +88,7 @@ void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
 	content->text = value->text;
 	
 	try {
-		page_content->store_value(value->url, value);
+		page_content->store_value(value->url, content);
 	}
 	catch(const std::exception& ex) {
 		log(WARN).out << "page_index->store_value(): " << ex.what();
