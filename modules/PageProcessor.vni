@@ -2,10 +2,13 @@ package vnx.search;
 
 module PageProcessor {
 	
-	vnx.TopicPtr input;					// TextResponse
+	vnx.TopicPtr input = "frontend.text_responses";			// TextResponse
 	
-	string page_index_server;
+	string page_index_server = "PageIndex";
 	
-	string page_content_server;
+	string page_content_server = "PageContent";
+	
+	
+	void handle(TextResponse sample);
 	
 }

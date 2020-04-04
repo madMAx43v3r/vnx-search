@@ -2,8 +2,6 @@ package vnx.search;
 
 class PageContent {
 	
-	vector<string> word_index;
-	
-	vector<uint> words;
+	string text;
 	
 }

@@ -6,6 +6,8 @@ class PageIndex {
 	
 	vector<string> links;
 	
+	vector<string> images;
+	
 	vector<string> words;
 	
 }
