@@ -41,13 +41,21 @@ int main(int argc, char** argv)
 		server.start_detached();
 	}
 	{
+		vnx::Handle<vnx::keyvalue::Server> module = new vnx::keyvalue::Server("UrlIndex");
+		module->collection = "url_index";
+		module->update_topic = "backend.url_index.updates";
+		module.start_detached();
+	}
+	{
 		vnx::Handle<vnx::keyvalue::Server> module = new vnx::keyvalue::Server("PageIndex");
 		module->collection = "page_index";
+		module->update_topic = "backend.page_index.updates";
 		module.start_detached();
 	}
 	{
 		vnx::Handle<vnx::keyvalue::Server> module = new vnx::keyvalue::Server("PageContent");
 		module->collection = "page_content";
+		module->update_topic = "backend.page_content.updates";
 		module.start_detached();
 	}
 	{

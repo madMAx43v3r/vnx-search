@@ -21,7 +21,7 @@ HtmlParser::HtmlParser(const std::string& _vnx_name)
 
 void HtmlParser::main()
 {
-	service_pipe = vnx::open_pipe(Hash64::rand(), this, 10 * 1000);
+	service_pipe = vnx::open_pipe(Hash64::rand(), this, max_queue_ms);
 	
 	frontend = std::make_shared<CrawlFrontendClient>(frontend_server);
 	

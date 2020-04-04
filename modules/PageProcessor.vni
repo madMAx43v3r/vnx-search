@@ -8,6 +8,8 @@ module PageProcessor {
 	
 	string page_content_server = "PageContent";
 	
+	int max_queue_ms = 1000;
+	
 	
 	void handle(TextResponse sample);
 	
