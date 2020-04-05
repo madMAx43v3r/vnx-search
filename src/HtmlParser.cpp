@@ -94,7 +94,9 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	auto result = TextResponse::create();
 	result->Response::operator=(*response);
 	
-	xmlDoc* doc = ::htmlReadDoc((xmlChar*)response->payload.data(), 0, 0,
+	const std::string payload((const char*)response->payload.data(), response->payload.size());
+	
+	xmlDoc* doc = ::htmlReadDoc((xmlChar*)payload.data(), 0, 0,
 			HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
 	
 	if(!doc) {
