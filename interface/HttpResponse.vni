@@ -6,6 +6,8 @@ class HttpResponse extends Response {
 	
 	string content_type;
 	
+	string content_charset;
+	
 	vnx.Buffer payload;
 	
 }

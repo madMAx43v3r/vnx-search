@@ -249,6 +249,18 @@ void CrawlFrontend::fetch_loop()
 				bool valid_type = false;
 				auto content_type = response.get_header_value("Content-Type");
 				{
+					auto pos = content_type.find("charset=");
+					if(pos != std::string::npos) {
+						pos += 8;
+						auto end = content_type.find_first_of(';', pos);
+						if(end != std::string::npos) {
+							out->content_charset = content_type.substr(pos, end - pos);
+						} else {
+							out->content_charset = content_type.substr(pos);
+						}
+					}
+				}
+				{
 					auto pos = content_type.find_first_of(';');
 					if(pos != std::string::npos) {
 						content_type = content_type.substr(0, pos);
