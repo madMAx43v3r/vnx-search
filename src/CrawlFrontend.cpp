@@ -184,11 +184,10 @@ void CrawlFrontend::parse_error(Hash64 address, uint64_t request_id, const std::
 void CrawlFrontend::print_stats()
 {
 	const uint64_t fetch_count = fetch_counter;
-	const uint64_t total_error_count = general_fail_counter + invalid_content_type_counter
-			+ invalid_protocol_counter + invalid_response_size_counter + parse_failed_counter;
 	
-	log(INFO).out << 60000 * (fetch_count - last_fetch_count) / stats_interval_ms << " pages/min, "
-			<< fetch_count << " total, "
+	log(INFO).out << (60000 * (fetch_count - last_fetch_count)) / stats_interval_ms << " pages/min, "
+			<< (1000 * (num_bytes_fetched - last_num_bytes_fetched) / 1024) / stats_interval_ms << " KB/s http, "
+			<< (1000 * (num_bytes_parsed - last_num_bytes_parsed) / 1024) / stats_interval_ms << " KB/s text, "
 			<< general_fail_counter << " fetch error, "
 			<< invalid_content_type_counter << " content type, "
 			<< invalid_protocol_counter << " protocol, "
@@ -196,7 +195,8 @@ void CrawlFrontend::print_stats()
 			<< parse_failed_counter << " parse fail";
 	
 	last_fetch_count = fetch_count;
-	last_error_count = total_error_count;
+	last_num_bytes_fetched = num_bytes_fetched;
+	last_num_bytes_parsed = num_bytes_parsed;
 }
 
 void CrawlFrontend::fetch_loop()
@@ -224,7 +224,6 @@ void CrawlFrontend::fetch_loop()
 		out->payload.reserve(1048576);
 		
 		httplib::Headers headers = {
-//				{"Connection", "keep-alive"},
 				{"User-Agent", user_agent},
 				{"Accept-Encoding", "gzip, deflate"}
 		};

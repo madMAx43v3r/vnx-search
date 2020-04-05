@@ -89,7 +89,8 @@ private:
 	mutable uint64_t num_bytes_parsed = 0;
 	
 	uint64_t last_fetch_count = 0;
-	uint64_t last_error_count = 0;
+	uint64_t last_num_bytes_fetched = 0;
+	uint64_t last_num_bytes_parsed = 0;
 	
 };
 
