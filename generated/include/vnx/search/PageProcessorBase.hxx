@@ -19,6 +19,7 @@ public:
 	::vnx::TopicPtr input = "frontend.text_responses";
 	::std::string page_index_server = "PageIndex";
 	::std::string page_content_server = "PageContent";
+	::int32_t max_queue_ms = 1000;
 	
 	typedef ::vnx::Module Super;
 	

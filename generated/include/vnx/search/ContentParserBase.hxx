@@ -16,7 +16,8 @@ namespace search {
 class ContentParserBase : public ::vnx::Module {
 public:
 	
-	::std::string frontend_server;
+	::std::string frontend_server = "CrawlFrontend";
+	::int32_t max_queue_ms = 1000;
 	
 	typedef ::vnx::Module Super;
 	

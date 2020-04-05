@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 UrlIndex::VNX_TYPE_HASH(0xab26319d1802d1b6ull);
-const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0xc675edbbf3f94022ull);
+const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0xadc199b7e4911e00ull);
 
 vnx::Hash64 UrlIndex::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -50,9 +50,10 @@ void UrlIndex::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, content_type);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, last_fetched);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, last_modified);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, http_status);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, fetch_time);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, is_fail);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, fetch_time_us);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, http_status);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, depth);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, is_fail);
 	_visitor.type_end(*_type_code);
 }
 
@@ -61,8 +62,9 @@ void UrlIndex::write(std::ostream& _out) const {
 	_out << "\"content_type\": "; vnx::write(_out, content_type);
 	_out << ", \"last_fetched\": "; vnx::write(_out, last_fetched);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
+	_out << ", \"fetch_time_us\": "; vnx::write(_out, fetch_time_us);
 	_out << ", \"http_status\": "; vnx::write(_out, http_status);
-	_out << ", \"fetch_time\": "; vnx::write(_out, fetch_time);
+	_out << ", \"depth\": "; vnx::write(_out, depth);
 	_out << ", \"is_fail\": "; vnx::write(_out, is_fail);
 	_out << "}";
 }
@@ -73,8 +75,10 @@ void UrlIndex::read(std::istream& _in) {
 	for(const auto& _entry : _object) {
 		if(_entry.first == "content_type") {
 			vnx::from_string(_entry.second, content_type);
-		} else if(_entry.first == "fetch_time") {
-			vnx::from_string(_entry.second, fetch_time);
+		} else if(_entry.first == "depth") {
+			vnx::from_string(_entry.second, depth);
+		} else if(_entry.first == "fetch_time_us") {
+			vnx::from_string(_entry.second, fetch_time_us);
 		} else if(_entry.first == "http_status") {
 			vnx::from_string(_entry.second, http_status);
 		} else if(_entry.first == "is_fail") {
@@ -92,8 +96,9 @@ vnx::Object UrlIndex::to_object() const {
 	_object["content_type"] = content_type;
 	_object["last_fetched"] = last_fetched;
 	_object["last_modified"] = last_modified;
+	_object["fetch_time_us"] = fetch_time_us;
 	_object["http_status"] = http_status;
-	_object["fetch_time"] = fetch_time;
+	_object["depth"] = depth;
 	_object["is_fail"] = is_fail;
 	return _object;
 }
@@ -102,8 +107,10 @@ void UrlIndex::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
 		if(_entry.first == "content_type") {
 			_entry.second.to(content_type);
-		} else if(_entry.first == "fetch_time") {
-			_entry.second.to(fetch_time);
+		} else if(_entry.first == "depth") {
+			_entry.second.to(depth);
+		} else if(_entry.first == "fetch_time_us") {
+			_entry.second.to(fetch_time_us);
 		} else if(_entry.first == "http_status") {
 			_entry.second.to(http_status);
 		} else if(_entry.first == "is_fail") {
@@ -140,11 +147,11 @@ std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.UrlIndex";
 	type_code->type_hash = vnx::Hash64(0xab26319d1802d1b6ull);
-	type_code->code_hash = vnx::Hash64(0xc675edbbf3f94022ull);
+	type_code->code_hash = vnx::Hash64(0xadc199b7e4911e00ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<UrlIndex>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(6);
+	type_code->fields.resize(7);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -154,25 +161,30 @@ std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[1];
 		field.name = "last_fetched";
-		field.code = {3};
+		field.code = {8};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];
 		field.name = "last_modified";
-		field.code = {3};
+		field.code = {8};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[3];
+		field.name = "fetch_time_us";
+		field.code = {8};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[4];
 		field.name = "http_status";
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
-		field.name = "fetch_time";
+		vnx::TypeField& field = type_code->fields[5];
+		field.name = "depth";
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		vnx::TypeField& field = type_code->fields[6];
 		field.name = "is_fail";
 		field.code = {1};
 	}
@@ -215,17 +227,23 @@ void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_co
 		{
 			const vnx::TypeField* const _field = type_code->field_map[3];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.http_status, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.fetch_time_us, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[4];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.fetch_time, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.http_status, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[5];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.depth, _field->code.data());
+			}
+		}
+		{
+			const vnx::TypeField* const _field = type_code->field_map[6];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.is_fail, _field->code.data());
 			}
@@ -248,12 +266,13 @@ void write(TypeOutput& out, const ::vnx::search::UrlIndex& value, const TypeCode
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(17);
+	char* const _buf = out.write(33);
 	vnx::write_value(_buf + 0, value.last_fetched);
-	vnx::write_value(_buf + 4, value.last_modified);
-	vnx::write_value(_buf + 8, value.http_status);
-	vnx::write_value(_buf + 12, value.fetch_time);
-	vnx::write_value(_buf + 16, value.is_fail);
+	vnx::write_value(_buf + 8, value.last_modified);
+	vnx::write_value(_buf + 16, value.fetch_time_us);
+	vnx::write_value(_buf + 24, value.http_status);
+	vnx::write_value(_buf + 28, value.depth);
+	vnx::write_value(_buf + 32, value.is_fail);
 	vnx::write(out, value.content_type, type_code, type_code->fields[0].code.data());
 }
 

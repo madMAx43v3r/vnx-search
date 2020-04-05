@@ -6,6 +6,8 @@
 
 #include <vnx/Client.h>
 #include <vnx/Module.h>
+#include <vnx/TopicPtr.h>
+#include <vnx/keyvalue/KeyValuePair.hxx>
 
 
 namespace vnx {
@@ -16,6 +18,10 @@ public:
 	CrawlProcessorClient(const std::string& service_name);
 	
 	CrawlProcessorClient(vnx::Hash64 service_addr);
+	
+	void handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
+	
+	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
 	
 };
 

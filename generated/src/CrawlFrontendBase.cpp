@@ -384,6 +384,7 @@ std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(vnx::TypeInput& _
 		return _return_value;
 	}
 	auto _ex = vnx::NoSuchMethod::create();
+	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
 	_ex->method = _call_type->name;
 	return _ex;
 }

@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 Response::VNX_TYPE_HASH(0xcf371c90803a778cull);
-const vnx::Hash64 Response::VNX_CODE_HASH(0xaa53e75c3e1e414ull);
+const vnx::Hash64 Response::VNX_CODE_HASH(0xec88b47be45c82c0ull);
 
 vnx::Hash64 Response::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -50,7 +50,7 @@ void Response::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, url);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, date);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, last_modified);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, fetch_time);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, fetch_time_us);
 	_visitor.type_end(*_type_code);
 }
 
@@ -59,7 +59,7 @@ void Response::write(std::ostream& _out) const {
 	_out << "\"url\": "; vnx::write(_out, url);
 	_out << ", \"date\": "; vnx::write(_out, date);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
-	_out << ", \"fetch_time\": "; vnx::write(_out, fetch_time);
+	_out << ", \"fetch_time_us\": "; vnx::write(_out, fetch_time_us);
 	_out << "}";
 }
 
@@ -69,8 +69,8 @@ void Response::read(std::istream& _in) {
 	for(const auto& _entry : _object) {
 		if(_entry.first == "date") {
 			vnx::from_string(_entry.second, date);
-		} else if(_entry.first == "fetch_time") {
-			vnx::from_string(_entry.second, fetch_time);
+		} else if(_entry.first == "fetch_time_us") {
+			vnx::from_string(_entry.second, fetch_time_us);
 		} else if(_entry.first == "last_modified") {
 			vnx::from_string(_entry.second, last_modified);
 		} else if(_entry.first == "url") {
@@ -84,7 +84,7 @@ vnx::Object Response::to_object() const {
 	_object["url"] = url;
 	_object["date"] = date;
 	_object["last_modified"] = last_modified;
-	_object["fetch_time"] = fetch_time;
+	_object["fetch_time_us"] = fetch_time_us;
 	return _object;
 }
 
@@ -92,8 +92,8 @@ void Response::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
 		if(_entry.first == "date") {
 			_entry.second.to(date);
-		} else if(_entry.first == "fetch_time") {
-			_entry.second.to(fetch_time);
+		} else if(_entry.first == "fetch_time_us") {
+			_entry.second.to(fetch_time_us);
 		} else if(_entry.first == "last_modified") {
 			_entry.second.to(last_modified);
 		} else if(_entry.first == "url") {
@@ -126,7 +126,7 @@ std::shared_ptr<vnx::TypeCode> Response::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.Response";
 	type_code->type_hash = vnx::Hash64(0xcf371c90803a778cull);
-	type_code->code_hash = vnx::Hash64(0xaa53e75c3e1e414ull);
+	type_code->code_hash = vnx::Hash64(0xec88b47be45c82c0ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<Response>(); };
 	type_code->methods.resize(0);
@@ -140,17 +140,17 @@ std::shared_ptr<vnx::TypeCode> Response::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[1];
 		field.name = "date";
-		field.code = {3};
+		field.code = {8};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];
 		field.name = "last_modified";
-		field.code = {3};
+		field.code = {8};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[3];
-		field.name = "fetch_time";
-		field.code = {7};
+		field.name = "fetch_time_us";
+		field.code = {8};
 	}
 	type_code->build();
 	return type_code;
@@ -191,7 +191,7 @@ void read(TypeInput& in, ::vnx::search::Response& value, const TypeCode* type_co
 		{
 			const vnx::TypeField* const _field = type_code->field_map[3];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.fetch_time, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.fetch_time_us, _field->code.data());
 			}
 		}
 	}
@@ -212,10 +212,10 @@ void write(TypeOutput& out, const ::vnx::search::Response& value, const TypeCode
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(12);
+	char* const _buf = out.write(24);
 	vnx::write_value(_buf + 0, value.date);
-	vnx::write_value(_buf + 4, value.last_modified);
-	vnx::write_value(_buf + 8, value.fetch_time);
+	vnx::write_value(_buf + 8, value.last_modified);
+	vnx::write_value(_buf + 16, value.fetch_time_us);
 	vnx::write(out, value.url, type_code, type_code->fields[0].code.data());
 }
 

@@ -76,6 +76,9 @@ void ContentParserAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sh
 			}
 		}
 	}
+	else {
+		vnx_purge_request(_request_id);
+	}
 }
 
 

@@ -6,6 +6,8 @@
 
 #include <vnx/search/package.hxx>
 #include <vnx/Module.h>
+#include <vnx/TopicPtr.h>
+#include <vnx/keyvalue/KeyValuePair.hxx>
 
 
 namespace vnx {
@@ -14,8 +16,19 @@ namespace search {
 class CrawlProcessorBase : public ::vnx::Module {
 public:
 	
-	::int32_t max_per_domain = 2;
+	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
+	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
+	::int32_t jump_cost = 3;
+	::int32_t reload_interval = 3600;
+	::int32_t retry_interval = 60;
+	::int32_t max_per_domain = 1;
 	::int32_t max_per_minute = 120;
+	::int32_t max_num_pending = 100;
+	::int32_t update_interval_ms = 100;
+	::int32_t max_queue_ms = 1000;
+	::std::vector<::std::string> root_urls;
+	::std::string url_index_server = "UrlIndex";
+	::std::string crawl_frontend_server = "CrawlFrontend";
 	
 	typedef ::vnx::Module Super;
 	
@@ -43,6 +56,8 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;

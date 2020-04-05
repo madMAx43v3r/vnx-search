@@ -15,9 +15,9 @@ class Response : public ::vnx::Value {
 public:
 	
 	::std::string url;
-	::uint32_t date = 0;
-	::uint32_t last_modified = 0;
-	::int32_t fetch_time = 0;
+	::int64_t date = 0;
+	::int64_t last_modified = 0;
+	::int64_t fetch_time_us = 0;
 	
 	typedef ::vnx::Value Super;
 	

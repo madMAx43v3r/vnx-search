@@ -50,6 +50,8 @@ const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_handle_vnx_search_
 const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_register_parser = vnx::get_type_code(vnx::Hash64(0x4b91d9c8a161bbfdull));
 const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_register_parser_return = vnx::get_type_code(vnx::Hash64(0x8ced9de5e282cceaull));
 const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor = vnx::get_type_code(vnx::Hash64(0x508848d1f9d97d9full));
+const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_handle_vnx_keyvalue_KeyValuePair = vnx::get_type_code(vnx::Hash64(0x197f24cf8e40d6aull));
+const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_handle_vnx_keyvalue_KeyValuePair_return = vnx::get_type_code(vnx::Hash64(0x5468ec5275268163ull));
 const vnx::TypeCode* const vnx_native_type_code_HttpResponse = vnx::get_type_code(vnx::Hash64(0xd6552db423d70e21ull));
 const vnx::TypeCode* const vnx_native_type_code_PageContent = vnx::get_type_code(vnx::Hash64(0x4cd00be0870fbe22ull));
 const vnx::TypeCode* const vnx_native_type_code_PageIndex = vnx::get_type_code(vnx::Hash64(0x4c9c9cf43a382f0ull));

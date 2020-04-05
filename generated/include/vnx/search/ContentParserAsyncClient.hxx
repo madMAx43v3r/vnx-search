@@ -19,7 +19,8 @@ public:
 	
 	ContentParserAsyncClient(vnx::Hash64 service_addr);
 	
-	uint64_t parse(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::function<void(::std::shared_ptr<const ::vnx::search::TextResponse>)>& _callback = std::function<void(::std::shared_ptr<const ::vnx::search::TextResponse>)>());
+	uint64_t parse(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& response, 
+			const std::function<void(::std::shared_ptr<const ::vnx::search::TextResponse>)>& _callback = std::function<void(::std::shared_ptr<const ::vnx::search::TextResponse>)>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	

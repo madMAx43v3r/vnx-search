@@ -19,7 +19,8 @@ public:
 	
 	PageProcessorAsyncClient(vnx::Hash64 service_addr);
 	
-	uint64_t handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample, const std::function<void()>& _callback = std::function<void()>());
+	uint64_t handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample, 
+			const std::function<void()>& _callback = std::function<void()>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	

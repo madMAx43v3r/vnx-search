@@ -7,6 +7,7 @@
 #include <vnx/Type.h>
 
 #include <vnx/package.hxx>
+#include <vnx/keyvalue/package.hxx>
 
 
 namespace vnx {
@@ -34,6 +35,8 @@ extern const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_handle_vnx_
 extern const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_register_parser; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_register_parser_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_handle_vnx_keyvalue_KeyValuePair; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_handle_vnx_keyvalue_KeyValuePair_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_HttpResponse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_PageContent; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_PageIndex; ///< \private
