@@ -18,6 +18,8 @@ module CrawlFrontend {
 	
 	string crawl_processor_server = "CrawlProcessor";
 	
+	string user_agent = "Mozilla/5.0";
+	
 	
 	UrlIndex* fetch(string url) const async;
 	

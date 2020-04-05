@@ -44,13 +44,24 @@ protected:
 private:
 	struct request_t {
 		std::string url;
+		std::string protocol;
+		std::string host;
 		std::string path;
-		std::shared_ptr<httplib::Client> client;
+		int port = 0;
 		std::vector<std::string> accept_content;
+		vnx::request_id_t request_id;
 		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;
 	};
 	
+	struct parser_t {
+		Hash64 address;
+		std::set<std::string> content_types;
+		std::shared_ptr<ContentParserAsyncClient> client;
+	};
+	
 	void parse_callback(std::shared_ptr<const TextResponse> value);
+	
+	void parse_error(Hash64 address, uint64_t request_id, const std::exception& ex);
 	
 	void print_stats();
 	
@@ -65,16 +76,14 @@ private:
 	
 	mutable std::queue<std::shared_ptr<request_t>> work_queue;
 	
-	mutable std::map<std::string, std::vector<std::shared_ptr<httplib::Client>>> http_clients;
-	mutable std::map<std::string, std::vector<std::shared_ptr<httplib::SSLClient>>> https_clients;
-	
-	std::map<std::string, std::map<Hash64, std::shared_ptr<ContentParserAsyncClient>>> parser_map;
+	std::map<Hash64, parser_t> parser_map;
 	
 	mutable std::atomic<uint64_t> fetch_counter;
 	mutable std::atomic<uint64_t> general_fail_counter;
 	mutable std::atomic<uint64_t> invalid_protocol_counter;
 	mutable std::atomic<uint64_t> invalid_content_type_counter;
 	mutable std::atomic<uint64_t> invalid_response_size_counter;
+	mutable std::atomic<uint64_t> parse_failed_counter;
 	
 	mutable uint64_t num_bytes_fetched = 0;
 	mutable uint64_t num_bytes_parsed = 0;

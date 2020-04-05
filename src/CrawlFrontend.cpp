@@ -85,53 +85,22 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 	
 	log(DEBUG).out << "Fetching '" << protocol << "://" << host << path << "' (port " << port << ")";
 	
-	std::shared_ptr<httplib::Client> client;
-	
-	if(protocol == "http") {
-		auto& list = http_clients[host];
-		for(const auto& client_ : list) {
-			if(client_.use_count() == 1) {
-				client = client_;
-				break;
-			}
-		}
-		if(!client) {
-			client = std::make_shared<httplib::Client>(host, port > 0 ? port : 80);
-			list.push_back(client);
-		}
-	}
-	else if(protocol == "https") {
-		auto& list = https_clients[host];
-		for(const auto& client_ : list) {
-			if(client_.use_count() == 1) {
-				client = client_;
-				break;
-			}
-		}
-		if(!client) {
-			auto ssl_client = std::make_shared<httplib::SSLClient>(host, port > 0 ? port : 443);
-			ssl_client->enable_server_certificate_verification(false);
-			list.push_back(ssl_client);
-			client = ssl_client;
-		}
-	}
-	else {
-		invalid_protocol_counter++;
-		throw std::logic_error("unsupported protocol: " + protocol);
-	}
-	
-	client->set_follow_location(true);
-	client->set_timeout_sec(response_timeout_ms / 1000);
-	
 	auto request = std::make_shared<request_t>();
 	request->url = url;
+	request->protocol = protocol;
+	request->host = host;
 	request->path = path;
-	request->client = client;
-	for(const auto& entry : parser_map) {
-		if(!entry.second.empty()) {
-			request->accept_content.push_back(entry.first);
+	request->port = port;
+	{
+		std::set<std::string> mime_types;
+		for(const auto& entry : parser_map) {
+			mime_types.insert(entry.second.content_types.begin(), entry.second.content_types.end());
+		}
+		for(const auto& type : mime_types) {
+			request->accept_content.push_back(type);
 		}
 	}
+	request->request_id = _request_id;
 	request->callback = _callback;
 	{
 		std::lock_guard<std::mutex> lock(mutex);
@@ -144,11 +113,14 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 									const std::vector<std::string>& mime_types,
 									const int32_t& num_threads)
 {
-	for(auto type : mime_types) {
-		auto& client = parser_map[type][address];
-		if(!client) {
-			client = std::make_shared<ContentParserAsyncClient>(address);
-			add_async_client(client);
+	auto& entry = parser_map[address];
+	if(!entry.client) {
+		entry.address = address;
+		entry.client = std::make_shared<ContentParserAsyncClient>(address);
+		entry.client->vnx_set_error_callback(std::bind(&CrawlFrontend::parse_error, this, address, std::placeholders::_1, std::placeholders::_2));
+		add_async_client(entry.client);
+		for(auto type : mime_types) {
+			entry.content_types.insert(type);
 			log(INFO).out << "Got a '" << type << "' parser with " << num_threads << " threads";
 		}
 	}
@@ -162,29 +134,28 @@ void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 	bool parse_ok = false;
 	uint64_t parse_id = 0;
 	
-	auto iter = parser_map.find(value->content_type);
-	if(iter != parser_map.end())
+	// TODO: proper load balancing
+	for(auto iter = parser_map.begin(); iter != parser_map.end();)
 	{
-		// TODO: proper load balancing
-		std::vector<Hash64> failed_parsers;
-		for(const auto& parser : iter->second) {
+		const auto& parser = iter->second;
+		if(parser.content_types.count(value->content_type)) {
 			try {
-				parse_id = parser.second->parse(value,
+				parse_id = parser.client->parse(value,
 						std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
 				parse_ok = true;
 				break;
 			}
 			catch(const std::exception& ex) {
-				failed_parsers.push_back(parser.first);
-				log(WARN).out << ex.what();
+				log(WARN).out << "parse(): " << ex.what();
 			}
-		}
-		for(auto addr : failed_parsers) {
-			iter->second.erase(addr);
+			rem_async_client(parser.client);
+			iter = parser_map.erase(iter);
+		} else {
+			iter++;
 		}
 	}
 	if(!parse_ok) {
-		log(WARN).out << "Cannot parse content type: " << value->content_type;
+		log(WARN).out << "Cannot parse content type: '" << value->content_type << "'";
 	}
 	num_bytes_fetched += value->payload.size();
 }
@@ -198,14 +169,31 @@ void CrawlFrontend::parse_callback(std::shared_ptr<const TextResponse> value)
 	num_bytes_parsed += value->text.size();
 }
 
+void CrawlFrontend::parse_error(Hash64 address, uint64_t request_id, const std::exception& ex)
+{
+	// check error and remove parser if connection error
+	auto vnx_except = dynamic_cast<const vnx::exception*>(&ex);
+	if(vnx_except) {
+		if(std::dynamic_pointer_cast<const NoSuchService>(vnx_except->value())) {
+			parser_map.erase(address);
+		}
+	}
+	parse_failed_counter++;
+}
+
 void CrawlFrontend::print_stats()
 {
 	const uint64_t fetch_count = fetch_counter;
 	const uint64_t total_error_count = general_fail_counter + invalid_content_type_counter
-			+ invalid_protocol_counter + invalid_response_size_counter;
+			+ invalid_protocol_counter + invalid_response_size_counter + parse_failed_counter;
 	
 	log(INFO).out << 60000 * (fetch_count - last_fetch_count) / stats_interval_ms << " pages/min, "
-			<< 60000 * (total_error_count - last_error_count) / stats_interval_ms << " errors/min";
+			<< 60000 * (total_error_count - last_error_count) / stats_interval_ms << " errors/min, "
+			<< general_fail_counter << " fetch error, "
+			<< invalid_content_type_counter << " invalid content type, "
+			<< invalid_protocol_counter << " invalid protocol, "
+			<< invalid_response_size_counter << " invalid response size, "
+			<< parse_failed_counter << " parse fail";
 	
 	last_fetch_count = fetch_count;
 	last_error_count = total_error_count;
@@ -236,8 +224,8 @@ void CrawlFrontend::fetch_loop()
 		out->payload.reserve(1048576);
 		
 		httplib::Headers headers = {
-				{"Connection", "keep-alive"},
-				{"User-Agent", "Mozilla/5.0"},
+//				{"Connection", "keep-alive"},
+				{"User-Agent", user_agent},
 				{"Accept-Encoding", "gzip, deflate"}
 		};
 		{
@@ -302,10 +290,35 @@ void CrawlFrontend::fetch_loop()
 		index->last_fetched = std::time(0);
 		index->is_fail = true;
 		
+		std::shared_ptr<httplib::Client> client;
+		
+		if(request->protocol == "http") {
+			if(!client) {
+				client = std::make_shared<httplib::Client>(request->host, request->port > 0 ? request->port : 80);
+			}
+		}
+		else if(request->protocol == "https") {
+			if(!client) {
+				auto ssl_client = std::make_shared<httplib::SSLClient>(request->host, request->port > 0 ? request->port : 443);
+				ssl_client->enable_server_certificate_verification(false);
+				client = ssl_client;
+			}
+		}
+		else {
+			invalid_protocol_counter++;
+			auto ex = InternalError::create();
+			ex->what = "unsupported protocol: '" + request->protocol + "'";
+			vnx_async_return(request->request_id, ex);
+			continue;
+		}
+		
+		client->set_follow_location(true);
+		client->set_timeout_sec(response_timeout_ms / 1000);
+		
 		try {
 			const auto fetch_start = vnx::get_wall_time_micros();
 			
-			auto response = request->client->Get(request->path.c_str(), headers, response_handler, content_receiver);
+			auto response = client->Get(request->path.c_str(), headers, response_handler, content_receiver);
 			
 			const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
 			
@@ -346,7 +359,6 @@ void CrawlFrontend::fetch_loop()
 		index->last_modified = out->last_modified;
 		
 		request->callback(index);
-		request = 0;
 	}
 }
 
