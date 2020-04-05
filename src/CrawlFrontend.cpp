@@ -156,8 +156,8 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 
 void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 {
-	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_time/1000
-			<< " ms (" << float(value->payload.size() / (value->fetch_time * 1e-6f) / 1024.) << " KB/s)";
+	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_time_us/1000
+			<< " ms (" << float(value->payload.size() / (value->fetch_time_us * 1e-6f) / 1024.) << " KB/s)";
 	
 	bool parse_ok = false;
 	uint64_t parse_id = 0;
@@ -307,17 +307,17 @@ void CrawlFrontend::fetch_loop()
 			
 			auto response = request->client->Get(request->path.c_str(), headers, response_handler, content_receiver);
 			
-			const auto fetch_time = int32_t(vnx::get_wall_time_micros() - fetch_start);
+			const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
 			
 			if(response) {
 				index->http_status = response->status;
-				index->fetch_time = fetch_time;
+				index->fetch_time_us = fetch_time;
 			}
 			
 			if(response && response->status == 200)
 			{
 				out->status = response->status;
-				out->fetch_time = fetch_time;
+				out->fetch_time_us = fetch_time;
 				
 				if(response->has_header("Date")) {
 					out->date = parse_http_date(response->get_header_value("Date"));
@@ -327,7 +327,7 @@ void CrawlFrontend::fetch_loop()
 				if(response->has_header("Last-Modified")) {
 					out->last_modified = parse_http_date(response->get_header_value("Last-Modified"));
 				} else {
-					out->last_modified = index->last_fetched;
+					out->last_modified = out->date;
 				}
 				publish(out, output_http, Message::BLOCKING);
 				

@@ -132,7 +132,6 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	result->links = get_unique(result->links);
 	result->images = get_unique(result->images);
 	
-	log(INFO).out << *result;
 	return result;
 }
 

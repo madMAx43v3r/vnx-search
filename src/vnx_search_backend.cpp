@@ -7,6 +7,7 @@
 
 #include <vnx/keyvalue/Server.h>
 #include <vnx/search/PageProcessor.h>
+#include <vnx/search/CrawlProcessor.h>
 
 #include <vnx/Config.h>
 #include <vnx/Process.h>
@@ -60,6 +61,10 @@ int main(int argc, char** argv)
 	}
 	{
 		vnx::Handle<vnx::search::PageProcessor> module = new vnx::search::PageProcessor("PageProcessor");
+		module.start_detached();
+	}
+	{
+		vnx::Handle<vnx::search::CrawlProcessor> module = new vnx::search::CrawlProcessor("CrawlProcessor");
 		module.start_detached();
 	}
 	

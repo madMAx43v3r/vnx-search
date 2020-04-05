@@ -41,13 +41,6 @@ int main(int argc, char** argv)
 		module.start_detached();
 	}
 	
-	// test
-	vnx::search::CrawlFrontendClient client("CrawlFrontend");
-	
-	::usleep(2000 * 1000);
-	client.fetch("https://example.com/");
-	client.fetch("https://google.de/");
-	
 	vnx::wait();
 }
 

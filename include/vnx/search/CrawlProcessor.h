@@ -11,6 +11,8 @@
 #include <vnx/search/CrawlProcessorBase.hxx>
 #include <vnx/search/UrlIndex.hxx>
 #include <vnx/search/PageIndex.hxx>
+#include <vnx/search/CrawlFrontendAsyncClient.hxx>
+
 #include <vnx/keyvalue/ServerClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
 
@@ -24,12 +26,14 @@ public:
 	
 protected:
 	struct url_t {
+		std::string domain;
+		uint64_t request_id = -1;
 		int depth = 0;
 	};
 	
 	struct domain_t {
+		int64_t last_fetch_us = 0;			// [usec]
 		int num_pending = 0;
-		int64_t last_fetch = 0;
 	};
 	
 	void main() override;
@@ -37,7 +41,7 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::KeyValuePair> value) override;
 	
 private:
-	void enqueue(const std::string& url, int depth, uint32_t load_time = 0);
+	void enqueue(const std::string& url, int depth, int64_t load_time = 0);
 	
 	void check_queue();
 	
@@ -47,15 +51,19 @@ private:
 	
 	void check_page(const std::string& url, int depth, std::shared_ptr<const PageIndex> index);
 	
-	void url_fetched(const std::string& url, int depth, uint64_t req_id, std::shared_ptr<const UrlIndex> index);
+	url_t url_fetch_done(const std::string& url);
 	
-	void url_fetch_error(uint64_t req_id, const std::exception& ex);
+	void url_fetch_callback(const std::string& url, int depth, std::shared_ptr<const UrlIndex> index);
 	
-	void url_index_error(uint64_t req_id, const std::exception& ex);
+	void url_fetch_error(uint64_t request_id, const std::exception& ex);
+	
+	void url_index_error(uint64_t request_id, const std::exception& ex);
+	
+	void print_stats();
 	
 private:
 	std::multimap<int, std::string> queue;
-	std::multimap<uint32_t, std::string> waiting;
+	std::multimap<int64_t, std::string> waiting;
 	
 	std::map<std::string, url_t> url_map;
 	std::map<std::string, domain_t> domain_map;
@@ -64,6 +72,9 @@ private:
 	
 	std::shared_ptr<keyvalue::ServerClient> url_index;
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
+	std::shared_ptr<CrawlFrontendAsyncClient> crawl_frontend_async;
+	
+	uint64_t fetch_counter = 0;
 	
 };
 

@@ -26,12 +26,28 @@ void CrawlProcessor::main()
 	
 	url_index = std::make_shared<keyvalue::ServerClient>(url_index_server);
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
+	crawl_frontend_async = std::make_shared<CrawlFrontendAsyncClient>(crawl_frontend_server);
 	
 	url_index_async->vnx_set_error_callback(std::bind(&CrawlProcessor::url_index_error, this, std::placeholders::_1, std::placeholders::_2));
+	crawl_frontend_async->vnx_set_error_callback(std::bind(&CrawlProcessor::url_fetch_error, this, std::placeholders::_1, std::placeholders::_2));
 	
 	add_async_client(url_index_async);
+	add_async_client(crawl_frontend_async);
 	
+	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
 	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
+	
+	for(const auto& url : root_urls)
+	{
+		Url::Url parsed(url);
+		parsed.defrag();
+		parsed.remove_default_port();
+		if(parsed.scheme().empty()) {
+			parsed.setScheme("https");
+		}
+		parsed.abspath();
+		enqueue(parsed.str(), 0);
+	}
 	
 	Super::main();
 }
@@ -66,31 +82,79 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	}
 }
 
-void CrawlProcessor::enqueue(const std::string& url, int depth, uint32_t load_time)
-{
-	const int64_t delta = int64_t(load_time) - int64_t(std::time(0));
-	if(delta < 0) {
-		queue.emplace(depth, url);
-	} else {
-		waiting.emplace(load_time, url);
-	}
-	url_t& map_ = url_map[url];
-	map_.depth = depth;
-}
-
-void CrawlProcessor::check_queue()
-{
-	// TODO
-}
-
-void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
+void CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
 {
 	if(url_map.find(url) != url_map.end()) {
 		return;
 	}
+	const auto delta = load_time - std::time(0);
+	if(delta <= 0) {
+		queue.emplace(depth, url);
+	} else if(delta < reload_interval) {
+		waiting.emplace(load_time, url);
+	} else {
+		return;
+	}
+	const Url::Url parsed(url);
+	url_t& entry = url_map[url];
+	entry.domain = parsed.host();
+	entry.depth = depth;
+}
+
+void CrawlProcessor::check_queue()
+{
+	const int64_t now_posix = std::time(0);
+	const int64_t now_wall = vnx::get_wall_time_micros();
+	
+	while(!waiting.empty())
+	{
+		const auto entry = waiting.begin();
+		if(entry->first <= now_posix) {
+			queue.emplace(url_map[entry->second].depth, entry->second);
+			waiting.erase(entry);
+		} else {
+			break;
+		}
+	}
+	
+	for(auto iter = queue.begin(); iter != queue.end();)
+	{
+		if(pending_urls.size() >= max_num_pending) {
+			break;
+		}
+		
+		url_t& url = url_map[iter->second];
+		domain_t& domain = domain_map[url.domain];
+		
+		if(domain.num_pending < max_per_domain
+				&& now_wall - domain.last_fetch_us > int64_t(60 * 1000 * 1000) / max_per_minute)
+		{
+			try {
+				url.request_id = crawl_frontend_async->fetch(iter->second,
+						std::bind(&CrawlProcessor::url_fetch_callback, this, iter->second, url.depth, std::placeholders::_1));
+				
+				pending_urls.emplace(url.request_id, iter->second);
+				
+				domain.num_pending++;
+				domain.last_fetch_us = now_wall;
+				fetch_counter++;
+			}
+			catch(...) {
+				break;
+			}
+			iter = queue.erase(iter);
+		}
+		else {
+			iter++;
+		}
+	}
+}
+
+void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
+{
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
 	if(index) {
-		const uint32_t load_time = index->last_fetched + uint32_t(depth * reload_interval);
+		const int64_t load_time = index->last_fetched + (depth + 1) * reload_interval;
 		enqueue(url, depth, load_time);
 	} else {
 		enqueue(url, depth);
@@ -141,35 +205,72 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 	
 }
 
-void CrawlProcessor::url_fetched(const std::string& url, int depth, uint64_t req_id, std::shared_ptr<const UrlIndex> index)
+CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url)
 {
-	auto copy = vnx::clone(index);
-	copy->depth = depth;
-	
+	const auto entry = url_map[url];
+	domain_map[entry.domain].num_pending--;
+	pending_urls.erase(entry.request_id);
 	url_map.erase(url);
-	pending_urls.erase(req_id);
-	
-	try {
-		url_index_async->store_value(url, copy);
-	}
-	catch(const std::exception& ex) {
-		log(WARN).out << "UrlIndex: " << ex.what();
-	}
+	return entry;
 }
 
-void CrawlProcessor::url_fetch_error(uint64_t req_id, const std::exception& ex)
+void CrawlProcessor::url_fetch_callback(const std::string& url, int depth, std::shared_ptr<const UrlIndex> index)
 {
-	auto iter = pending_urls.find(req_id);
-	if(iter != pending_urls.end()) {
-		url_map.erase(iter->second);
-		pending_urls.erase(req_id);
+	url_fetch_done(url);
+	
+	if(index) {
+		auto copy = vnx::clone(index);
+		copy->depth = depth;
+		try {
+			url_index_async->store_value(url, copy);
+		}
+		catch(const std::exception& ex) {
+			log(WARN).out << "UrlIndex: " << ex.what();
+		}
 	}
-	log(WARN).out << "fetch(): " << ex.what();
 }
 
-void CrawlProcessor::url_index_error(uint64_t req_id, const std::exception& ex)
+void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& ex)
+{
+	auto iter = pending_urls.find(request_id);
+	if(iter != pending_urls.end())
+	{
+		const auto url = iter->second;
+		const auto entry = url_fetch_done(url);
+		
+		log(WARN).out << "fetch('" << url << "'): " << ex.what();
+		
+		auto vnx_except = dynamic_cast<const vnx::exception*>(&ex);
+		if(vnx_except) {
+			if(std::dynamic_pointer_cast<const NoSuchService>(vnx_except->value())) {
+				enqueue(url, entry.depth, std::time(0) + retry_interval);
+			} else {
+				try {
+					auto index = vnx::clone(std::dynamic_pointer_cast<const UrlIndex>(url_index->get_value(url)));
+					if(!index) {
+						index = UrlIndex::create();
+						index->depth = entry.depth;
+					}
+					index->last_fetched = std::time(0);
+					index->is_fail = true;
+					url_index_async->store_value(url, index);
+				}
+				catch(const std::exception& ex) {
+					log(WARN).out << "UrlIndex: " << ex.what();
+				}
+			}
+		}
+	}
+}
+
+void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& ex)
 {
 	log(WARN).out << "UrlIndex: " << ex.what();
+}
+
+void CrawlProcessor::print_stats()
+{
+	log(INFO).out << queue.size() << " queued, " << waiting.size() << " waiting, " << fetch_counter << " fetched";
 }
 
 

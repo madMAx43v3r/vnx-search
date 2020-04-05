@@ -4,13 +4,13 @@ class UrlIndex {
 	
 	string content_type;			// mime type
 	
-	uint last_fetched;				// posix timestamp [sec]
+	long last_fetched;				// posix timestamp [sec]
 	
-	uint last_modified;				// posix timestamp [sec]
+	long last_modified;				// posix timestamp [sec]
+	
+	long fetch_time_us;				// [usec]
 	
 	int http_status;
-	
-	int fetch_time;					// [usec]
 	
 	int depth;
 	
