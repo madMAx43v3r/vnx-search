@@ -137,7 +137,6 @@ void CrawlProcessor::check_queue()
 				
 				domain.num_pending++;
 				domain.last_fetch_us = now_wall;
-				fetch_counter++;
 			}
 			catch(const std::exception& ex) {
 				break;
@@ -228,6 +227,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, int depth, std::
 			log(WARN).out << "UrlIndex: " << ex.what();
 		}
 	}
+	fetch_counter++;
 }
 
 void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& ex)
