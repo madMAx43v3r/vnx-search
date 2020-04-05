@@ -188,11 +188,11 @@ void CrawlFrontend::print_stats()
 			+ invalid_protocol_counter + invalid_response_size_counter + parse_failed_counter;
 	
 	log(INFO).out << 60000 * (fetch_count - last_fetch_count) / stats_interval_ms << " pages/min, "
-			<< 60000 * (total_error_count - last_error_count) / stats_interval_ms << " errors/min, "
+			<< fetch_count << " total, "
 			<< general_fail_counter << " fetch error, "
-			<< invalid_content_type_counter << " invalid content type, "
-			<< invalid_protocol_counter << " invalid protocol, "
-			<< invalid_response_size_counter << " invalid response size, "
+			<< invalid_content_type_counter << " content type, "
+			<< invalid_protocol_counter << " protocol, "
+			<< invalid_response_size_counter << " response size, "
 			<< parse_failed_counter << " parse fail";
 	
 	last_fetch_count = fetch_count;
