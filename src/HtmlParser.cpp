@@ -53,17 +53,15 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	auto element = dynamic_cast<const xmlpp::Element*>(node);
 	if(element) {
 		if(node->get_name() == "a") {
-			for(auto attribute : element->get_attributes()) {
-				if(attribute->get_name() == "href") {
-					result->links.push_back(attribute->get_value());
-				}
+			const auto href = element->get_attribute("href");
+			if(href) {
+				result->links.push_back(href->get_value());
 			}
 		}
 		if(node->get_name() == "img") {
-			for(auto attribute : element->get_attributes()) {
-				if(attribute->get_name() == "src") {
-					result->images.push_back(attribute->get_value());
-				}
+			const auto src = element->get_attribute("src");
+			if(src) {
+				result->images.push_back(src->get_value());
 			}
 		}
 	}
@@ -99,14 +97,19 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	xmlDoc* doc = ::htmlReadDoc((xmlChar*)response->payload.data(), 0, 0,
 			HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
 	
-	xmlpp::Element* root = new xmlpp::Element(::xmlDocGetRootElement(doc));
+	xmlpp::Document* doc_pp = new xmlpp::Document(doc);
+	xmlpp::Element* root = doc_pp->get_root_node();
+	
+	if(!root) {
+		return result;
+	}
 	
 	auto meta = root->find("//head/meta");
 	for(auto node : meta) {
 		auto element = dynamic_cast<const xmlpp::Element*>(node);
 		if(element) {
 			if(element->get_attribute_value("http-equiv") == "Refresh") {
-				auto content = std::string(element->get_attribute_value("content"));
+				const std::string content = element->get_attribute_value("content");
 				auto pos = content.find_first_of("url=");
 				if(pos != std::string::npos) {
 					result->links.push_back(content.substr(pos + 4));
@@ -126,8 +129,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 		parse_node(body[0], result);
 	}
 	
-	delete root;
-	xmlFreeDoc(doc);
+	delete doc_pp;
 	
 	result->links = get_unique(result->links);
 	result->images = get_unique(result->images);

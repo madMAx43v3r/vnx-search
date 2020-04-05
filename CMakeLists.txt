@@ -3,11 +3,17 @@ project(vnx-search)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -pthread")
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBXMLPP REQUIRED libxml++-2.6)
+find_package(PkgConfig)
+find_package(LibXml2)
+
+pkg_check_modules(PC_GLIBMM glibmm-2.4)
 
 file(GLOB GENERATED_SOURCE_FILES generated/src/*.cpp)
 file(GLOB URL_CPP_SOURCE_FILES lib/url-cpp/src/*.cpp)
+
+add_library(xmlpp SHARED IMPORTED GLOBAL)
+set_target_properties(xmlpp PROPERTIES
+	IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/libxmlplusplus/libxml++/.libs/libxml++-2.6.so)
 
 add_library(vnx_search SHARED
 	${GENERATED_SOURCE_FILES}
@@ -25,9 +31,17 @@ target_include_directories(vnx_search
 	PRIVATE
 		lib/cpp-httplib
 		lib/url-cpp/include
-		${LIBXMLPP_INCLUDE_DIRS}
+		lib/libxmlplusplus
+		${LIBXML2_INCLUDE_DIRS}
+		${PC_GLIBMM_INCLUDE_DIRS}
 )
-target_link_libraries(vnx_search vnx_keyvalue vnx_base ${LIBXMLPP_LIBRARIES} ssl crypto z)
+target_link_libraries(vnx_search
+	vnx_keyvalue vnx_base
+	xmlpp
+	${LIBXML2_LIBRARIES}
+	${PC_GLIBMM_LIBRARIES}
+	ssl crypto z
+)
 
 add_executable(vnx_search_frontend src/vnx_search_frontend.cpp)
 target_link_libraries(vnx_search_frontend vnx_search)

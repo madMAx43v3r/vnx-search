@@ -1,5 +1,5 @@
 # vnx-search
 
 # Dependencies
-libz libssl libcrypto libxml++2.6-dev libicu-dev
+libz libssl libcrypto libicu-dev libxml2-dev libglibmm-2.4-dev mm-common
 
