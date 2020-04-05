@@ -139,7 +139,7 @@ void CrawlProcessor::check_queue()
 				domain.last_fetch_us = now_wall;
 				fetch_counter++;
 			}
-			catch(...) {
+			catch(const std::exception& ex) {
 				break;
 			}
 			iter = queue.erase(iter);
