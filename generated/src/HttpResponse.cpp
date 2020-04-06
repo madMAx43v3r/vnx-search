@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 HttpResponse::VNX_TYPE_HASH(0xd6552db423d70e21ull);
-const vnx::Hash64 HttpResponse::VNX_CODE_HASH(0xc4be4639438a28ccull);
+const vnx::Hash64 HttpResponse::VNX_CODE_HASH(0xd880900dd84f2152ull);
 
 vnx::Hash64 HttpResponse::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -53,7 +53,8 @@ void HttpResponse::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, fetch_time_us);
 	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, status);
 	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, content_type);
-	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, payload);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, content_charset);
+	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, payload);
 	_visitor.type_end(*_type_code);
 }
 
@@ -65,6 +66,7 @@ void HttpResponse::write(std::ostream& _out) const {
 	_out << ", \"fetch_time_us\": "; vnx::write(_out, fetch_time_us);
 	_out << ", \"status\": "; vnx::write(_out, status);
 	_out << ", \"content_type\": "; vnx::write(_out, content_type);
+	_out << ", \"content_charset\": "; vnx::write(_out, content_charset);
 	_out << ", \"payload\": "; vnx::write(_out, payload);
 	_out << "}";
 }
@@ -73,7 +75,9 @@ void HttpResponse::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "content_type") {
+		if(_entry.first == "content_charset") {
+			vnx::from_string(_entry.second, content_charset);
+		} else if(_entry.first == "content_type") {
 			vnx::from_string(_entry.second, content_type);
 		} else if(_entry.first == "date") {
 			vnx::from_string(_entry.second, date);
@@ -99,13 +103,16 @@ vnx::Object HttpResponse::to_object() const {
 	_object["fetch_time_us"] = fetch_time_us;
 	_object["status"] = status;
 	_object["content_type"] = content_type;
+	_object["content_charset"] = content_charset;
 	_object["payload"] = payload;
 	return _object;
 }
 
 void HttpResponse::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "content_type") {
+		if(_entry.first == "content_charset") {
+			_entry.second.to(content_charset);
+		} else if(_entry.first == "content_type") {
 			_entry.second.to(content_type);
 		} else if(_entry.first == "date") {
 			_entry.second.to(date);
@@ -147,13 +154,13 @@ std::shared_ptr<vnx::TypeCode> HttpResponse::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.HttpResponse";
 	type_code->type_hash = vnx::Hash64(0xd6552db423d70e21ull);
-	type_code->code_hash = vnx::Hash64(0xc4be4639438a28ccull);
+	type_code->code_hash = vnx::Hash64(0xd880900dd84f2152ull);
 	type_code->is_class = true;
 	type_code->parents.resize(1);
 	type_code->parents[0] = ::vnx::search::Response::static_get_type_code();
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<HttpResponse>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(7);
+	type_code->fields.resize(8);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -189,6 +196,12 @@ std::shared_ptr<vnx::TypeCode> HttpResponse::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
+		field.is_extended = true;
+		field.name = "content_charset";
+		field.code = {12, 5};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[7];
 		field.is_extended = true;
 		field.name = "payload";
 		field.code = {12, 1};
@@ -246,7 +259,8 @@ void read(TypeInput& in, ::vnx::search::HttpResponse& value, const TypeCode* typ
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.url, type_code, _field->code.data()); break;
 			case 5: vnx::read(in, value.content_type, type_code, _field->code.data()); break;
-			case 6: vnx::read(in, value.payload, type_code, _field->code.data()); break;
+			case 6: vnx::read(in, value.content_charset, type_code, _field->code.data()); break;
+			case 7: vnx::read(in, value.payload, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -268,7 +282,8 @@ void write(TypeOutput& out, const ::vnx::search::HttpResponse& value, const Type
 	vnx::write_value(_buf + 24, value.status);
 	vnx::write(out, value.url, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.content_type, type_code, type_code->fields[5].code.data());
-	vnx::write(out, value.payload, type_code, type_code->fields[6].code.data());
+	vnx::write(out, value.content_charset, type_code, type_code->fields[6].code.data());
+	vnx::write(out, value.payload, type_code, type_code->fields[7].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::HttpResponse& value) {
