@@ -10,7 +10,7 @@ module CrawlProcessor {
 	
 	int reload_interval = 100000;		// [seconds / (depth + 1)]
 	
-	int retry_interval = 60;			// [sec]
+	int sync_interval = 1800;			// checking all urls [sec]
 	
 	int max_per_domain = 1;
 	

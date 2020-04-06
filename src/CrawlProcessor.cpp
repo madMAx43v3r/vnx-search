@@ -38,7 +38,7 @@ void CrawlProcessor::main()
 	
 	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
 	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
-	set_timer_millis(reload_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
+	set_timer_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
 	for(const auto& url : root_urls)
 	{
@@ -95,7 +95,7 @@ void CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
 		queue.emplace(depth, url);
-	} else if(delta < reload_interval) {
+	} else if(delta < 2 * sync_interval) {
 		waiting.emplace(load_time, url);
 	} else {
 		return;
