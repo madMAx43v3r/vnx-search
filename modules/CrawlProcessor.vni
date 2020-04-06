@@ -8,7 +8,7 @@ module CrawlProcessor {
 	
 	int jump_cost = 3;
 	
-	int reload_interval = 3600;			// [seconds / (depth + 1)]
+	int reload_interval = 100000;		// [seconds / (depth + 1)]
 	
 	int retry_interval = 60;			// [sec]
 	

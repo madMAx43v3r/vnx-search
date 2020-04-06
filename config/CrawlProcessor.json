@@ -1,3 +1,4 @@
 {
+	"reload_interval": 100000,
 	"root_urls": ["https://google.de/"]
 }
