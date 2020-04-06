@@ -78,6 +78,7 @@ private:
 	std::shared_ptr<CrawlFrontendAsyncClient> crawl_frontend_async;
 	
 	uint64_t fetch_counter = 0;
+	double average_depth = 0;
 	
 };
 

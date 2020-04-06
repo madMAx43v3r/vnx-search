@@ -142,6 +142,8 @@ void CrawlProcessor::check_queue()
 				
 				domain.num_pending++;
 				domain.last_fetch_us = now_wall;
+				
+				average_depth = url.depth * 0.01 + average_depth * 0.99;
 			}
 			catch(const std::exception& ex) {
 				break;
@@ -289,7 +291,9 @@ void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& 
 
 void CrawlProcessor::print_stats()
 {
-	log(INFO).out << queue.size() << " queued, " << waiting.size() << " waiting, " << fetch_counter << " fetched";
+	log(INFO).out << queue.size() << " queued, " << waiting.size() << " waiting, "
+			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
+			<< average_depth << " avg. depth";
 }
 
 
