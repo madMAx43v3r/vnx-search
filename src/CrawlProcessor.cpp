@@ -265,14 +265,11 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 		auto vnx_except = dynamic_cast<const vnx::exception*>(&ex);
 		if(vnx_except) {
 			if(std::dynamic_pointer_cast<const NoSuchService>(vnx_except->value())) {
-				enqueue(url, entry.depth, std::time(0) + retry_interval);
+				enqueue(url, entry.depth);
 			} else {
 				try {
-					auto index = vnx::clone(std::dynamic_pointer_cast<const UrlIndex>(url_index->get_value(url)));
-					if(!index) {
-						index = UrlIndex::create();
-						index->depth = entry.depth;
-					}
+					auto index = UrlIndex::create();
+					index->depth = entry.depth;
 					index->last_fetched = std::time(0);
 					index->is_fail = true;
 					url_index_async->store_value(url, index);
