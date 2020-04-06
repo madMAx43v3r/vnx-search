@@ -17,12 +17,14 @@ namespace search {
 CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
+	url_sync_topic = vnx_name + ".url_index.sync";
 }
 
 void CrawlProcessor::main()
 {
 	subscribe(input_url_index, max_queue_ms);
 	subscribe(input_page_index, max_queue_ms);
+	subscribe(url_sync_topic, 10);
 	
 	url_index = std::make_shared<keyvalue::ServerClient>(url_index_server);
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
@@ -36,6 +38,7 @@ void CrawlProcessor::main()
 	
 	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
 	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
+	set_timer_millis(reload_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
 	for(const auto& url : root_urls)
 	{
@@ -48,6 +51,8 @@ void CrawlProcessor::main()
 		parsed.abspath();
 		enqueue(parsed.str(), 0);
 	}
+	
+	url_index->sync_all(url_sync_topic);
 	
 	Super::main();
 }
@@ -147,6 +152,11 @@ void CrawlProcessor::check_queue()
 			iter++;
 		}
 	}
+}
+
+void CrawlProcessor::check_all_urls()
+{
+	url_index->sync_all(url_sync_topic);
 }
 
 void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)

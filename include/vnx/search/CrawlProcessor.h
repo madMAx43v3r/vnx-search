@@ -47,6 +47,8 @@ private:
 	
 	void check_url(const std::string& url, int depth, std::shared_ptr<const Value> index);
 	
+	void check_all_urls();
+	
 	void check_page_callback(const std::string& url, std::shared_ptr<const Value> url_index_, std::shared_ptr<const PageIndex> page_index_);
 	
 	void check_page(const std::string& url, int depth, std::shared_ptr<const PageIndex> index);
@@ -62,6 +64,7 @@ private:
 	void print_stats();
 	
 private:
+	TopicPtr url_sync_topic;
 	std::multimap<int, std::string> queue;
 	std::multimap<int64_t, std::string> waiting;
 	
