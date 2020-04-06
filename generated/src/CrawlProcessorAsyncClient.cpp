@@ -65,7 +65,7 @@ void CrawlProcessorAsyncClient::vnx_callback_switch(uint64_t _request_id, std::s
 		}
 	}
 	else {
-		vnx_purge_request(_request_id);
+		throw std::runtime_error("unknown return value");
 	}
 }
 
