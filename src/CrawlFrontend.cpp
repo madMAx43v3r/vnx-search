@@ -41,11 +41,11 @@ int64_t parse_http_date(const std::string& date)
 CrawlFrontend::CrawlFrontend(const std::string& _vnx_name)
 	:	CrawlFrontendBase(_vnx_name)
 {
+	unique_service = Hash64::rand();
 }
 
 void CrawlFrontend::init()
 {
-	unique_service = Hash64::rand();
 	vnx::open_pipe(vnx_name, this, UNLIMITED);
 	vnx::open_pipe(unique_service, this, UNLIMITED);
 }
