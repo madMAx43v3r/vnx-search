@@ -72,7 +72,8 @@ private:
 	std::vector<std::thread> work_threads;
 	
 	mutable std::mutex mutex;
-	mutable std::condition_variable condition;
+	mutable std::condition_variable work_condition;
+	mutable std::condition_variable notify_condition;
 	
 	mutable std::queue<std::shared_ptr<request_t>> work_queue;
 	

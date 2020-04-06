@@ -52,7 +52,7 @@ void CrawlFrontend::init()
 
 void CrawlFrontend::main()
 {
-	subscribe(output_http);
+	subscribe(output_http, UNLIMITED);
 	
 	work_threads.resize(num_threads);
 	for(int i = 0; i < num_threads; ++i) {
@@ -63,7 +63,7 @@ void CrawlFrontend::main()
 	
 	Super::main();
 	
-	condition.notify_all();
+	work_condition.notify_all();
 	for(auto& thread : work_threads) {
 		if(thread.joinable()) {
 			thread.join();
@@ -103,10 +103,16 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 	request->request_id = _request_id;
 	request->callback = _callback;
 	{
-		std::lock_guard<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock(mutex);
+		while(vnx_do_run() && work_queue.size() > num_threads) {
+			notify_condition.wait(lock);
+		}
+		if(!vnx_do_run()) {
+			return;
+		}
 		work_queue.push(request);
-		condition.notify_one();
 	}
+	work_condition.notify_one();
 }
 
 void CrawlFrontend::register_parser(const vnx::Hash64& address,
@@ -209,7 +215,7 @@ void CrawlFrontend::fetch_loop()
 		{
 			std::unique_lock<std::mutex> lock(mutex);
 			while(vnx_do_run() && work_queue.empty()) {
-				condition.wait(lock);
+				work_condition.wait(lock);
 			}
 			if(vnx_do_run()) {
 				request = work_queue.front();
@@ -218,6 +224,7 @@ void CrawlFrontend::fetch_loop()
 				break;
 			}
 		}
+		notify_condition.notify_all();
 		
 		auto out = HttpResponse::create();
 		out->url = request->url;
