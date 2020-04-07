@@ -15,6 +15,7 @@
 #include <vnx/Server.h>
 
 #include <unistd.h>
+#include <signal.h>
 
 
 int main(int argc, char** argv)
@@ -22,6 +23,8 @@ int main(int argc, char** argv)
 	std::map<std::string, std::string> options;
 	
 	vnx::init("vnx_search_frontend", argc, argv, options);
+	
+	::signal(SIGPIPE, SIG_IGN);		// ignore SIGPIPE to fix SSL_shutdown
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
