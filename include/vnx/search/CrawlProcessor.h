@@ -68,8 +68,8 @@ private:
 	std::multimap<int, std::string> queue;
 	std::multimap<int64_t, std::string> waiting;
 	
-	std::map<std::string, url_t> url_map;
-	std::map<std::string, domain_t> domain_map;
+	std::unordered_map<std::string, url_t> url_map;
+	std::unordered_map<std::string, domain_t> domain_map;
 	
 	std::map<uint64_t, std::string> pending_urls;
 	
