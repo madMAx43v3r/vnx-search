@@ -134,8 +134,8 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 
 void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 {
-	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_time_us/1000
-			<< " ms (" << float(value->payload.size() / (value->fetch_time_us * 1e-6f) / 1024.) << " KB/s)";
+	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_duration_us/1000
+			<< " ms (" << float(value->payload.size() / (value->fetch_duration_us * 1e-6f) / 1024.) << " KB/s)";
 	
 	bool parse_ok = false;
 	uint64_t parse_id = 0;
@@ -348,7 +348,7 @@ void CrawlFrontend::fetch_loop()
 			if(response && response->status == 200)
 			{
 				out->status = response->status;
-				out->fetch_time_us = fetch_time;
+				out->fetch_duration_us = fetch_time;
 				
 				if(response->has_header("Date")) {
 					out->date = parse_http_date(response->get_header_value("Date"));

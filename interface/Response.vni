@@ -8,6 +8,6 @@ class Response {
 	
 	long last_modified;				// posix timestamp [s]
 	
-	long fetch_time_us;				// [usec]
+	long fetch_duration_us;			// [usec]
 	
 }
