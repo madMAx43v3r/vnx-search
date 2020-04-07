@@ -19,8 +19,8 @@ public:
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
 	::int32_t jump_cost = 3;
-	::int32_t reload_interval = 3600;
-	::int32_t retry_interval = 60;
+	::int32_t reload_interval = 100000;
+	::int32_t sync_interval = 1800;
 	::int32_t max_per_domain = 1;
 	::int32_t max_per_minute = 120;
 	::int32_t max_num_pending = 100;
