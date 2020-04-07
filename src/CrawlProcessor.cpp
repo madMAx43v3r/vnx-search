@@ -167,6 +167,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 {
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
 	if(index) {
+		depth = std::min(depth, index->depth);
 		if(index->last_fetched > 0) {
 			const int64_t load_time = index->last_fetched + (depth + 1) * reload_interval;
 			enqueue(url, depth, load_time);
