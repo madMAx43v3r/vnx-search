@@ -29,6 +29,7 @@ protected:
 		std::string domain;
 		uint64_t request_id = -1;
 		int depth = 0;
+		bool is_reload = false;
 	};
 	
 	struct domain_t {
@@ -41,7 +42,7 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::KeyValuePair> value) override;
 	
 private:
-	void enqueue(const std::string& url, int depth, int64_t load_time = 0);
+	bool enqueue(const std::string& url, int depth, int64_t load_time = 0);
 	
 	void check_queue();
 	
@@ -55,7 +56,7 @@ private:
 	
 	url_t url_fetch_done(const std::string& url);
 	
-	void url_fetch_callback(const std::string& url, int depth, std::shared_ptr<const UrlIndex> index);
+	void url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index);
 	
 	void url_fetch_error(uint64_t request_id, const std::exception& ex);
 	
@@ -78,6 +79,7 @@ private:
 	std::shared_ptr<CrawlFrontendAsyncClient> crawl_frontend_async;
 	
 	uint64_t fetch_counter = 0;
+	uint64_t reload_counter = 0;
 	double average_depth = 0;
 	
 };

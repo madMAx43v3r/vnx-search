@@ -87,10 +87,10 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	}
 }
 
-void CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
+bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
 {
 	if(url_map.find(url) != url_map.end()) {
-		return;
+		return false;
 	}
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
@@ -98,12 +98,14 @@ void CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	} else if(delta < 2 * sync_interval) {
 		waiting.emplace(load_time, url);
 	} else {
-		return;
+		return false;
 	}
 	const Url::Url parsed(url);
 	url_t& entry = url_map[url];
 	entry.domain = parsed.host();
 	entry.depth = depth;
+	entry.is_reload = load_time > 0;
+	return true;
 }
 
 void CrawlProcessor::check_queue()
@@ -136,7 +138,7 @@ void CrawlProcessor::check_queue()
 		{
 			try {
 				url.request_id = crawl_frontend_async->fetch(iter->second,
-						std::bind(&CrawlProcessor::url_fetch_callback, this, iter->second, url.depth, std::placeholders::_1));
+						std::bind(&CrawlProcessor::url_fetch_callback, this, iter->second, std::placeholders::_1));
 				
 				pending_urls.emplace(url.request_id, iter->second);
 				
@@ -237,21 +239,22 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url)
 	return entry;
 }
 
-void CrawlProcessor::url_fetch_callback(const std::string& url, int depth, std::shared_ptr<const UrlIndex> index)
+void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index)
 {
-	url_fetch_done(url);
+	const url_t entry = url_fetch_done(url);
 	
 	if(index) {
 		auto copy = vnx::clone(index);
-		copy->depth = depth;
+		copy->depth = entry.depth;
 		try {
 			url_index_async->store_value(url, copy);
 		}
 		catch(const std::exception& ex) {
 			log(WARN).out << "UrlIndex: " << ex.what();
 		}
+		fetch_counter++;
+		reload_counter += entry.is_reload ? 1 : 0;
 	}
-	fetch_counter++;
 }
 
 void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& ex)
@@ -293,7 +296,7 @@ void CrawlProcessor::print_stats()
 {
 	log(INFO).out << queue.size() << " queued, " << waiting.size() << " waiting, "
 			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
-			<< average_depth << " avg. depth";
+			<< reload_counter << " reload, " << average_depth << " avg. depth";
 }
 
 
