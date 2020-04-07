@@ -342,7 +342,7 @@ void CrawlFrontend::fetch_loop()
 			
 			if(response) {
 				index->http_status = response->status;
-				index->fetch_time_us = fetch_time;
+				index->fetch_duration_us = fetch_time;
 			}
 			
 			if(response && response->status == 200)

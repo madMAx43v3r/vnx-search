@@ -8,7 +8,7 @@ class UrlIndex {
 	
 	long last_modified;				// posix timestamp [sec]
 	
-	long fetch_time_us;				// [usec]
+	long fetch_duration_us;			// [usec]
 	
 	int http_status;
 	
