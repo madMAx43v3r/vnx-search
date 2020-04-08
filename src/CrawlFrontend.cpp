@@ -378,6 +378,7 @@ void CrawlFrontend::fetch_loop()
 		
 		request->callback(index);
 	}
+	notify_condition.notify_all();
 }
 
 
