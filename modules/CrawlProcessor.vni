@@ -14,11 +14,9 @@ module CrawlProcessor {
 	
 	int sync_interval = 1800;			// checking all urls [sec]
 	
-	int max_per_domain = 1;
-	
 	int max_per_minute = 120;
 	
-	int max_num_pending = 100;
+	int max_num_pending = 10;
 	
 	int update_interval_ms = 100;
 	

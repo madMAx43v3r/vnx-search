@@ -136,8 +136,7 @@ void CrawlProcessor::check_queue()
 		url_t& url = url_map[iter->second];
 		domain_t& domain = domain_map[url.domain];
 		
-		if(domain.num_pending < max_per_domain
-				&& now_wall - domain.last_fetch_us > int64_t(60 * 1000 * 1000) / max_per_minute)
+		if(now_wall - domain.last_fetch_us > int64_t(60 * 1000 * 1000) / max_per_minute)
 		{
 			try {
 				url.request_id = crawl_frontend_async->fetch(iter->second,
