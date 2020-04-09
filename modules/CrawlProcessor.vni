@@ -8,6 +8,8 @@ module CrawlProcessor {
 	
 	int jump_cost = 3;
 	
+	int max_depth = 9;
+	
 	int reload_interval = 100000;		// [seconds / (depth + 1)]
 	
 	int sync_interval = 1800;			// checking all urls [sec]

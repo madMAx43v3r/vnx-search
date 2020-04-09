@@ -89,6 +89,9 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 
 bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
 {
+	if(depth > max_depth) {
+		return false;
+	}
 	if(url_map.find(url) != url_map.end()) {
 		return false;
 	}
@@ -219,13 +222,14 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 		parsed.abspath();
 		
 		const int link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
-		const std::string full_link = parsed.str();
-		
-		try {
-			url_index_async->get_value(full_link, std::bind(&CrawlProcessor::check_url, this, full_link, link_depth, std::placeholders::_1));
-		}
-		catch(const std::exception& ex) {
-			log(WARN).out << "UrlIndex: " << ex.what();
+		if(link_depth <= max_depth) {
+			const std::string full_link = parsed.str();
+			try {
+				url_index_async->get_value(full_link, std::bind(&CrawlProcessor::check_url, this, full_link, link_depth, std::placeholders::_1));
+			}
+			catch(const std::exception& ex) {
+				log(WARN).out << "UrlIndex: " << ex.what();
+			}
 		}
 	}
 	
@@ -264,7 +268,7 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 	if(iter != pending_urls.end())
 	{
 		const auto url = iter->second;
-		const auto entry = url_fetch_done(url);
+		const auto entry = url_fetch_done(url);		// after this iter will be invalid
 		
 		log(WARN).out << "fetch('" << url << "'): " << ex.what();
 		
