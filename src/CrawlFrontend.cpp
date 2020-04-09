@@ -105,12 +105,6 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 	request->callback = _callback;
 	{
 		std::unique_lock<std::mutex> lock(mutex);
-		while(vnx_do_run() && work_queue.size() > num_threads) {
-			notify_condition.wait(lock);
-		}
-		if(!vnx_do_run()) {
-			return;
-		}
 		work_queue.push(request);
 	}
 	work_condition.notify_one();
@@ -225,7 +219,6 @@ void CrawlFrontend::fetch_loop()
 				break;
 			}
 		}
-		notify_condition.notify_all();
 		
 		auto out = HttpResponse::create();
 		out->url = request->url;
@@ -381,7 +374,6 @@ void CrawlFrontend::fetch_loop()
 		
 		request->callback(index);
 	}
-	notify_condition.notify_all();
 }
 
 
