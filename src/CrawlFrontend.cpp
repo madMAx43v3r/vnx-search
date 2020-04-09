@@ -19,6 +19,7 @@
 #include <locale>
 #include <iomanip>
 #include <time.h>
+#include <signal.h>
 
 
 namespace vnx {
@@ -307,6 +308,8 @@ void CrawlFrontend::fetch_loop()
 		auto index = UrlIndex::create();
 		index->last_fetched = std::time(0);
 		index->is_fail = true;
+		
+		::signal(SIGPIPE, SIG_IGN);		// ignore SIGPIPE to fix SSL_shutdown
 		
 		std::shared_ptr<httplib::Client> client;
 		
