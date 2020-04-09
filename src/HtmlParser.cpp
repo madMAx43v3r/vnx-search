@@ -73,10 +73,12 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	}
 	if(parent_name != "script" && parent_name != "style")
 	{
-		auto content = dynamic_cast<const xmlpp::ContentNode*>(node);
-		if(content) {
-			result->text += content->get_content();
-			result->text += " ";
+		auto text = dynamic_cast<const xmlpp::TextNode*>(node);
+		if(text) {
+			result->text += text->get_content();
+			if(!text->is_white_space()) {
+				result->text += " ";
+			}
 		}
 	}
 }
