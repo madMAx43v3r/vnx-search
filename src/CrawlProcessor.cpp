@@ -206,29 +206,13 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 	
 	for(const auto& link : index->links)
 	{
-		Url::Url parsed(link);
-		parsed.defrag();
-		parsed.remove_default_port();
+		const Url::Url parsed(link);
 		
-		if(parsed.scheme().empty()) {
-			parsed.setScheme(parent.scheme());
-		}
-		
-		if(parsed.host().empty()) {
-			parsed.setHost(parent.host());
-			// check if path is relative
-			if(!parsed.path().empty() && parsed.path()[0] != '/') {
-				parsed.relative_to(parent);
-			}
-		}
-		parsed.abspath();
-		
-		const std::string full_link = parsed.str();
 		const int link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
 		
-		if(link_depth <= max_depth && full_link.size() <= max_url_length) {
+		if(link_depth <= max_depth && link.size() <= max_url_length) {
 			try {
-				url_index_async->get_value(full_link, std::bind(&CrawlProcessor::check_url, this, full_link, link_depth, std::placeholders::_1));
+				url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, link_depth, std::placeholders::_1));
 			}
 			catch(const std::exception& ex) {
 				log(WARN).out << "UrlIndex: " << ex.what();

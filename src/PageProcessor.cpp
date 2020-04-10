@@ -13,6 +13,8 @@
 #include <unicode/brkiter.h>
 using namespace icu;
 
+#include <url.h>
+
 
 namespace vnx {
 namespace search {
@@ -36,6 +38,38 @@ void PageProcessor::main()
 	add_async_client(page_content);
 	
 	Super::main();
+}
+
+static
+std::string process_link(const std::string& link, const Url::Url& parent)
+{
+	Url::Url parsed(link);
+	parsed.defrag();
+	parsed.remove_default_port();
+	
+	if(parsed.scheme().empty()) {
+		parsed.setScheme(parent.scheme());
+	}
+	
+	if(parsed.host().empty()) {
+		parsed.setHost(parent.host());
+		// check if path is relative
+		if(!parsed.path().empty() && parsed.path()[0] != '/') {
+			parsed.relative_to(parent);
+		}
+	}
+	
+	parsed.strip();
+	parsed.abspath();
+	
+	return parsed.str();
+}
+
+template<typename T>
+std::vector<T> get_unique(std::vector<T> in)
+{
+	std::set<T> tmp(in.begin(), in.end());
+	return std::vector<T>(tmp.begin(), tmp.end());
 }
 
 void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
@@ -68,21 +102,25 @@ void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
     }
 	delete bi;
 	
+	const Url::Url parent(value->url);
+	
 	auto index = PageIndex::create();
 	index->last_modified = value->last_modified;
 	for(const auto& link : value->links) {
 		if(link.size() <= max_url_length) {
-			index->links.push_back(link);
+			index->links.push_back(process_link(link, parent));
 		}
 	}
 	for(const auto& link : value->images) {
 		if(link.size() <= max_url_length) {
-			index->images.push_back(link);
+			index->images.push_back(process_link(link, parent));
 		}
 	}
 	for(const auto& word : word_set) {
 		index->words.push_back(word);
 	}
+	index->links = get_unique(index->links);
+	index->images = get_unique(index->images);
 	
 	try {
 		page_index->store_value(value->url, index);
