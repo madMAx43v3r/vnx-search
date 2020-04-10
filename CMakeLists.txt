@@ -22,6 +22,7 @@ add_library(vnx_search SHARED
 	src/HtmlParser.cpp
 	src/PageProcessor.cpp
 	src/CrawlProcessor.cpp
+	src/SearchEngine.cpp
 )
 
 target_include_directories(vnx_search
@@ -49,6 +50,12 @@ target_link_libraries(vnx_search_html_parser vnx_search)
 
 add_executable(vnx_search_backend src/vnx_search_backend.cpp)
 target_link_libraries(vnx_search_backend vnx_search)
+
+add_executable(vnx_search_engine src/vnx_search_engine.cpp)
+target_link_libraries(vnx_search_engine vnx_search)
+
+add_executable(vnx_search_query src/vnx_search_query.cpp)
+target_link_libraries(vnx_search_query vnx_search)
 
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY generated/include/ DESTINATION include)

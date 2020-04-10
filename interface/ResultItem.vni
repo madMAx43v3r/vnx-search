@@ -1,0 +1,11 @@
+package vnx.search;
+
+class ResultItem {
+	
+	string url;
+	
+	long score;
+	
+	long last_modified;
+	
+}

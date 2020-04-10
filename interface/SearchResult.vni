@@ -1,0 +1,11 @@
+package vnx.search;
+
+class SearchResult {
+	
+	long num_pages_total;
+	
+	vector<string> words;
+	
+	vector<ResultItem> items;
+	
+}

@@ -1,0 +1,24 @@
+package vnx.search;
+
+module SearchEngine {
+	
+	vnx.TopicPtr input_page_index = "backend.page_index.updates";
+	
+	vnx.TopicPtr input_page_index_sync;
+	
+	string page_index_server = "PageIndex";
+	
+	string page_content_server = "PageContent";
+	
+	int num_iterations = 1;
+	
+	int num_threads = 10;
+	
+	
+	SearchResult* query(vector<string> words, long max_results) const async;
+	
+	void handle(vnx.keyvalue.KeyValuePair sample);
+	
+	void handle(vnx.keyvalue.SyncInfo sample);
+	
+}
