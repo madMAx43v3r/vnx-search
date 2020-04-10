@@ -107,13 +107,15 @@ void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
 	auto index = PageIndex::create();
 	index->last_modified = value->last_modified;
 	for(const auto& link : value->links) {
-		if(link.size() <= max_url_length) {
-			index->links.push_back(process_link(link, parent));
+		const auto full_link = process_link(link, parent);
+		if(full_link.size() <= max_url_length) {
+			index->links.push_back(full_link);
 		}
 	}
 	for(const auto& link : value->images) {
-		if(link.size() <= max_url_length) {
-			index->images.push_back(process_link(link, parent));
+		const auto full_link = process_link(link, parent);
+		if(full_link.size() <= max_url_length) {
+			index->images.push_back(full_link);
 		}
 	}
 	for(const auto& word : word_set) {

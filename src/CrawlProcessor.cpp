@@ -24,7 +24,7 @@ void CrawlProcessor::main()
 {
 	subscribe(input_url_index, max_queue_ms);
 	subscribe(input_page_index, max_queue_ms);
-	subscribe(url_sync_topic, 10);
+	subscribe(url_sync_topic, 100);
 	
 	url_index = std::make_shared<keyvalue::ServerClient>(url_index_server);
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
