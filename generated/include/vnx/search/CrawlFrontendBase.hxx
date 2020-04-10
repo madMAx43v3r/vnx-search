@@ -25,7 +25,7 @@ public:
 	::int32_t stats_interval_ms = 10000;
 	::int64_t max_content_length = 4194304;
 	::int64_t max_response_size = 16777216;
-	::std::string crawl_processor_server = "CrawlProcessor";
+	::std::string processor_server = "CrawlProcessor";
 	::std::string user_agent = "Mozilla/5.0";
 	
 	typedef ::vnx::Module Super;

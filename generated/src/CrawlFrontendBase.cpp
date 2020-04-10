@@ -18,17 +18,17 @@ namespace search {
 
 
 const vnx::Hash64 CrawlFrontendBase::VNX_TYPE_HASH(0xd91536edf3f184e2ull);
-const vnx::Hash64 CrawlFrontendBase::VNX_CODE_HASH(0xff104944922b6e09ull);
+const vnx::Hash64 CrawlFrontendBase::VNX_CODE_HASH(0xcba1bbbb36052639ull);
 
 CrawlFrontendBase::CrawlFrontendBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
-	vnx::read_config(vnx_name + ".crawl_processor_server", crawl_processor_server);
 	vnx::read_config(vnx_name + ".max_content_length", max_content_length);
 	vnx::read_config(vnx_name + ".max_response_size", max_response_size);
 	vnx::read_config(vnx_name + ".num_threads", num_threads);
 	vnx::read_config(vnx_name + ".output_http", output_http);
 	vnx::read_config(vnx_name + ".output_text", output_text);
+	vnx::read_config(vnx_name + ".processor_server", processor_server);
 	vnx::read_config(vnx_name + ".response_timeout_ms", response_timeout_ms);
 	vnx::read_config(vnx_name + ".stats_interval_ms", stats_interval_ms);
 	vnx::read_config(vnx_name + ".user_agent", user_agent);
@@ -55,7 +55,7 @@ void CrawlFrontendBase::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, stats_interval_ms);
 	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, max_content_length);
 	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, max_response_size);
-	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, crawl_processor_server);
+	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, processor_server);
 	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, user_agent);
 	_visitor.type_end(*_type_code);
 }
@@ -69,7 +69,7 @@ void CrawlFrontendBase::write(std::ostream& _out) const {
 	_out << ", \"stats_interval_ms\": "; vnx::write(_out, stats_interval_ms);
 	_out << ", \"max_content_length\": "; vnx::write(_out, max_content_length);
 	_out << ", \"max_response_size\": "; vnx::write(_out, max_response_size);
-	_out << ", \"crawl_processor_server\": "; vnx::write(_out, crawl_processor_server);
+	_out << ", \"processor_server\": "; vnx::write(_out, processor_server);
 	_out << ", \"user_agent\": "; vnx::write(_out, user_agent);
 	_out << "}";
 }
@@ -78,9 +78,7 @@ void CrawlFrontendBase::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "crawl_processor_server") {
-			vnx::from_string(_entry.second, crawl_processor_server);
-		} else if(_entry.first == "max_content_length") {
+		if(_entry.first == "max_content_length") {
 			vnx::from_string(_entry.second, max_content_length);
 		} else if(_entry.first == "max_response_size") {
 			vnx::from_string(_entry.second, max_response_size);
@@ -90,6 +88,8 @@ void CrawlFrontendBase::read(std::istream& _in) {
 			vnx::from_string(_entry.second, output_http);
 		} else if(_entry.first == "output_text") {
 			vnx::from_string(_entry.second, output_text);
+		} else if(_entry.first == "processor_server") {
+			vnx::from_string(_entry.second, processor_server);
 		} else if(_entry.first == "response_timeout_ms") {
 			vnx::from_string(_entry.second, response_timeout_ms);
 		} else if(_entry.first == "stats_interval_ms") {
@@ -109,16 +109,14 @@ vnx::Object CrawlFrontendBase::to_object() const {
 	_object["stats_interval_ms"] = stats_interval_ms;
 	_object["max_content_length"] = max_content_length;
 	_object["max_response_size"] = max_response_size;
-	_object["crawl_processor_server"] = crawl_processor_server;
+	_object["processor_server"] = processor_server;
 	_object["user_agent"] = user_agent;
 	return _object;
 }
 
 void CrawlFrontendBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "crawl_processor_server") {
-			_entry.second.to(crawl_processor_server);
-		} else if(_entry.first == "max_content_length") {
+		if(_entry.first == "max_content_length") {
 			_entry.second.to(max_content_length);
 		} else if(_entry.first == "max_response_size") {
 			_entry.second.to(max_response_size);
@@ -128,6 +126,8 @@ void CrawlFrontendBase::from_object(const vnx::Object& _object) {
 			_entry.second.to(output_http);
 		} else if(_entry.first == "output_text") {
 			_entry.second.to(output_text);
+		} else if(_entry.first == "processor_server") {
+			_entry.second.to(processor_server);
 		} else if(_entry.first == "response_timeout_ms") {
 			_entry.second.to(response_timeout_ms);
 		} else if(_entry.first == "stats_interval_ms") {
@@ -162,7 +162,7 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.CrawlFrontend";
 	type_code->type_hash = vnx::Hash64(0xd91536edf3f184e2ull);
-	type_code->code_hash = vnx::Hash64(0xff104944922b6e09ull);
+	type_code->code_hash = vnx::Hash64(0xcba1bbbb36052639ull);
 	type_code->methods.resize(3);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -305,7 +305,7 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[7];
 		field.is_extended = true;
-		field.name = "crawl_processor_server";
+		field.name = "processor_server";
 		field.value = vnx::to_string("CrawlProcessor");
 		field.code = {12, 5};
 	}
@@ -471,7 +471,7 @@ void read(TypeInput& in, ::vnx::search::CrawlFrontendBase& value, const TypeCode
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.output_http, type_code, _field->code.data()); break;
 			case 1: vnx::read(in, value.output_text, type_code, _field->code.data()); break;
-			case 7: vnx::read(in, value.crawl_processor_server, type_code, _field->code.data()); break;
+			case 7: vnx::read(in, value.processor_server, type_code, _field->code.data()); break;
 			case 8: vnx::read(in, value.user_agent, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
@@ -495,7 +495,7 @@ void write(TypeOutput& out, const ::vnx::search::CrawlFrontendBase& value, const
 	vnx::write_value(_buf + 20, value.max_response_size);
 	vnx::write(out, value.output_http, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.output_text, type_code, type_code->fields[1].code.data());
-	vnx::write(out, value.crawl_processor_server, type_code, type_code->fields[7].code.data());
+	vnx::write(out, value.processor_server, type_code, type_code->fields[7].code.data());
 	vnx::write(out, value.user_agent, type_code, type_code->fields[8].code.data());
 }
 

@@ -19,11 +19,11 @@ public:
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
 	::int32_t jump_cost = 3;
+	::int32_t max_depth = 9;
 	::int32_t reload_interval = 100000;
 	::int32_t sync_interval = 1800;
-	::int32_t max_per_domain = 1;
-	::int32_t max_per_minute = 120;
-	::int32_t max_num_pending = 100;
+	::int32_t max_per_minute = 60;
+	::int32_t max_num_pending = 10;
 	::int32_t update_interval_ms = 100;
 	::int32_t max_queue_ms = 1000;
 	::std::vector<::std::string> root_urls;

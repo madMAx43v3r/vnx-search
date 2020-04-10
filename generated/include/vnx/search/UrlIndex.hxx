@@ -17,7 +17,7 @@ public:
 	::std::string content_type;
 	::int64_t last_fetched = 0;
 	::int64_t last_modified = 0;
-	::int64_t fetch_time_us = 0;
+	::int64_t fetch_duration_us = 0;
 	::int32_t http_status = 0;
 	::int32_t depth = 0;
 	::vnx::bool_t is_fail = 0;

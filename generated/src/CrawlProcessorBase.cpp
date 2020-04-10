@@ -18,7 +18,7 @@ namespace search {
 
 
 const vnx::Hash64 CrawlProcessorBase::VNX_TYPE_HASH(0x508848d1f9d97d9full);
-const vnx::Hash64 CrawlProcessorBase::VNX_CODE_HASH(0xf182034b31e67970ull);
+const vnx::Hash64 CrawlProcessorBase::VNX_CODE_HASH(0xa3890688f681b4e9ull);
 
 CrawlProcessorBase::CrawlProcessorBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -27,8 +27,8 @@ CrawlProcessorBase::CrawlProcessorBase(const std::string& _vnx_name)
 	vnx::read_config(vnx_name + ".input_page_index", input_page_index);
 	vnx::read_config(vnx_name + ".input_url_index", input_url_index);
 	vnx::read_config(vnx_name + ".jump_cost", jump_cost);
+	vnx::read_config(vnx_name + ".max_depth", max_depth);
 	vnx::read_config(vnx_name + ".max_num_pending", max_num_pending);
-	vnx::read_config(vnx_name + ".max_per_domain", max_per_domain);
 	vnx::read_config(vnx_name + ".max_per_minute", max_per_minute);
 	vnx::read_config(vnx_name + ".max_queue_ms", max_queue_ms);
 	vnx::read_config(vnx_name + ".reload_interval", reload_interval);
@@ -55,9 +55,9 @@ void CrawlProcessorBase::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, input_url_index);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, input_page_index);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, jump_cost);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, reload_interval);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, sync_interval);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, max_per_domain);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, max_depth);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, reload_interval);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, sync_interval);
 	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, max_per_minute);
 	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, max_num_pending);
 	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, update_interval_ms);
@@ -73,9 +73,9 @@ void CrawlProcessorBase::write(std::ostream& _out) const {
 	_out << "\"input_url_index\": "; vnx::write(_out, input_url_index);
 	_out << ", \"input_page_index\": "; vnx::write(_out, input_page_index);
 	_out << ", \"jump_cost\": "; vnx::write(_out, jump_cost);
+	_out << ", \"max_depth\": "; vnx::write(_out, max_depth);
 	_out << ", \"reload_interval\": "; vnx::write(_out, reload_interval);
 	_out << ", \"sync_interval\": "; vnx::write(_out, sync_interval);
-	_out << ", \"max_per_domain\": "; vnx::write(_out, max_per_domain);
 	_out << ", \"max_per_minute\": "; vnx::write(_out, max_per_minute);
 	_out << ", \"max_num_pending\": "; vnx::write(_out, max_num_pending);
 	_out << ", \"update_interval_ms\": "; vnx::write(_out, update_interval_ms);
@@ -98,10 +98,10 @@ void CrawlProcessorBase::read(std::istream& _in) {
 			vnx::from_string(_entry.second, input_url_index);
 		} else if(_entry.first == "jump_cost") {
 			vnx::from_string(_entry.second, jump_cost);
+		} else if(_entry.first == "max_depth") {
+			vnx::from_string(_entry.second, max_depth);
 		} else if(_entry.first == "max_num_pending") {
 			vnx::from_string(_entry.second, max_num_pending);
-		} else if(_entry.first == "max_per_domain") {
-			vnx::from_string(_entry.second, max_per_domain);
 		} else if(_entry.first == "max_per_minute") {
 			vnx::from_string(_entry.second, max_per_minute);
 		} else if(_entry.first == "max_queue_ms") {
@@ -125,9 +125,9 @@ vnx::Object CrawlProcessorBase::to_object() const {
 	_object["input_url_index"] = input_url_index;
 	_object["input_page_index"] = input_page_index;
 	_object["jump_cost"] = jump_cost;
+	_object["max_depth"] = max_depth;
 	_object["reload_interval"] = reload_interval;
 	_object["sync_interval"] = sync_interval;
-	_object["max_per_domain"] = max_per_domain;
 	_object["max_per_minute"] = max_per_minute;
 	_object["max_num_pending"] = max_num_pending;
 	_object["update_interval_ms"] = update_interval_ms;
@@ -148,10 +148,10 @@ void CrawlProcessorBase::from_object(const vnx::Object& _object) {
 			_entry.second.to(input_url_index);
 		} else if(_entry.first == "jump_cost") {
 			_entry.second.to(jump_cost);
+		} else if(_entry.first == "max_depth") {
+			_entry.second.to(max_depth);
 		} else if(_entry.first == "max_num_pending") {
 			_entry.second.to(max_num_pending);
-		} else if(_entry.first == "max_per_domain") {
-			_entry.second.to(max_per_domain);
 		} else if(_entry.first == "max_per_minute") {
 			_entry.second.to(max_per_minute);
 		} else if(_entry.first == "max_queue_ms") {
@@ -194,7 +194,7 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.CrawlProcessor";
 	type_code->type_hash = vnx::Hash64(0x508848d1f9d97d9full);
-	type_code->code_hash = vnx::Hash64(0xf182034b31e67970ull);
+	type_code->code_hash = vnx::Hash64(0xa3890688f681b4e9ull);
 	type_code->methods.resize(1);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -244,32 +244,32 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[3];
+		field.name = "max_depth";
+		field.value = vnx::to_string(9);
+		field.code = {7};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[4];
 		field.name = "reload_interval";
 		field.value = vnx::to_string(100000);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		vnx::TypeField& field = type_code->fields[5];
 		field.name = "sync_interval";
 		field.value = vnx::to_string(1800);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
-		field.name = "max_per_domain";
-		field.value = vnx::to_string(1);
-		field.code = {7};
-	}
-	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.name = "max_per_minute";
-		field.value = vnx::to_string(120);
+		field.value = vnx::to_string(60);
 		field.code = {7};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[7];
 		field.name = "max_num_pending";
-		field.value = vnx::to_string(100);
+		field.value = vnx::to_string(10);
 		field.code = {7};
 	}
 	{
@@ -376,19 +376,19 @@ void read(TypeInput& in, ::vnx::search::CrawlProcessorBase& value, const TypeCod
 		{
 			const vnx::TypeField* const _field = type_code->field_map[3];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.reload_interval, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.max_depth, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[4];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.sync_interval, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.reload_interval, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[5];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_per_domain, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.sync_interval, _field->code.data());
 			}
 		}
 		{
@@ -439,9 +439,9 @@ void write(TypeOutput& out, const ::vnx::search::CrawlProcessorBase& value, cons
 	}
 	char* const _buf = out.write(32);
 	vnx::write_value(_buf + 0, value.jump_cost);
-	vnx::write_value(_buf + 4, value.reload_interval);
-	vnx::write_value(_buf + 8, value.sync_interval);
-	vnx::write_value(_buf + 12, value.max_per_domain);
+	vnx::write_value(_buf + 4, value.max_depth);
+	vnx::write_value(_buf + 8, value.reload_interval);
+	vnx::write_value(_buf + 12, value.sync_interval);
 	vnx::write_value(_buf + 16, value.max_per_minute);
 	vnx::write_value(_buf + 20, value.max_num_pending);
 	vnx::write_value(_buf + 24, value.update_interval_ms);
