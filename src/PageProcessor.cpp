@@ -70,8 +70,16 @@ void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
 	
 	auto index = PageIndex::create();
 	index->last_modified = value->last_modified;
-	index->links = value->links;
-	index->images = value->images;
+	for(const auto& link : value->links) {
+		if(link.size() <= max_url_length) {
+			index->links.push_back(link);
+		}
+	}
+	for(const auto& link : value->images) {
+		if(link.size() <= max_url_length) {
+			index->images.push_back(link);
+		}
+	}
 	for(const auto& word : word_set) {
 		index->words.push_back(word);
 	}

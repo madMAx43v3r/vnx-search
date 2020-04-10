@@ -18,6 +18,8 @@ module CrawlProcessor {
 	
 	int max_num_pending = 10;
 	
+	int max_url_length = 256;
+	
 	int update_interval_ms = 100;
 	
 	int max_queue_ms = 1000;

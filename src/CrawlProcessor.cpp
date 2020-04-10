@@ -92,6 +92,9 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	if(depth > max_depth) {
 		return false;
 	}
+	if(url.size() > max_url_length) {
+		return false;
+	}
 	if(url_map.find(url) != url_map.end()) {
 		return false;
 	}
@@ -220,9 +223,10 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 		}
 		parsed.abspath();
 		
+		const std::string full_link = parsed.str();
 		const int link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
-		if(link_depth <= max_depth) {
-			const std::string full_link = parsed.str();
+		
+		if(link_depth <= max_depth && full_link.size() <= max_url_length) {
 			try {
 				url_index_async->get_value(full_link, std::bind(&CrawlProcessor::check_url, this, full_link, link_depth, std::placeholders::_1));
 			}
