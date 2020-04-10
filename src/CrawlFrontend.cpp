@@ -343,6 +343,7 @@ void CrawlFrontend::fetch_loop()
 		
 		curl_easy_setopt(client, CURLOPT_URL, request->url.c_str());
 		curl_easy_setopt(client, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FTPS | CURLPROTO_SFTP);
+		curl_easy_setopt(client, CURLOPT_ACCEPT_ENCODING, "");
 		curl_easy_setopt(client, CURLOPT_FOLLOWLOCATION, 1);
 		curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1);
 		curl_easy_setopt(client, CURLOPT_NOPROGRESS, 1);
