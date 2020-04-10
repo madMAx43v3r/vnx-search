@@ -13,11 +13,6 @@
 
 #include <atomic>
 
-namespace httplib {
-	class Client;
-	class SSLClient;
-} // httplib
-
 
 namespace vnx {
 namespace search {
@@ -41,7 +36,7 @@ protected:
 	
 	void handle(std::shared_ptr<const HttpResponse> value) override;
 	
-private:
+public:
 	struct request_t {
 		std::string url;
 		std::string protocol;
@@ -53,6 +48,7 @@ private:
 		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;
 	};
 	
+private:
 	struct parser_t {
 		Hash64 address;
 		std::set<std::string> content_types;
@@ -66,6 +62,10 @@ private:
 	void print_stats();
 	
 	void fetch_loop();
+	
+	static size_t header_callback(char* buffer, size_t size, size_t len, void* userdata);
+	
+	static size_t write_callback(char* buf, size_t size, size_t len, void* userdata);
 	
 private:
 	Hash64 unique_service;

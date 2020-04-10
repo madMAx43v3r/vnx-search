@@ -9,21 +9,32 @@
 #include <vnx/search/HttpResponse.hxx>
 #include <vnx/search/CrawlProcessorClient.hxx>
 
-#define CPPHTTPLIB_ZLIB_SUPPORT
-#define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.h>
-
+#include <curl/curl.h>
 #include <url.h>
 
 #include <sstream>
 #include <locale>
 #include <iomanip>
 #include <time.h>
-#include <signal.h>
 
 
 namespace vnx {
 namespace search {
+
+static
+bool iequals(const std::string& a, const std::string& b)
+{
+    const size_t sz = a.size();
+    if(b.size() != sz) {
+        return false;
+    }
+    for(size_t i = 0; i < sz; ++i) {
+        if(std::tolower(a[i]) != std::tolower(b[i])) {
+            return false;
+        }
+    }
+    return true;
+}
 
 static
 int64_t parse_http_date(const std::string& date)
@@ -200,6 +211,97 @@ void CrawlFrontend::print_stats()
 	last_num_bytes_parsed = num_bytes_parsed;
 }
 
+struct fetch_t {
+	std::shared_ptr<CrawlFrontend::request_t> request;
+	std::shared_ptr<HttpResponse> out;
+	CrawlFrontend* frontend = 0;
+	CURL* client = 0;
+	bool is_begin = true;
+};
+
+size_t CrawlFrontend::header_callback(char* buffer, size_t size, size_t len, void* userdata)
+{
+	const fetch_t* data = (const fetch_t*)userdata;
+	const std::string line(buffer, len);
+	
+	if(iequals(line.substr(0, 4), "Date")) {
+		const auto pos = line.find(':');
+		if(pos != std::string::npos) {
+			data->out->date = parse_http_date(line.substr(pos + 1));
+		}
+	}
+	if(iequals(line.substr(0, 13), "Last-Modified")) {
+		const auto pos = line.find(':');
+		if(pos != std::string::npos) {
+			data->out->last_modified = parse_http_date(line.substr(pos + 1));
+		}
+	}
+	return len;
+}
+
+size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* userdata)
+{
+	fetch_t* data = (fetch_t*)userdata;
+	
+	if(data->is_begin)
+	{
+		long status = 0;
+		curl_easy_getinfo(data->client, CURLINFO_RESPONSE_CODE, &status);
+		data->out->status = status;
+		
+		char* content_type_ = 0;
+		std::string content_type;
+		curl_easy_getinfo(data->client, CURLINFO_CONTENT_TYPE, &content_type_);
+		if(content_type_) {
+			content_type = std::string(content_type_);
+			{
+				auto pos = content_type.find("charset=");
+				if(pos != std::string::npos) {
+					pos += 8;
+					auto end = content_type.find(';', pos);
+					if(end != std::string::npos) {
+						data->out->content_charset = content_type.substr(pos, end - pos);
+					} else {
+						data->out->content_charset = content_type.substr(pos);
+					}
+				}
+			}
+			{
+				auto pos = content_type.find(';');
+				if(pos != std::string::npos) {
+					content_type = content_type.substr(0, pos);
+				}
+			}
+			data->out->content_type = content_type;
+		} else {
+			data->frontend->invalid_content_type_counter++;
+			return 0;
+		}
+		
+		bool valid_type = false;
+		for(const auto& mime_type : data->request->accept_content) {
+			if(content_type == mime_type) {
+				valid_type = true;
+			}
+		}
+		if(!valid_type) {
+			data->frontend->invalid_content_type_counter++;
+			return 0;
+		}
+		data->is_begin = false;
+	}
+	
+	const size_t offset = data->out->payload.size();
+	if(offset + len > data->frontend->max_response_size) {
+		data->out->payload.clear();
+		data->frontend->invalid_response_size_counter++;
+		return 0;
+	}
+	data->out->payload.resize(offset + len);
+	::memcpy(data->out->payload.data(offset), buf, len);
+	return len;
+}
+
 void CrawlFrontend::fetch_loop()
 {
 	Publisher publisher;
@@ -224,153 +326,76 @@ void CrawlFrontend::fetch_loop()
 		out->url = request->url;
 		out->payload.reserve(1048576);
 		
-		httplib::Headers headers = {
-				{"User-Agent", user_agent},
-				{"Accept-Encoding", "gzip, deflate"}
-		};
-		{
-			int i = 0;
-			std::string list;
-			for(const auto& mime_type : request->accept_content) {
-				list += (i++ > 0 ? ", " : "") + mime_type;
-			}
-			headers.emplace("Accept", list);
-		}
-		
-		auto response_handler = [&, request, out](const httplib::Response& response) -> bool
-		{
-			out->payload.clear();
-			
-			if(response.status == 200)
-			{
-				if(!response.has_header("Content-Type")) {
-					return false;
-				}
-				
-				bool valid_type = false;
-				auto content_type = response.get_header_value("Content-Type");
-				{
-					auto pos = content_type.find("charset=");
-					if(pos != std::string::npos) {
-						pos += 8;
-						auto end = content_type.find_first_of(';', pos);
-						if(end != std::string::npos) {
-							out->content_charset = content_type.substr(pos, end - pos);
-						} else {
-							out->content_charset = content_type.substr(pos);
-						}
-					}
-				}
-				{
-					auto pos = content_type.find_first_of(';');
-					if(pos != std::string::npos) {
-						content_type = content_type.substr(0, pos);
-					}
-				}
-				out->content_type = content_type;
-				
-				for(const auto& mime_type : request->accept_content) {
-					if(content_type == mime_type) {
-						valid_type = true;
-					}
-				}
-				if(!valid_type) {
-					invalid_content_type_counter++;
-					return false;
-				}
-			}
-			if(response.content_length > max_content_length) {
-				invalid_response_size_counter++;
-				return false;
-			}
-			return true;
-		};
-		
-		auto content_receiver = [&, out](const char* buf, size_t len) -> bool
-		{
-			const size_t offset = out->payload.size();
-			if(offset + len > max_response_size) {
-				invalid_response_size_counter++;
-				return false;
-			}
-			out->payload.resize(offset + len);
-			::memcpy(out->payload.data(offset), buf, len);
-			return true;
-		};
-		
 		auto index = UrlIndex::create();
 		index->last_fetched = std::time(0);
 		index->is_fail = true;
 		
-		::signal(SIGPIPE, SIG_IGN);		// ignore SIGPIPE to fix SSL_shutdown
-		
-		std::shared_ptr<httplib::Client> client;
-		
-		if(request->protocol == "http") {
-			if(!client) {
-				client = std::make_shared<httplib::Client>(request->host, request->port > 0 ? request->port : 80);
-			}
+		CURL* client = curl_easy_init();
+		if(!client) {
+			break;
 		}
-		else if(request->protocol == "https") {
-			if(!client) {
-				auto ssl_client = std::make_shared<httplib::SSLClient>(request->host, request->port > 0 ? request->port : 443);
-				ssl_client->enable_server_certificate_verification(false);
-				client = ssl_client;
+		
+		fetch_t fetch_data;
+		fetch_data.request = request;
+		fetch_data.out = out;
+		fetch_data.frontend = this;
+		fetch_data.client = client;
+		
+		curl_easy_setopt(client, CURLOPT_URL, request->url.c_str());
+		curl_easy_setopt(client, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FTPS | CURLPROTO_SFTP);
+		curl_easy_setopt(client, CURLOPT_FOLLOWLOCATION, 1);
+		curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1);
+		curl_easy_setopt(client, CURLOPT_NOPROGRESS, 1);
+		curl_easy_setopt(client, CURLOPT_MAXFILESIZE, max_content_length);
+		curl_easy_setopt(client, CURLOPT_TIMEOUT_MS, response_timeout_ms);
+		curl_easy_setopt(client, CURLOPT_USERAGENT, user_agent.c_str());
+		curl_easy_setopt(client, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_easy_setopt(client, CURLOPT_SSL_VERIFYPEER, 0);
+		
+		curl_easy_setopt(client, CURLOPT_HEADERDATA, &fetch_data);
+		curl_easy_setopt(client, CURLOPT_HEADERFUNCTION, &header_callback);
+		
+		curl_easy_setopt(client, CURLOPT_WRITEDATA, &fetch_data);
+		curl_easy_setopt(client, CURLOPT_WRITEFUNCTION, &write_callback);
+		
+		if(request->port > 0) {
+			curl_easy_setopt(client, CURLOPT_PORT, request->port);
+		}
+		
+		const auto fetch_start = vnx::get_wall_time_micros();
+		
+		const CURLcode res = curl_easy_perform(client);
+		
+		const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
+		
+		if(res == CURLE_OK) {
+			index->http_status = out->status;
+			index->content_type = out->content_type;
+			index->fetch_duration_us = fetch_time;
+		}
+		
+		if(res == CURLE_OK && out->status == 200)
+		{
+			out->fetch_duration_us = fetch_time;
+			
+			if(!out->date) {
+				out->date = index->last_fetched;
 			}
+			if(!out->last_modified) {
+				out->last_modified = out->date;
+			}
+			
+			publish(out, output_http, Message::BLOCKING);
+			
+			index->is_fail = false;
+			index->last_modified = out->last_modified;
+			fetch_counter++;
 		}
 		else {
-			invalid_protocol_counter++;
-			auto ex = InternalError::create();
-			ex->what = "unsupported protocol: '" + request->protocol + "'";
-			vnx_async_return(request->request_id, ex);
-			continue;
-		}
-		
-		client->set_follow_location(true);
-		client->set_timeout_sec(response_timeout_ms / 1000);
-		
-		try {
-			const auto fetch_start = vnx::get_wall_time_micros();
-			
-			auto response = client->Get(request->path.c_str(), headers, response_handler, content_receiver);
-			
-			const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
-			
-			if(response) {
-				index->http_status = response->status;
-				index->fetch_duration_us = fetch_time;
-			}
-			
-			if(response && response->status == 200)
-			{
-				out->status = response->status;
-				out->fetch_duration_us = fetch_time;
-				
-				if(response->has_header("Date")) {
-					out->date = parse_http_date(response->get_header_value("Date"));
-				} else {
-					out->date = index->last_fetched;
-				}
-				if(response->has_header("Last-Modified")) {
-					out->last_modified = parse_http_date(response->get_header_value("Last-Modified"));
-				} else {
-					out->last_modified = out->date;
-				}
-				publish(out, output_http, Message::BLOCKING);
-				
-				index->is_fail = false;
-				fetch_counter++;
-			}
-			else {
-				general_fail_counter++;
-			}
-		}
-		catch(...) {
 			general_fail_counter++;
 		}
 		
-		index->content_type = out->content_type;
-		index->last_modified = out->last_modified;
+		curl_easy_cleanup(client);
 		
 		request->callback(index);
 	}

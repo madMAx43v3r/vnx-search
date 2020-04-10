@@ -29,7 +29,6 @@ target_include_directories(vnx_search
 		include
 		generated/include
 	PRIVATE
-		lib/cpp-httplib
 		lib/url-cpp/include
 		lib/libxmlplusplus
 		${LIBXML2_INCLUDE_DIRS}
@@ -37,10 +36,9 @@ target_include_directories(vnx_search
 )
 target_link_libraries(vnx_search
 	vnx_keyvalue vnx_base
-	xmlpp
+	xmlpp curl
 	${LIBXML2_LIBRARIES}
 	${PC_GLIBMM_LIBRARIES}
-	ssl crypto z
 )
 
 add_executable(vnx_search_frontend src/vnx_search_frontend.cpp)
