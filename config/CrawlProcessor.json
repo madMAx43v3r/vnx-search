@@ -1,4 +1,8 @@
 {
+	"max_depth": 9,
+	"max_per_minute": 10,
+	"update_interval_ms": 1000,
 	"reload_interval": 100000,
+	"max_num_pending": 30,
 	"root_urls": ["https://google.de/"]
 }

@@ -16,7 +16,7 @@ module CrawlFrontend {
 	
 	long max_response_size = 16777216;
 	
-	string crawl_processor_server = "CrawlProcessor";
+	string processor_server = "CrawlProcessor";
 	
 	string user_agent = "Mozilla/5.0";
 	
