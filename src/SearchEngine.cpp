@@ -245,7 +245,7 @@ void SearchEngine::work_loop()
 				if(offset++ < request->offset) {
 					continue;
 				}
-				ResultItem item;
+				result_item_t item;
 				item.title = entry.second->title;
 				item.url = url_reverse_map[entry.second->id];
 				item.score = entry.first;

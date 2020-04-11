@@ -6,6 +6,6 @@ class SearchResult {
 	
 	vector<string> words;
 	
-	vector<ResultItem> items;
+	vector<result_item_t> items;
 	
 }

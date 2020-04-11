@@ -1,6 +1,6 @@
 package vnx.search;
 
-class ResultItem {
+class result_item_t {
 	
 	string title;
 	
