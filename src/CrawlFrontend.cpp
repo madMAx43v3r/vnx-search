@@ -395,7 +395,9 @@ void CrawlFrontend::fetch_loop()
 			index->last_modified = out->last_modified;
 			fetch_counter++;
 		}
-		else {
+		else if(res == CURLE_UNSUPPORTED_PROTOCOL) {
+			invalid_protocol_counter++;
+		} else {
 			general_fail_counter++;
 		}
 		
