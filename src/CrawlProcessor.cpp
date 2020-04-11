@@ -9,6 +9,7 @@
 
 #include <url.h>
 #include <time.h>
+#include <math.h>
 
 
 namespace vnx {
@@ -187,7 +188,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 	if(index) {
 		depth = std::min(depth, index->depth);
 		if(index->last_fetched > 0) {
-			const int64_t load_time = index->last_fetched + (depth + 1) * reload_interval;
+			const int64_t load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
 			enqueue(url, depth, load_time);
 		} else {
 			enqueue(url, depth);
