@@ -33,6 +33,7 @@ protected:
 	};
 	
 	struct domain_t {
+		std::multimap<int, std::string> queue;
 		int64_t last_fetch_us = 0;			// [usec]
 		int num_pending = 0;
 	};
@@ -66,7 +67,6 @@ private:
 	
 private:
 	TopicPtr url_sync_topic;
-	std::multimap<int, std::string> queue;
 	std::multimap<int64_t, std::string> waiting;
 	
 	std::unordered_map<std::string, url_t> url_map;

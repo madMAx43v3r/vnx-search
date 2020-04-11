@@ -98,17 +98,22 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	if(url_map.find(url) != url_map.end()) {
 		return false;
 	}
+	
+	const Url::Url parsed(url);
+	const auto host = parsed.host();
+	
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
-		queue.emplace(depth, url);
+		domain_t& domain = domain_map[host];
+		domain.queue.emplace(depth, url);
 	} else if(delta < 2 * sync_interval) {
 		waiting.emplace(load_time, url);
 	} else {
 		return false;
 	}
-	const Url::Url parsed(url);
+	
 	url_t& entry = url_map[url];
-	entry.domain = parsed.host();
+	entry.domain = host;
 	entry.depth = depth;
 	entry.is_reload = load_time > 0;
 	return true;
@@ -123,30 +128,42 @@ void CrawlProcessor::check_queue()
 	{
 		const auto entry = waiting.begin();
 		if(entry->first <= now_posix) {
-			queue.emplace(url_map[entry->second].depth, entry->second);
+			const url_t& url = url_map[entry->second];
+			domain_map[url.domain].queue.emplace(url.depth, entry->second);
 			waiting.erase(entry);
 		} else {
 			break;
 		}
 	}
 	
-	for(auto iter = queue.begin(); iter != queue.end();)
+	std::multimap<int, domain_t*> queue;
+	
+	for(auto& entry : domain_map) {
+		if(!entry.second.queue.empty()) {
+			queue.emplace(entry.second.queue.begin()->first, &entry.second);
+		}
+	}
+	
+	for(const auto& entry : queue)
 	{
 		if(pending_urls.size() >= max_num_pending) {
 			break;
 		}
-		
-		url_t& url = url_map[iter->second];
-		domain_t& domain = domain_map[url.domain];
+		domain_t& domain = *entry.second;
 		
 		if(now_wall - domain.last_fetch_us > int64_t(60 * 1000 * 1000) / max_per_minute)
 		{
 			try {
-				url.request_id = crawl_frontend_async->fetch(iter->second,
-						std::bind(&CrawlProcessor::url_fetch_callback, this, iter->second, std::placeholders::_1));
+				const auto iter = domain.queue.begin();
+				const auto url_str = iter->second;
+				url_t& url = url_map[url_str];
 				
-				pending_urls.emplace(url.request_id, iter->second);
+				url.request_id = crawl_frontend_async->fetch(url_str,
+						std::bind(&CrawlProcessor::url_fetch_callback, this, url_str, std::placeholders::_1));
 				
+				pending_urls.emplace(url.request_id, url_str);
+				
+				domain.queue.erase(iter);
 				domain.num_pending++;
 				domain.last_fetch_us = now_wall;
 				
@@ -155,10 +172,6 @@ void CrawlProcessor::check_queue()
 			catch(const std::exception& ex) {
 				break;
 			}
-			iter = queue.erase(iter);
-		}
-		else {
-			iter++;
 		}
 	}
 }
@@ -286,9 +299,10 @@ void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& 
 
 void CrawlProcessor::print_stats()
 {
-	log(INFO).out << queue.size() << " queued, " << waiting.size() << " waiting, "
+	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
 			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
-			<< reload_counter << " reload, " << average_depth << " avg. depth";
+			<< reload_counter << " reload, " << domain_map.size() << " domains, "
+			<< average_depth << " avg. depth";
 }
 
 
