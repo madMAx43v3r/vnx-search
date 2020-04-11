@@ -18,6 +18,7 @@ public:
 	
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
+	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
 	::int32_t jump_cost = 3;
 	::int32_t max_depth = 9;
 	::int32_t reload_interval = 300;
