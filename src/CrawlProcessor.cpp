@@ -199,6 +199,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 		try {
 			auto index = UrlIndex::create();
 			index->depth = depth;
+			index->first_seen = std::time(0);
 			url_index_async->store_value(url, index);
 		}
 		catch(const std::exception& ex) {
