@@ -146,6 +146,7 @@ void CrawlProcessor::check_queue()
 			queue.emplace(entry.second.queue.begin()->first, &entry.second);
 		}
 	}
+	active_domains = queue.size();
 	
 	for(const auto& entry : queue)
 	{
@@ -343,7 +344,7 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
 			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
 			<< error_counter << " failed, " << reload_counter << " reload, "
-			<< domain_map.size() << " domains, " << average_depth << " avg. depth";
+			<< active_domains << " domains, " << average_depth << " avg. depth";
 }
 
 
