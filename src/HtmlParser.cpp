@@ -90,6 +90,26 @@ std::vector<T> get_unique(std::vector<T> in)
 	return std::vector<T>(tmp.begin(), tmp.end());
 }
 
+// trim from left
+inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    s.erase(0, s.find_first_not_of(t));
+    return s;
+}
+
+// trim from right
+inline std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// trim from left & right
+inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    return ltrim(rtrim(s, t), t);
+}
+
 std::shared_ptr<const TextResponse>
 HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 {
@@ -118,7 +138,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 		if(element) {
 			if(element->get_attribute_value("http-equiv") == "Refresh") {
 				const std::string content = element->get_attribute_value("content");
-				auto pos = content.find_first_of("url=");
+				auto pos = content.find("url=");
 				if(pos != std::string::npos) {
 					result->links.push_back(content.substr(pos + 4));
 				}
@@ -128,9 +148,16 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	auto title = root->find("//head/title");
 	if(!title.empty()) {
-		parse_node(title[0], result);
-		result->title = result->text;
-		result->text += "\n\n";
+		auto element = dynamic_cast<const xmlpp::Element*>(title[0]);
+		if(element) {
+			auto text = element->get_child_text();
+			if(text) {
+				result->title = text->get_content();
+				trim(result->title);
+				result->text += result->title;
+				result->text += "\n\n";
+			}
+		}
 	}
 	
 	auto body = root->find("//body");
