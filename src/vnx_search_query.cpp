@@ -38,7 +38,6 @@ int main(int argc, char** argv)
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
 		terminal.start_detached();
 	}
-	
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
 		proxy->forward_list.push_back("SearchEngine");
