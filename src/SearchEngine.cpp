@@ -63,18 +63,34 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 
 uint32_t SearchEngine::get_url_id(const std::string& url)
 {
-	uint32_t page_id = 0;
+	uint32_t url_id = 0;
 	{
-		auto iter = url_index.find(url);
-		if(iter != url_index.end()) {
-			page_id = iter->second;
+		auto iter = url_map.find(url);
+		if(iter != url_map.end()) {
+			url_id = iter->second;
 		} else {
-			page_id = next_url_id++;
-			url_index[url] = page_id;
-			url_reverse_index[page_id] = url;
+			url_id = next_url_id++;
+			url_map[url] = url_id;
+			url_reverse_map[url_id] = url;
 		}
 	}
-	return page_id;
+	return url_id;
+}
+
+uint32_t SearchEngine::get_word_id(const std::string& word)
+{
+	uint32_t word_id = 0;
+	{
+		auto iter = word_map.find(word);
+		if(iter != word_map.end()) {
+			word_id = iter->second;
+		} else {
+			word_id = next_word_id++;
+			word_map[word] = word_id;
+			word_reverse_map[word_id] = word;
+		}
+	}
+	return word_id;
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
@@ -87,8 +103,8 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		else {
 			std::lock_guard<std::mutex> lock(index_mutex);
 			
-			const std::string url = pair->key.to_string_value();
-			const uint32_t page_id = get_url_id(url);
+			const auto url = pair->key.to_string_value();
+			const auto page_id = get_url_id(url);
 			
 			auto& page = page_index[page_id];
 			if(!page) {
@@ -102,11 +118,13 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			
 			for(const auto& word : index->words)
 			{
-				auto& entry = word_index[word];
+				const auto word_id = get_word_id(word);
+				auto& entry = word_index[word_id];
 				if(!entry) {
 					entry = std::make_shared<word_t>();
 				}
 				entry->pages.push_back(page_id);
+				page->words.push_back(word_id);
 			}
 		}
 	}
@@ -119,7 +137,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 			std::lock_guard<std::mutex> lock(index_mutex);
 			is_initialized = true;
 			subscribe(input_page_index, 1000);
-			log(INFO).out << "Initialized with " << url_index.size() << " urls, "
+			log(INFO).out << "Initialized with " << url_map.size() << " urls, "
 					<< page_index.size() << " pages and " << word_index.size() << " words.";
 		}
 	}
@@ -152,7 +170,7 @@ void SearchEngine::work_loop()
 			std::shared_ptr<word_t> entry;
 			{
 				std::lock_guard<std::mutex> lock(index_mutex);
-				auto iter = word_index.find(word);
+				auto iter = word_index.find(get_word_id(word));
 				if(iter != word_index.end()) {
 					entry = iter->second;
 				}
@@ -218,7 +236,7 @@ void SearchEngine::work_loop()
 			for(const auto& entry : sorted)
 			{
 				ResultItem item;
-				item.url = url_reverse_index[entry.second->id];
+				item.url = url_reverse_map[entry.second->id];
 				item.score = entry.first;
 				item.last_modified = entry.second->last_modified;
 				result->items.push_back(item);

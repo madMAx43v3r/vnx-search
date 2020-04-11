@@ -23,6 +23,7 @@ public:
 	
 protected:
 	struct word_t {
+		uint32_t id = 0;
 		std::vector<uint32_t> pages;
 	};
 	
@@ -30,6 +31,7 @@ protected:
 		uint32_t id = 0;
 		int64_t last_modified = 0;
 		std::vector<uint32_t> links;
+		std::vector<uint32_t> words;
 	};
 	
 	struct query_t {
@@ -54,6 +56,8 @@ protected:
 private:
 	uint32_t get_url_id(const std::string& url);
 	
+	uint32_t get_word_id(const std::string& word);
+	
 	void work_loop();
 	
 	void update_func(std::vector<std::shared_ptr<const keyvalue::KeyValuePair>> values);
@@ -69,15 +73,18 @@ private:
 	mutable std::queue<std::shared_ptr<query_t>> work_queue;
 	
 	mutable std::mutex index_mutex;
-	std::unordered_map<std::string, uint32_t> url_index;
-	std::unordered_map<uint32_t, std::string> url_reverse_index;
-	std::unordered_map<std::string, std::shared_ptr<word_t>> word_index;
+	std::unordered_map<std::string, uint32_t> url_map;
+	std::unordered_map<uint32_t, std::string> url_reverse_map;
+	std::unordered_map<std::string, uint32_t> word_map;
+	std::unordered_map<uint32_t, std::string> word_reverse_map;
+	std::unordered_map<uint32_t, std::shared_ptr<word_t>> word_index;
 	std::unordered_map<uint32_t, std::shared_ptr<page_t>> page_index;
 	
 	std::vector<std::shared_ptr<const keyvalue::KeyValuePair>> update_buffer;
 	
 	bool is_initialized = false;
 	uint32_t next_url_id = 1;
+	uint32_t next_word_id = 1;
 	
 	mutable std::atomic<int64_t> query_counter;
 	
