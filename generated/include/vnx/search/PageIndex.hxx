@@ -14,6 +14,7 @@ namespace search {
 class PageIndex : public ::vnx::Value {
 public:
 	
+	::std::string title;
 	::int64_t last_modified = 0;
 	::std::vector<::std::string> links;
 	::std::vector<::std::string> images;

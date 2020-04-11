@@ -52,14 +52,15 @@ uint64_t SearchEngineAsyncClient::handle(const ::std::shared_ptr<const ::vnx::ke
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::query(const ::std::vector<::std::string>& words, const ::int64_t& max_results, const std::function<void(::std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback) {
+uint64_t SearchEngineAsyncClient::query(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset, const std::function<void(::std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback) {
 	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
 	vnx::BinaryOutputStream _stream_out(_argument_data.get());
 	vnx::TypeOutput _out(&_stream_out);
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_query;
 	{
-		char* const _buf = _out.write(8);
-		vnx::write_value(_buf + 0, max_results);
+		char* const _buf = _out.write(16);
+		vnx::write_value(_buf + 0, limit);
+		vnx::write_value(_buf + 8, offset);
 		vnx::write(_out, words, _type_code, _type_code->fields[0].code.data());
 	}
 	_out.flush();

@@ -27,7 +27,7 @@ public:
 	uint64_t handle(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample, 
 			const std::function<void()>& _callback = std::function<void()>());
 	
-	uint64_t query(const ::std::vector<::std::string>& words, const ::int64_t& max_results, 
+	uint64_t query(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset, 
 			const std::function<void(::std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback = std::function<void(::std::shared_ptr<const ::vnx::search::SearchResult>)>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;

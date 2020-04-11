@@ -14,6 +14,7 @@ namespace search {
 class ResultItem : public ::vnx::Value {
 public:
 	
+	::std::string title;
 	::std::string url;
 	::int64_t score = 0;
 	::int64_t last_modified = 0;

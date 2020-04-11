@@ -194,7 +194,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
 		call_type->name = "vnx.search.SearchEngine.query";
 		call_type->type_hash = vnx::Hash64(0x14a6c3ff80018ce8ull);
-		call_type->code_hash = vnx::Hash64(0xb659aed2ed4d3fddull);
+		call_type->code_hash = vnx::Hash64(0xcc1c58ff3a3bda8bull);
 		call_type->is_method = true;
 		{
 			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
@@ -212,7 +212,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
 		}
-		call_type->fields.resize(2);
+		call_type->fields.resize(3);
 		{
 			vnx::TypeField& field = call_type->fields[0];
 			field.is_extended = true;
@@ -221,7 +221,12 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		}
 		{
 			vnx::TypeField& field = call_type->fields[1];
-			field.name = "max_results";
+			field.name = "limit";
+			field.code = {8};
+		}
+		{
+			vnx::TypeField& field = call_type->fields[2];
+			field.name = "offset";
 			field.code = {8};
 		}
 		call_type->build();
@@ -331,14 +336,21 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(vnx::TypeInput& _i
 		return _return_value;
 	} else if(_call_type->type_hash == vnx::Hash64(0x14a6c3ff80018ce8ull)) {
 		::std::vector<::std::string> words;
-		::int64_t max_results = 0;
+		::int64_t limit = 0;
+		::int64_t offset = 0;
 		{
 			const char* const _buf = _in.read(_call_type->total_field_size);
 			if(_call_type->is_matched) {
 				{
 					const vnx::TypeField* const _field = _call_type->field_map[1];
 					if(_field) {
-						vnx::read_value(_buf + _field->offset, max_results, _field->code.data());
+						vnx::read_value(_buf + _field->offset, limit, _field->code.data());
+					}
+				}
+				{
+					const vnx::TypeField* const _field = _call_type->field_map[2];
+					if(_field) {
+						vnx::read_value(_buf + _field->offset, offset, _field->code.data());
 					}
 				}
 			}
@@ -349,7 +361,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(vnx::TypeInput& _i
 				}
 			}
 		}
-		query_async(words, max_results, std::bind(&SearchEngineBase::query_async_return, this, _request_id, std::placeholders::_1), _request_id);
+		query_async(words, limit, offset, std::bind(&SearchEngineBase::query_async_return, this, _request_id, std::placeholders::_1), _request_id);
 		return 0;
 	}
 	auto _ex = vnx::NoSuchMethod::create();

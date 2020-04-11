@@ -29,7 +29,7 @@ public:
 	
 	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample);
 	
-	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int64_t& max_results);
+	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset);
 	
 };
 
