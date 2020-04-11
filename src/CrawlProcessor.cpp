@@ -6,6 +6,7 @@
  */
 
 #include <vnx/search/CrawlProcessor.h>
+#include <vnx/search/CrawlStats.hxx>
 
 #include <url.h>
 #include <time.h>
@@ -38,6 +39,7 @@ void CrawlProcessor::main()
 	add_async_client(crawl_frontend_async);
 	
 	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
+	set_timer_millis(10 * 1000, std::bind(&CrawlProcessor::publish_stats, this));
 	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
 	set_timer_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
@@ -60,7 +62,7 @@ void CrawlProcessor::main()
 		}
 	}
 	
-	url_index->sync_all(url_sync_topic);
+	check_all_urls();
 	
 	Super::main();
 }
@@ -257,6 +259,7 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url)
 {
 	const auto entry = url_map[url];
+	reload_counter += entry.is_reload ? 1 : 0;
 	domain_map[entry.domain].num_pending--;
 	pending_urls.erase(entry.request_id);
 	url_map.erase(url);
@@ -277,9 +280,13 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		catch(const std::exception& ex) {
 			log(WARN).out << "UrlIndex: " << ex.what();
 		}
-		fetch_counter++;
-		error_counter += index->is_fail;
-		reload_counter += entry.is_reload ? 1 : 0;
+		
+		domain_t& domain = domain_map[entry.domain];
+		if(index->is_fail) {
+			domain.num_errors++;
+		} else {
+			domain.num_fetched++;
+		}
 	}
 }
 
@@ -300,6 +307,11 @@ void CrawlProcessor::url_update_callback(	const std::string& url,
 	}
 	catch(const std::exception& ex) {
 		log(WARN).out << "UrlIndex: " << ex.what();
+	}
+	if(fetched->is_fail) {
+		error_counter++;
+	} else {
+		fetch_counter++;
 	}
 }
 
@@ -329,7 +341,6 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 				catch(const std::exception& ex) {
 					log(WARN).out << "UrlIndex: " << ex.what();
 				}
-				error_counter++;
 			}
 		}
 	}
@@ -338,6 +349,35 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& ex)
 {
 	log(WARN).out << "UrlIndex: " << ex.what();
+}
+
+void CrawlProcessor::publish_stats()
+{
+	auto stats = CrawlStats::create();
+	stats->num_fetched = fetch_counter;
+	stats->num_errors = error_counter;
+	stats->num_reload = reload_counter;
+	stats->num_active_domains = active_domains;
+	stats->num_queued = url_map.size();
+	stats->num_waiting = waiting.size();
+	{
+		std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> domains;
+		for(const auto& entry : domain_map) {
+			crawl_domain_stats_t dstats;
+			dstats.host = entry.first;
+			dstats.num_fetched = entry.second.num_fetched;
+			dstats.num_errors = entry.second.num_errors;
+			dstats.num_queued = entry.second.queue.size();
+			domains.emplace(dstats.num_fetched, dstats);
+		}
+		for(const auto& entry : domains) {
+			stats->domains.push_back(entry.second);
+			if(stats->domains.size() >= 1000) {
+				break;
+			}
+		}
+	}
+	publish(stats, output_crawl_stats);
 }
 
 void CrawlProcessor::print_stats()

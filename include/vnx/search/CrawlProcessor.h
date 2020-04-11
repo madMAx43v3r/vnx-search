@@ -34,6 +34,8 @@ protected:
 	
 	struct domain_t {
 		std::multimap<int, std::string> queue;
+		int64_t num_fetched = 0;
+		int64_t num_errors = 0;
 		int64_t last_fetch_us = 0;			// [usec]
 		int num_pending = 0;
 	};
@@ -64,6 +66,8 @@ private:
 	void url_fetch_error(uint64_t request_id, const std::exception& ex);
 	
 	void url_index_error(uint64_t request_id, const std::exception& ex);
+	
+	void publish_stats();
 	
 	void print_stats();
 	

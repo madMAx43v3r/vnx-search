@@ -6,6 +6,8 @@ module CrawlProcessor {
 	
 	vnx.TopicPtr input_page_index = "backend.page_index.updates";
 	
+	vnx.TopicPtr output_crawl_stats = "backend.crawl_stats";
+	
 	int jump_cost = 3;
 	
 	int max_depth = 9;

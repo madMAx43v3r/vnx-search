@@ -1,0 +1,19 @@
+package vnx.search;
+
+class CrawlStats {
+	
+	long num_fetched;
+	
+	long num_errors;
+	
+	long num_reload;
+	
+	long num_active_domains;
+	
+	long num_queued;
+	
+	long num_waiting;
+	
+	vector<crawl_domain_stats_t> domains;
+	
+}
