@@ -16,7 +16,7 @@ class UrlIndex {
 	
 	int fetch_count;
 	
-	int depth;
+	int depth = -1;
 	
 	bool is_fail;
 	
