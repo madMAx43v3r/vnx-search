@@ -246,6 +246,7 @@ void SearchEngine::work_loop()
 					continue;
 				}
 				ResultItem item;
+				item.title = entry.second->title;
 				item.url = url_reverse_map[entry.second->id];
 				item.score = entry.first;
 				item.last_modified = entry.second->last_modified;
