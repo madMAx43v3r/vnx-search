@@ -266,6 +266,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			log(WARN).out << "UrlIndex: " << ex.what();
 		}
 		fetch_counter++;
+		error_counter += index->is_fail;
 		reload_counter += entry.is_reload ? 1 : 0;
 	}
 }
