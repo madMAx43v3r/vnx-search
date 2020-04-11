@@ -45,11 +45,11 @@ std::string process_link(const std::string& link, const Url::Url& parent)
 {
 	Url::Url parsed(link);
 	parsed.defrag();
-	parsed.remove_default_port();
 	
 	if(parsed.scheme().empty()) {
 		parsed.setScheme(parent.scheme());
 	}
+	parsed.remove_default_port();
 	
 	if(parsed.host().empty()) {
 		parsed.setHost(parent.host());
@@ -61,7 +61,6 @@ std::string process_link(const std::string& link, const Url::Url& parent)
 	
 	parsed.strip();
 	parsed.abspath();
-	
 	return parsed.str();
 }
 
@@ -105,6 +104,7 @@ void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
 	const Url::Url parent(value->url);
 	
 	auto index = PageIndex::create();
+	index->title = value->title;
 	index->last_modified = value->last_modified;
 	for(const auto& link : value->links) {
 		const auto full_link = process_link(link, parent);

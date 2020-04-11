@@ -4,6 +4,8 @@ class UrlIndex {
 	
 	string content_type;			// mime type
 	
+	long first_seen;				// posix timestamp [sec]
+	
 	long last_fetched;				// posix timestamp [sec]
 	
 	long last_modified;				// posix timestamp [sec]
@@ -11,6 +13,8 @@ class UrlIndex {
 	long fetch_duration_us;			// [usec]
 	
 	int http_status;
+	
+	int fetch_count;
 	
 	int depth;
 	

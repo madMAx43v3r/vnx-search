@@ -129,6 +129,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	auto title = root->find("//head/title");
 	if(!title.empty()) {
 		parse_node(title[0], result);
+		result->title = result->text;
 		result->text += "\n\n";
 	}
 	

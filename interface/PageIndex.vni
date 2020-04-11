@@ -2,6 +2,8 @@ package vnx.search;
 
 class PageIndex {
 	
+	string title;
+	
 	long last_modified;
 	
 	vector<string> links;
