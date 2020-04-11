@@ -16,7 +16,7 @@ module CrawlProcessor {
 	
 	int max_per_minute = 60;
 	
-	int max_num_pending = 10;
+	int max_num_pending = 20;
 	
 	int max_url_length = 256;
 	
