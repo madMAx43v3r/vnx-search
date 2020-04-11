@@ -10,21 +10,21 @@ module CrawlProcessor {
 	
 	int max_depth = 9;
 	
-	int reload_interval = 3600;			// [seconds / (depth + 1) ^ reload_power]
+	int reload_interval = 300;			// [seconds / (depth + 1) ^ reload_power]
 	
 	int sync_interval = 1800;			// checking all urls [sec]
 	
-	int max_per_minute = 60;
+	int max_per_minute = 30;
 	
-	int max_num_pending = 20;
+	int max_num_pending = 50;
 	
 	int max_url_length = 256;
 	
-	int update_interval_ms = 100;
+	int update_interval_ms = 200;
 	
 	int max_queue_ms = 1000;
 	
-	float reload_power = 3;
+	float reload_power = 4;
 	
 	vector<string> root_urls;
 	
