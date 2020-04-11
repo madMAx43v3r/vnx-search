@@ -170,9 +170,12 @@ void SearchEngine::work_loop()
 			std::shared_ptr<word_t> entry;
 			{
 				std::lock_guard<std::mutex> lock(index_mutex);
-				auto iter = word_index.find(get_word_id(word));
-				if(iter != word_index.end()) {
-					entry = iter->second;
+				auto id = word_map.find(word);
+				if(id != word_map.end()) {
+					auto iter = word_index.find(id->second);
+					if(iter != word_index.end()) {
+						entry = iter->second;
+					}
 				}
 			}
 			if(entry) {
