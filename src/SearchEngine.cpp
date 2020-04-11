@@ -46,13 +46,14 @@ void SearchEngine::main()
 }
 
 void SearchEngine::query_async(	const std::vector<std::string>& words,
-								const int64_t& max_results,
+								const int64_t& limit, const int64_t& offset,
 								const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 								const vnx::request_id_t& _request_id) const
 {
 	auto request = std::make_shared<query_t>();
 	request->words = words;
-	request->max_results = max_results;
+	request->limit = std::min(limit, int64_t(100));
+	request->offset = offset;
 	request->callback = _callback;
 	{
 		std::lock_guard<std::mutex> lock(work_mutex);
@@ -111,10 +112,12 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 				page = std::make_shared<page_t>();
 			}
 			page->id = page_id;
+			page->title = index->title;
+			page->last_modified = index->last_modified;
+			
 			for(const auto& link : index->links) {
 				page->links.push_back(get_url_id(link));
 			}
-			page->last_modified = index->last_modified;
 			
 			for(const auto& word : index->words)
 			{
@@ -236,15 +239,19 @@ void SearchEngine::work_loop()
 		result->num_pages_total = sorted.size();
 		{
 			std::lock_guard<std::mutex> lock(index_mutex);
+			int64_t offset = 0;
 			for(const auto& entry : sorted)
 			{
+				if(offset++ < request->offset) {
+					continue;
+				}
 				ResultItem item;
 				item.url = url_reverse_map[entry.second->id];
 				item.score = entry.first;
 				item.last_modified = entry.second->last_modified;
 				result->items.push_back(item);
 				
-				if(result->items.size() >= request->max_results) {
+				if(result->items.size() >= request->limit) {
 					break;
 				}
 			}

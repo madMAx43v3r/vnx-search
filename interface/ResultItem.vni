@@ -2,6 +2,8 @@ package vnx.search;
 
 class ResultItem {
 	
+	string title;
+	
 	string url;
 	
 	long score;

@@ -29,6 +29,7 @@ protected:
 	
 	struct page_t {
 		uint32_t id = 0;
+		std::string title;
 		int64_t last_modified = 0;
 		std::vector<uint32_t> links;
 		std::vector<uint32_t> words;
@@ -36,7 +37,8 @@ protected:
 	
 	struct query_t {
 		std::vector<std::string> words;
-		int64_t max_results = 0;
+		int64_t limit = 0;
+		int64_t offset = 0;
 		std::function<void(const std::shared_ptr<const SearchResult>&)> callback;
 	};
 	
@@ -45,7 +47,7 @@ protected:
 	void main() override;
 	
 	void query_async(	const std::vector<std::string>& words,
-						const int64_t& max_results,
+						const int64_t& limit, const int64_t& offset,
 						const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 						const vnx::request_id_t& _request_id) const override;
 	

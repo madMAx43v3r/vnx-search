@@ -20,19 +20,23 @@ int main(int argc, char** argv)
 	options["s"] = "server";
 	options["w"] = "words";
 	options["l"] = "limit";
+	options["p"] = "page";
 	options["server"] = "engine server url";
 	options["words"] = "search words";
 	options["limit"] = "max results";
+	options["page"] = "page index";
 	
 	vnx::init("vnx_search_query", argc, argv, options);
 	
 	std::string server = ".vnx_search_engine.sock";
 	std::vector<std::string> words;
 	int limit = 10;
+	int page = 0;
 	
 	vnx::read_config("server", server);
 	vnx::read_config("words", words);
 	vnx::read_config("limit", limit);
+	vnx::read_config("page", page);
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
@@ -45,7 +49,7 @@ int main(int argc, char** argv)
 	}
 	
 	vnx::search::SearchEngineClient client("SearchEngine");
-	auto result = client.query(words, limit);
+	auto result = client.query(words, limit, page * limit);
 	
 	vnx::PrettyPrinter print(std::cout);
 	vnx::accept(print, result);
