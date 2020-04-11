@@ -16,6 +16,7 @@
 #include <locale>
 #include <iomanip>
 #include <time.h>
+#include <signal.h>
 
 
 namespace vnx {
@@ -330,6 +331,8 @@ void CrawlFrontend::fetch_loop()
 		index->last_fetched = std::time(0);
 		index->is_fail = true;
 		
+		::signal(SIGPIPE, SIG_IGN);
+		
 		CURL* client = curl_easy_init();
 		if(!client) {
 			break;
@@ -345,7 +348,7 @@ void CrawlFrontend::fetch_loop()
 		curl_easy_setopt(client, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FTPS | CURLPROTO_SFTP);
 		curl_easy_setopt(client, CURLOPT_ACCEPT_ENCODING, "");
 		curl_easy_setopt(client, CURLOPT_FOLLOWLOCATION, 1);
-		curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1);
+		curl_easy_setopt(client, CURLOPT_NOSIGNAL, 0);		// prevent libcurl from messing with signal handlers
 		curl_easy_setopt(client, CURLOPT_NOPROGRESS, 1);
 		curl_easy_setopt(client, CURLOPT_MAXFILESIZE, max_content_length);
 		curl_easy_setopt(client, CURLOPT_TIMEOUT_MS, response_timeout_ms);
