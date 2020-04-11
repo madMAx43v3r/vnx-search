@@ -139,11 +139,12 @@ void CrawlProcessor::check_queue()
 		}
 	}
 	
-	std::multimap<int, domain_t*> queue;
+	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
 	
 	for(auto& entry : domain_map) {
 		if(!entry.second.queue.empty()) {
-			queue.emplace(entry.second.queue.begin()->first, &entry.second);
+			queue.emplace(std::make_pair(entry.second.queue.begin()->first,
+										entry.second.last_fetch_us), &entry.second);
 		}
 	}
 	active_domains = queue.size();
