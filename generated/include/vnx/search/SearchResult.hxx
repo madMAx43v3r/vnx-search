@@ -15,7 +15,7 @@ namespace search {
 class SearchResult : public ::vnx::Value {
 public:
 	
-	::int64_t num_pages_total = 0;
+	::int64_t num_results_total = 0;
 	::std::vector<::std::string> words;
 	::std::vector<::vnx::search::result_item_t> items;
 	

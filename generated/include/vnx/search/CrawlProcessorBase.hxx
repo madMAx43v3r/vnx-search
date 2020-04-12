@@ -21,8 +21,8 @@ public:
 	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
 	::int32_t jump_cost = 3;
 	::int32_t max_depth = 9;
-	::int32_t reload_interval = 300;
-	::int32_t sync_interval = 1800;
+	::int32_t reload_interval = 10800;
+	::int32_t sync_interval = 3600;
 	::int32_t max_per_minute = 30;
 	::int32_t max_num_pending = 50;
 	::int32_t max_url_length = 256;

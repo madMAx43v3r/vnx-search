@@ -10,6 +10,7 @@
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/search/SearchResult.hxx>
+#include <vnx/search/search_flags_e.hxx>
 
 
 namespace vnx {
@@ -29,7 +30,7 @@ public:
 	
 	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample);
 	
-	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset);
+	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags);
 	
 };
 

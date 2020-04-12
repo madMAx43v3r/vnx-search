@@ -18,6 +18,7 @@
 #include <vnx/search/UrlIndex.hxx>
 #include <vnx/search/crawl_domain_stats_t.hxx>
 #include <vnx/search/result_item_t.hxx>
+#include <vnx/search/search_flags_e.hxx>
 
 
 
@@ -41,6 +42,7 @@ static void register_all_types() {
 	vnx::register_type_code(vnx::search::UrlIndex::static_create_type_code());
 	vnx::register_type_code(vnx::search::crawl_domain_stats_t::static_create_type_code());
 	vnx::register_type_code(vnx::search::result_item_t::static_create_type_code());
+	vnx::register_type_code(vnx::search::search_flags_e::static_create_type_code());
 }
 
 static struct vnx_static_init {
@@ -82,6 +84,7 @@ const vnx::TypeCode* const vnx_native_type_code_TextResponse = vnx::get_type_cod
 const vnx::TypeCode* const vnx_native_type_code_UrlIndex = vnx::get_type_code(vnx::Hash64(0xab26319d1802d1b6ull));
 const vnx::TypeCode* const vnx_native_type_code_crawl_domain_stats_t = vnx::get_type_code(vnx::Hash64(0xf57ddd168a5985ddull));
 const vnx::TypeCode* const vnx_native_type_code_result_item_t = vnx::get_type_code(vnx::Hash64(0x25b1d557d37a1bdfull));
+const vnx::TypeCode* const vnx_native_type_code_search_flags_e = vnx::get_type_code(vnx::Hash64(0xe55b90a8ffab58ffull));
 
 } // namespace vnx
 } // namespace search

@@ -18,7 +18,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchEngineBase::VNX_TYPE_HASH(0x4e0f26d3496896a1ull);
-const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0xc261da5689339e19ull);
+const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0xc92f6dfbeae8221dull);
 
 SearchEngineBase::SearchEngineBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -138,7 +138,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.SearchEngine";
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
-	type_code->code_hash = vnx::Hash64(0xc261da5689339e19ull);
+	type_code->code_hash = vnx::Hash64(0xc92f6dfbeae8221dull);
 	type_code->methods.resize(3);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -194,8 +194,10 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
 		call_type->name = "vnx.search.SearchEngine.query";
 		call_type->type_hash = vnx::Hash64(0x14a6c3ff80018ce8ull);
-		call_type->code_hash = vnx::Hash64(0xcc1c58ff3a3bda8bull);
+		call_type->code_hash = vnx::Hash64(0x2279f169d99f8a8dull);
 		call_type->is_method = true;
+		call_type->depends.resize(1);
+		call_type->depends[0] = ::vnx::search::search_flags_e::static_get_type_code();
 		{
 			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
 			return_type->name = "vnx.search.SearchEngine.query.return";
@@ -212,7 +214,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
 		}
-		call_type->fields.resize(3);
+		call_type->fields.resize(4);
 		{
 			vnx::TypeField& field = call_type->fields[0];
 			field.is_extended = true;
@@ -228,6 +230,12 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			vnx::TypeField& field = call_type->fields[2];
 			field.name = "offset";
 			field.code = {8};
+		}
+		{
+			vnx::TypeField& field = call_type->fields[3];
+			field.is_extended = true;
+			field.name = "flags";
+			field.code = {12, 19, 0};
 		}
 		call_type->build();
 		type_code->methods[2] = vnx::register_type_code(call_type);
@@ -269,7 +277,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[5];
 		field.name = "num_threads";
-		field.value = vnx::to_string(10);
+		field.value = vnx::to_string(2);
 		field.code = {7};
 	}
 	type_code->build();
@@ -338,6 +346,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(vnx::TypeInput& _i
 		::std::vector<::std::string> words;
 		::int64_t limit = 0;
 		::int64_t offset = 0;
+		::std::vector<::vnx::search::search_flags_e> flags;
 		{
 			const char* const _buf = _in.read(_call_type->total_field_size);
 			if(_call_type->is_matched) {
@@ -357,11 +366,12 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(vnx::TypeInput& _i
 			for(const vnx::TypeField* _field : _call_type->ext_fields) {
 				switch(_field->native_index) {
 					case 0: vnx::read(_in, words, _call_type, _field->code.data()); break;
+					case 3: vnx::read(_in, flags, _call_type, _field->code.data()); break;
 					default: vnx::skip(_in, _call_type, _field->code.data());
 				}
 			}
 		}
-		query_async(words, limit, offset, std::bind(&SearchEngineBase::query_async_return, this, _request_id, std::placeholders::_1), _request_id);
+		query_async(words, limit, offset, flags, std::bind(&SearchEngineBase::query_async_return, this, _request_id, std::placeholders::_1), _request_id);
 		return 0;
 	}
 	auto _ex = vnx::NoSuchMethod::create();

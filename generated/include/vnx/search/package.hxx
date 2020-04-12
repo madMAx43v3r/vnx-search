@@ -29,6 +29,7 @@ class TextResponse;
 class UrlIndex;
 struct crawl_domain_stats_t;
 class result_item_t;
+struct search_flags_e;
 extern const vnx::TypeCode* const vnx_native_type_code_ContentParser; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_ContentParser_parse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_ContentParser_parse_return; ///< \private
@@ -62,6 +63,7 @@ extern const vnx::TypeCode* const vnx_native_type_code_TextResponse; ///< \priva
 extern const vnx::TypeCode* const vnx_native_type_code_UrlIndex; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_crawl_domain_stats_t; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_result_item_t; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_search_flags_e; ///< \private
 
 } // namespace vnx
 } // namespace search
@@ -84,6 +86,7 @@ void read(TypeInput& in, ::vnx::search::TextResponse& value, const TypeCode* typ
 void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::crawl_domain_stats_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::result_item_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::search_flags_e& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 
 void write(TypeOutput& out, const ::vnx::search::ContentParserBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::CrawlFrontendBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -100,6 +103,7 @@ void write(TypeOutput& out, const ::vnx::search::TextResponse& value, const Type
 void write(TypeOutput& out, const ::vnx::search::UrlIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::crawl_domain_stats_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::result_item_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::search_flags_e& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 
 void read(std::istream& in, ::vnx::search::ContentParserBase& value); ///< \private
 void read(std::istream& in, ::vnx::search::CrawlFrontendBase& value); ///< \private
@@ -116,6 +120,7 @@ void read(std::istream& in, ::vnx::search::TextResponse& value); ///< \private
 void read(std::istream& in, ::vnx::search::UrlIndex& value); ///< \private
 void read(std::istream& in, ::vnx::search::crawl_domain_stats_t& value); ///< \private
 void read(std::istream& in, ::vnx::search::result_item_t& value); ///< \private
+void read(std::istream& in, ::vnx::search::search_flags_e& value); ///< \private
 
 void write(std::ostream& out, const ::vnx::search::ContentParserBase& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::CrawlFrontendBase& value); ///< \private
@@ -132,6 +137,7 @@ void write(std::ostream& out, const ::vnx::search::TextResponse& value); ///< \p
 void write(std::ostream& out, const ::vnx::search::UrlIndex& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::crawl_domain_stats_t& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::result_item_t& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::search_flags_e& value); ///< \private
 
 void accept(Visitor& visitor, const ::vnx::search::ContentParserBase& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::CrawlFrontendBase& value); ///< \private
@@ -148,6 +154,7 @@ void accept(Visitor& visitor, const ::vnx::search::TextResponse& value); ///< \p
 void accept(Visitor& visitor, const ::vnx::search::UrlIndex& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::crawl_domain_stats_t& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::result_item_t& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::search_flags_e& value); ///< \private
 
 /// \private
 template<>
@@ -487,6 +494,29 @@ struct type<::vnx::search::result_item_t> {
 		vnx::write(out, value);
 	}
 	void accept(Visitor& visitor, const ::vnx::search::result_item_t& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::search_flags_e> {
+	void read(TypeInput& in, ::vnx::search::search_flags_e& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::search_flags_e& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::search_flags_e& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::search_flags_e& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::search_flags_e& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {

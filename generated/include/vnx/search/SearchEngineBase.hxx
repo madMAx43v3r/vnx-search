@@ -10,6 +10,7 @@
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/search/SearchResult.hxx>
+#include <vnx/search/search_flags_e.hxx>
 
 
 namespace vnx {
@@ -23,7 +24,7 @@ public:
 	::std::string page_index_server = "PageIndex";
 	::std::string page_content_server = "PageContent";
 	::int32_t num_iterations = 1;
-	::int32_t num_threads = 10;
+	::int32_t num_threads = 2;
 	
 	typedef ::vnx::Module Super;
 	
@@ -55,7 +56,7 @@ protected:
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value) {}
-	virtual void query_async(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset, const std::function<void(const ::std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual void query_async(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(const ::std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
 	
 	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;

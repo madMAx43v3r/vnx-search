@@ -18,7 +18,7 @@ namespace search {
 
 
 const vnx::Hash64 CrawlProcessorBase::VNX_TYPE_HASH(0x508848d1f9d97d9full);
-const vnx::Hash64 CrawlProcessorBase::VNX_CODE_HASH(0x23069ba17fb8d0a7ull);
+const vnx::Hash64 CrawlProcessorBase::VNX_CODE_HASH(0x228d1feb7a0bb8ecull);
 
 CrawlProcessorBase::CrawlProcessorBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -218,7 +218,7 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.CrawlProcessor";
 	type_code->type_hash = vnx::Hash64(0x508848d1f9d97d9full);
-	type_code->code_hash = vnx::Hash64(0x23069ba17fb8d0a7ull);
+	type_code->code_hash = vnx::Hash64(0x228d1feb7a0bb8ecull);
 	type_code->methods.resize(1);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -282,13 +282,13 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[5];
 		field.name = "reload_interval";
-		field.value = vnx::to_string(300);
+		field.value = vnx::to_string(10800);
 		field.code = {7};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.name = "sync_interval";
-		field.value = vnx::to_string(1800);
+		field.value = vnx::to_string(3600);
 		field.code = {7};
 	}
 	{
