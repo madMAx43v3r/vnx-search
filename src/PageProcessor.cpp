@@ -48,17 +48,16 @@ std::string process_link(const std::string& link, const Url::Url& parent)
 	
 	if(parsed.scheme().empty()) {
 		parsed.setScheme(parent.scheme());
-	}
-	parsed.remove_default_port();
-	
-	if(parsed.host().empty()) {
-		parsed.setHost(parent.host());
-		// check if path is relative
-		if(!parsed.path().empty() && parsed.path()[0] != '/') {
-			parsed.relative_to(parent);
+		
+		if(parsed.host().empty()) {
+			parsed.setHost(parent.host());
+			// check if path is relative
+			if(!parsed.path().empty() && parsed.path()[0] != '/') {
+				parsed.relative_to(parent);
+			}
 		}
 	}
-	
+	parsed.remove_default_port();
 	parsed.strip();
 	parsed.abspath();
 	return parsed.str();
@@ -73,12 +72,6 @@ std::vector<T> get_unique(std::vector<T> in)
 
 void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
 {
-	const Url::Url parent(value->url);
-	if(parent.host().empty()) {
-		log(WARN).out << "Empty host in page url: '" << value->url << "'";
-		return;
-	}
-	
 	const UnicodeString text = UnicodeString::fromUTF8(value->text);
 	
 	UErrorCode status = U_ZERO_ERROR;
@@ -106,6 +99,8 @@ void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
 		}
     }
 	delete bi;
+	
+	const Url::Url parent(value->url);
 	
 	auto index = PageIndex::create();
 	index->title = value->title;
