@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	options["w"] = "words";
 	options["l"] = "limit";
 	options["p"] = "page";
-	options["o"] = "flags";
+	options["o"] = "options";
 	options["server"] = "engine server url";
 	options["words"] = "search words";
 	options["limit"] = "max results";
