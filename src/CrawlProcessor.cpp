@@ -128,8 +128,12 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 			}
 		}
 	}
+	
 	const Url::Url parsed(url);
 	const auto host = parsed.host();
+	if(host.empty()) {
+		return false;
+	}
 	
 	domain_t& domain = domain_map[host];
 	if(domain.is_blacklisted) {
