@@ -24,12 +24,12 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 
 void SearchEngine::init()
 {
-	vnx::open_pipe(vnx_name, this, UNLIMITED);
+	vnx::open_pipe(vnx_name, this, 1000);		// we can block here since clients are external
 }
 
 void SearchEngine::main()
 {
-	subscribe(input_page_index_sync, 1000);
+	subscribe(input_page_index_sync, 100);		// sync runs in a separate thread so we can block here
 	
 	page_index_client = std::make_shared<keyvalue::ServerClient>(page_index_server);
 	page_index_client->sync_all(input_page_index_sync);
@@ -163,7 +163,8 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		if(!is_initialized) {
 			std::lock_guard<std::mutex> lock(index_mutex);
 			is_initialized = true;
-			subscribe(input_page_index, 1000);
+			subscribe(input_page_index, UNLIMITED);		// unlimited since we don't want to block the database
+			
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages and " << word_index.size() << " words.";
 		}

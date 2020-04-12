@@ -10,8 +10,6 @@ module PageProcessor {
 	
 	int max_url_length = 256;
 	
-	int max_queue_ms = 1000;
-	
 	
 	void handle(TextResponse sample);
 	

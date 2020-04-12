@@ -24,8 +24,6 @@ module CrawlProcessor {
 	
 	int update_interval_ms = 200;
 	
-	int max_queue_ms = 1000;
-	
 	float reload_power = 4;
 	
 	vector<string> root_urls;

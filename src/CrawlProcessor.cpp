@@ -24,9 +24,9 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 
 void CrawlProcessor::main()
 {
-	subscribe(input_url_index, max_queue_ms);
-	subscribe(input_page_index, max_queue_ms);
-	subscribe(url_sync_topic, max_queue_ms);
+	subscribe(input_url_index, UNLIMITED);		// needs to be unlimited to avoid dead-lock
+	subscribe(input_page_index, UNLIMITED);		// needs to be unlimited to avoid dead-lock
+	subscribe(url_sync_topic, 100);				// sync runs in a separate thread so we can block here
 	
 	url_index = std::make_shared<keyvalue::ServerClient>(url_index_server);
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);

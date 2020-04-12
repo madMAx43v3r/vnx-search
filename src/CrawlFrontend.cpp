@@ -59,13 +59,13 @@ CrawlFrontend::CrawlFrontend(const std::string& _vnx_name)
 
 void CrawlFrontend::init()
 {
-	vnx::open_pipe(vnx_name, this, UNLIMITED);
-	vnx::open_pipe(unique_service, this, UNLIMITED);
+	vnx::open_pipe(vnx_name, this, UNLIMITED);			// unlimited since clients control number of pending
+	vnx::open_pipe(unique_service, this, UNLIMITED);	// unlimited since clients control number of pending
 }
 
 void CrawlFrontend::main()
 {
-	subscribe(output_http, 1000);
+	subscribe(output_http, 1000);		// need to block here due to potential processing bottleneck
 	
 	work_threads.resize(num_threads);
 	for(int i = 0; i < num_threads; ++i) {

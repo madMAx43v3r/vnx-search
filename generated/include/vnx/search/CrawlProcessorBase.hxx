@@ -27,7 +27,6 @@ public:
 	::int32_t max_num_pending = 50;
 	::int32_t max_url_length = 256;
 	::int32_t update_interval_ms = 200;
-	::int32_t max_queue_ms = 1000;
 	::vnx::float32_t reload_power = 4;
 	::std::vector<::std::string> root_urls;
 	::std::string url_index_server = "UrlIndex";

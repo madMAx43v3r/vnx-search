@@ -21,7 +21,7 @@ HtmlParser::HtmlParser(const std::string& _vnx_name)
 
 void HtmlParser::main()
 {
-	service_pipe = vnx::open_pipe(Hash64::rand(), this, UNLIMITED);
+	service_pipe = vnx::open_pipe(Hash64::rand(), this, 1000);		// need to block here since we are a bottleneck
 	
 	frontend = std::make_shared<CrawlFrontendClient>(frontend_server);
 	
@@ -32,8 +32,8 @@ void HtmlParser::main()
 
 void HtmlParser::update()
 {
-	// always try to connect so frontend can reach us
-	vnx::connect(service_pipe, vnx::get_pipe(frontend_server));
+	// always try to connect so frontend can reach us (non-blocking)
+	vnx::connect(service_pipe, vnx::get_pipe(frontend_server), 0);
 	
 	frontend->register_parser_async(service_pipe->get_mac_addr(),
 			{"text/html", "text/xml", "application/xml", "application/xhtml+xml"}, 1);

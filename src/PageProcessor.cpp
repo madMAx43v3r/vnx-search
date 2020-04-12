@@ -26,7 +26,7 @@ PageProcessor::PageProcessor(const std::string& _vnx_name)
 
 void PageProcessor::main()
 {
-	subscribe(input, max_queue_ms);
+	subscribe(input, 1000);		// need to block here since we are a bottleneck
 	
 	page_index = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
 	page_content = std::make_shared<keyvalue::ServerAsyncClient>(page_content_server);
