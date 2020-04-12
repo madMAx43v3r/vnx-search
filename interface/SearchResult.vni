@@ -2,7 +2,7 @@ package vnx.search;
 
 class SearchResult {
 	
-	long num_pages_total;
+	long num_results_total;
 	
 	vector<string> words;
 	

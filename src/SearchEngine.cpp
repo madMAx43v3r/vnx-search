@@ -236,7 +236,7 @@ void SearchEngine::work_loop()
 			sorted.emplace(entry.second.score, entry.second.page);
 		}
 		
-		result->num_pages_total = sorted.size();
+		result->num_results_total = sorted.size();
 		{
 			std::lock_guard<std::mutex> lock(index_mutex);
 			int64_t offset = 0;
