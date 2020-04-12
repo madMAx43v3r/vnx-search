@@ -253,6 +253,8 @@ void SearchEngine::work_loop()
 		
 		for(int iteration = 0; iteration < num_iterations; ++iteration)
 		{
+			std::lock_guard<std::mutex> lock(parallel_mutex);
+			
 			const int N = omp_get_max_threads();
 #pragma omp parallel for
 			for(int k = 0; k < N; ++k)

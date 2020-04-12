@@ -24,7 +24,7 @@ public:
 	::std::string page_index_server = "PageIndex";
 	::std::string page_content_server = "PageContent";
 	::int32_t num_iterations = 1;
-	::int32_t num_threads = 2;
+	::int32_t num_threads = 8;
 	
 	typedef ::vnx::Module Super;
 	

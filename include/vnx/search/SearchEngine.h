@@ -99,6 +99,9 @@ private:
 	
 	mutable std::atomic<int64_t> query_counter;
 	
+	// below work_loop() private
+	std::mutex parallel_mutex;
+	
 };
 
 
