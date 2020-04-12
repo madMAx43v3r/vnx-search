@@ -39,10 +39,6 @@ protected:
 public:
 	struct request_t {
 		std::string url;
-		std::string protocol;
-		std::string host;
-		std::string path;
-		int port = 0;
 		std::vector<std::string> accept_content;
 		vnx::request_id_t request_id;
 		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;

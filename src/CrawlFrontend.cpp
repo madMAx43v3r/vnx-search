@@ -88,22 +88,8 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 									const std::function<void(const std::shared_ptr<const UrlIndex>&)>& _callback,
 									const vnx::request_id_t& _request_id) const
 {
-	Url::Url parsed(url);
-	parsed.defrag();
-	
-	const std::string protocol = parsed.scheme();
-	const std::string host = parsed.host();
-	const std::string path = parsed.fullpath();
-	const int port = parsed.port();
-	
-	log(DEBUG).out << "Fetching '" << protocol << "://" << host << path << "' (port " << port << ")";
-	
 	auto request = std::make_shared<request_t>();
 	request->url = url;
-	request->protocol = protocol;
-	request->host = host;
-	request->path = path;
-	request->port = port;
 	{
 		std::set<std::string> mime_types;
 		for(const auto& entry : parser_map) {
@@ -361,10 +347,6 @@ void CrawlFrontend::fetch_loop()
 		
 		curl_easy_setopt(client, CURLOPT_WRITEDATA, &fetch_data);
 		curl_easy_setopt(client, CURLOPT_WRITEFUNCTION, &write_callback);
-		
-		if(request->port > 0) {
-			curl_easy_setopt(client, CURLOPT_PORT, request->port);
-		}
 		
 		const auto fetch_start = vnx::get_wall_time_micros();
 		
