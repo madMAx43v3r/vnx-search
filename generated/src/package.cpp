@@ -79,6 +79,10 @@ const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo_return = vnx::get_type_code(vnx::Hash64(0xac7ffe12b596e74ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query = vnx::get_type_code(vnx::Hash64(0x14a6c3ff80018ce8ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query_return = vnx::get_type_code(vnx::Hash64(0xc4adbd01e9504960ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains = vnx::get_type_code(vnx::Hash64(0x1abdd70e75f411b3ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains_return = vnx::get_type_code(vnx::Hash64(0x385aae88fe3df753ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words = vnx::get_type_code(vnx::Hash64(0x7124d7bfda1b31f2ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words_return = vnx::get_type_code(vnx::Hash64(0xcf74c35d3594cc90ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchResult = vnx::get_type_code(vnx::Hash64(0x659ce58d97581ddull));
 const vnx::TypeCode* const vnx_native_type_code_TextResponse = vnx::get_type_code(vnx::Hash64(0x7cee1cd5b88ec569ull));
 const vnx::TypeCode* const vnx_native_type_code_UrlIndex = vnx::get_type_code(vnx::Hash64(0xab26319d1802d1b6ull));

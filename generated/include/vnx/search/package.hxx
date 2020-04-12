@@ -58,6 +58,10 @@ extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_k
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchResult; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_TextResponse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_UrlIndex; ///< \private

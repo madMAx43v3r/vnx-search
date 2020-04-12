@@ -19,6 +19,8 @@ public:
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
 	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
+	::std::string url_index_server = "UrlIndex";
+	::std::string crawl_frontend_server = "CrawlFrontend";
 	::int32_t jump_cost = 3;
 	::int32_t max_depth = 9;
 	::int32_t reload_interval = 10800;
@@ -29,8 +31,7 @@ public:
 	::int32_t update_interval_ms = 200;
 	::vnx::float32_t reload_power = 4;
 	::std::vector<::std::string> root_urls;
-	::std::string url_index_server = "UrlIndex";
-	::std::string crawl_frontend_server = "CrawlFrontend";
+	::std::vector<::std::string> domain_blacklist;
 	
 	typedef ::vnx::Module Super;
 	

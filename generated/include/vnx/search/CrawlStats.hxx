@@ -21,7 +21,8 @@ public:
 	::int64_t num_active_domains = 0;
 	::int64_t num_queued = 0;
 	::int64_t num_waiting = 0;
-	::std::vector<::vnx::search::crawl_domain_stats_t> domains;
+	::std::vector<::vnx::search::crawl_domain_stats_t> most_fetched;
+	::std::vector<::vnx::search::crawl_domain_stats_t> most_queued;
 	
 	typedef ::vnx::Value Super;
 	

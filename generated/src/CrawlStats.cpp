@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 CrawlStats::VNX_TYPE_HASH(0x1c9c8e69ae389c30ull);
-const vnx::Hash64 CrawlStats::VNX_CODE_HASH(0x45b3551d3e468155ull);
+const vnx::Hash64 CrawlStats::VNX_CODE_HASH(0x2dc67116528e6353ull);
 
 vnx::Hash64 CrawlStats::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -53,7 +53,8 @@ void CrawlStats::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, num_active_domains);
 	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, num_queued);
 	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, num_waiting);
-	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, domains);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, most_fetched);
+	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, most_queued);
 	_visitor.type_end(*_type_code);
 }
 
@@ -65,7 +66,8 @@ void CrawlStats::write(std::ostream& _out) const {
 	_out << ", \"num_active_domains\": "; vnx::write(_out, num_active_domains);
 	_out << ", \"num_queued\": "; vnx::write(_out, num_queued);
 	_out << ", \"num_waiting\": "; vnx::write(_out, num_waiting);
-	_out << ", \"domains\": "; vnx::write(_out, domains);
+	_out << ", \"most_fetched\": "; vnx::write(_out, most_fetched);
+	_out << ", \"most_queued\": "; vnx::write(_out, most_queued);
 	_out << "}";
 }
 
@@ -73,8 +75,10 @@ void CrawlStats::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "domains") {
-			vnx::from_string(_entry.second, domains);
+		if(_entry.first == "most_fetched") {
+			vnx::from_string(_entry.second, most_fetched);
+		} else if(_entry.first == "most_queued") {
+			vnx::from_string(_entry.second, most_queued);
 		} else if(_entry.first == "num_active_domains") {
 			vnx::from_string(_entry.second, num_active_domains);
 		} else if(_entry.first == "num_errors") {
@@ -99,14 +103,17 @@ vnx::Object CrawlStats::to_object() const {
 	_object["num_active_domains"] = num_active_domains;
 	_object["num_queued"] = num_queued;
 	_object["num_waiting"] = num_waiting;
-	_object["domains"] = domains;
+	_object["most_fetched"] = most_fetched;
+	_object["most_queued"] = most_queued;
 	return _object;
 }
 
 void CrawlStats::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "domains") {
-			_entry.second.to(domains);
+		if(_entry.first == "most_fetched") {
+			_entry.second.to(most_fetched);
+		} else if(_entry.first == "most_queued") {
+			_entry.second.to(most_queued);
 		} else if(_entry.first == "num_active_domains") {
 			_entry.second.to(num_active_domains);
 		} else if(_entry.first == "num_errors") {
@@ -147,13 +154,13 @@ std::shared_ptr<vnx::TypeCode> CrawlStats::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.CrawlStats";
 	type_code->type_hash = vnx::Hash64(0x1c9c8e69ae389c30ull);
-	type_code->code_hash = vnx::Hash64(0x45b3551d3e468155ull);
+	type_code->code_hash = vnx::Hash64(0x2dc67116528e6353ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<CrawlStats>(); };
 	type_code->depends.resize(1);
 	type_code->depends[0] = ::vnx::search::crawl_domain_stats_t::static_get_type_code();
 	type_code->methods.resize(0);
-	type_code->fields.resize(7);
+	type_code->fields.resize(8);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.name = "num_fetched";
@@ -187,7 +194,13 @@ std::shared_ptr<vnx::TypeCode> CrawlStats::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.is_extended = true;
-		field.name = "domains";
+		field.name = "most_fetched";
+		field.code = {12, 19, 0};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[7];
+		field.is_extended = true;
+		field.name = "most_queued";
 		field.code = {12, 19, 0};
 	}
 	type_code->build();
@@ -253,7 +266,8 @@ void read(TypeInput& in, ::vnx::search::CrawlStats& value, const TypeCode* type_
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 6: vnx::read(in, value.domains, type_code, _field->code.data()); break;
+			case 6: vnx::read(in, value.most_fetched, type_code, _field->code.data()); break;
+			case 7: vnx::read(in, value.most_queued, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -275,7 +289,8 @@ void write(TypeOutput& out, const ::vnx::search::CrawlStats& value, const TypeCo
 	vnx::write_value(_buf + 24, value.num_active_domains);
 	vnx::write_value(_buf + 32, value.num_queued);
 	vnx::write_value(_buf + 40, value.num_waiting);
-	vnx::write(out, value.domains, type_code, type_code->fields[6].code.data());
+	vnx::write(out, value.most_fetched, type_code, type_code->fields[6].code.data());
+	vnx::write(out, value.most_queued, type_code, type_code->fields[7].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::CrawlStats& value) {

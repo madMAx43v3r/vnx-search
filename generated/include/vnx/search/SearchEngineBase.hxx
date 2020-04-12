@@ -56,7 +56,9 @@ protected:
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value) {}
-	virtual void query_async(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(const ::std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual void query_async(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(const ::std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual ::std::vector<::std::string> suggest_domains(const ::std::string& prefix, const ::int32_t& limit) const = 0;
+	virtual ::std::vector<::std::string> suggest_words(const ::std::string& prefix, const ::int32_t& limit) const = 0;
 	
 	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;

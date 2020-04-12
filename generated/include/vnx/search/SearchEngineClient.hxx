@@ -30,7 +30,11 @@ public:
 	
 	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample);
 	
-	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int64_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags);
+	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags);
+	
+	::std::vector<::std::string> suggest_domains(const ::std::string& prefix, const ::int32_t& limit);
+	
+	::std::vector<::std::string> suggest_words(const ::std::string& prefix, const ::int32_t& limit);
 	
 };
 
