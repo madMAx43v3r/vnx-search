@@ -38,6 +38,7 @@ protected:
 		int64_t num_errors = 0;
 		int64_t last_fetch_us = 0;			// [usec]
 		int num_pending = 0;
+		bool is_blacklisted = false;
 	};
 	
 	void main() override;

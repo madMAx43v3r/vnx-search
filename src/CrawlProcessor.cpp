@@ -62,6 +62,10 @@ void CrawlProcessor::main()
 		}
 	}
 	
+	for(const auto& domain : domain_blacklist) {
+		domain_map[domain].is_blacklisted = true;
+	}
+	
 	check_all_urls();
 	
 	Super::main();
@@ -127,9 +131,13 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	const Url::Url parsed(url);
 	const auto host = parsed.host();
 	
+	domain_t& domain = domain_map[host];
+	if(domain.is_blacklisted) {
+		return false;
+	}
+	
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
-		domain_t& domain = domain_map[host];
 		domain.queue.emplace(depth, url);
 	} else if(delta < 2 * sync_interval) {
 		waiting.emplace(load_time, url);

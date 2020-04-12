@@ -8,6 +8,10 @@ module CrawlProcessor {
 	
 	vnx.TopicPtr output_crawl_stats = "backend.crawl_stats";
 	
+	string url_index_server = "UrlIndex";
+	
+	string crawl_frontend_server = "CrawlFrontend";
+	
 	int jump_cost = 3;
 	
 	int max_depth = 9;
@@ -28,9 +32,7 @@ module CrawlProcessor {
 	
 	vector<string> root_urls;
 	
-	string url_index_server = "UrlIndex";
-	
-	string crawl_frontend_server = "CrawlFrontend";
+	vector<string> domain_blacklist;
 	
 	
 	void handle(vnx.keyvalue.KeyValuePair sample);
