@@ -15,7 +15,7 @@ module SearchEngine {
 	int num_threads = 10;
 	
 	
-	SearchResult* query(vector<string> words, long limit, long offset) const async;
+	SearchResult* query(vector<string> words, long limit, long offset, vector<search_flags_e> flags) const async;
 	
 	void handle(vnx.keyvalue.KeyValuePair sample);
 	

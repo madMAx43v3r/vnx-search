@@ -21,10 +21,12 @@ int main(int argc, char** argv)
 	options["w"] = "words";
 	options["l"] = "limit";
 	options["p"] = "page";
+	options["o"] = "flags";
 	options["server"] = "engine server url";
 	options["words"] = "search words";
 	options["limit"] = "max results";
 	options["page"] = "page index";
+	options["options"] = "search flags";
 	
 	vnx::init("vnx_search_query", argc, argv, options);
 	
@@ -32,11 +34,13 @@ int main(int argc, char** argv)
 	std::vector<std::string> words;
 	int limit = 10;
 	int page = 0;
+	std::vector<vnx::search::search_flags_e> flags;
 	
 	vnx::read_config("server", server);
 	vnx::read_config("words", words);
 	vnx::read_config("limit", limit);
 	vnx::read_config("page", page);
+	vnx::read_config("options", flags);
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
@@ -49,7 +53,7 @@ int main(int argc, char** argv)
 	}
 	
 	vnx::search::SearchEngineClient client("SearchEngine");
-	auto result = client.query(words, limit, page * limit);
+	auto result = client.query(words, limit, page * limit, flags);
 	
 	vnx::PrettyPrinter print(std::cout);
 	vnx::accept(print, result);

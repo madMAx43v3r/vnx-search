@@ -25,12 +25,14 @@ protected:
 	struct word_t {
 		uint32_t id = 0;
 		std::vector<uint32_t> pages;
+		std::vector<uint32_t> parents;
 	};
 	
 	struct page_t {
 		uint32_t id = 0;
-		std::string title;
+		uint32_t domain_id = 0;
 		int64_t last_modified = 0;
+		std::string title;
 		std::vector<uint32_t> links;
 		std::vector<uint32_t> words;
 	};
@@ -39,6 +41,7 @@ protected:
 		std::vector<std::string> words;
 		int64_t limit = 0;
 		int64_t offset = 0;
+		std::vector<search_flags_e> flags;
 		std::function<void(const std::shared_ptr<const SearchResult>&)> callback;
 	};
 	
@@ -48,6 +51,7 @@ protected:
 	
 	void query_async(	const std::vector<std::string>& words,
 						const int64_t& limit, const int64_t& offset,
+						const std::vector<search_flags_e>& flags,
 						const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 						const vnx::request_id_t& _request_id) const override;
 	
@@ -57,6 +61,8 @@ protected:
 	
 private:
 	uint32_t get_url_id(const std::string& url);
+	
+	uint32_t get_domain_id(const std::string& url);
 	
 	uint32_t get_word_id(const std::string& word);
 	
@@ -77,6 +83,8 @@ private:
 	mutable std::mutex index_mutex;
 	std::unordered_map<std::string, uint32_t> url_map;
 	std::unordered_map<uint32_t, std::string> url_reverse_map;
+	std::unordered_map<std::string, uint32_t> domain_map;
+	std::unordered_map<uint32_t, std::string> domain_reverse_map;
 	std::unordered_map<std::string, uint32_t> word_map;
 	std::unordered_map<uint32_t, std::string> word_reverse_map;
 	std::unordered_map<uint32_t, std::shared_ptr<word_t>> word_index;
@@ -86,6 +94,7 @@ private:
 	
 	bool is_initialized = false;
 	uint32_t next_url_id = 1;
+	uint32_t next_domain_id = 1;
 	uint32_t next_word_id = 1;
 	
 	mutable std::atomic<int64_t> query_counter;

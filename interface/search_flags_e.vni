@@ -1,0 +1,8 @@
+package vnx.search;
+
+enum search_flags_e {
+	
+	GROUP_BY_DOMAIN,
+	LATEST_NEWS
+	
+}

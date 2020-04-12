@@ -8,6 +8,9 @@
 #include <vnx/search/SearchEngine.h>
 #include <vnx/search/PageIndex.hxx>
 
+#include <url.h>
+#include <algorithm>
+
 
 namespace vnx {
 namespace search {
@@ -47,6 +50,7 @@ void SearchEngine::main()
 
 void SearchEngine::query_async(	const std::vector<std::string>& words,
 								const int64_t& limit, const int64_t& offset,
+								const std::vector<search_flags_e>& flags,
 								const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 								const vnx::request_id_t& _request_id) const
 {
@@ -54,6 +58,7 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 	request->words = words;
 	request->limit = std::min(limit, int64_t(100));
 	request->offset = offset;
+	request->flags = flags;
 	request->callback = _callback;
 	{
 		std::lock_guard<std::mutex> lock(work_mutex);
@@ -64,34 +69,50 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 
 uint32_t SearchEngine::get_url_id(const std::string& url)
 {
-	uint32_t url_id = 0;
+	uint32_t id = 0;
 	{
 		auto iter = url_map.find(url);
 		if(iter != url_map.end()) {
-			url_id = iter->second;
+			id = iter->second;
 		} else {
-			url_id = next_url_id++;
-			url_map[url] = url_id;
-			url_reverse_map[url_id] = url;
+			id = next_url_id++;
+			url_map[url] = id;
+			url_reverse_map[id] = url;
 		}
 	}
-	return url_id;
+	return id;
+}
+
+uint32_t SearchEngine::get_domain_id(const std::string& url)
+{
+	uint32_t id = 0;
+	{
+		auto iter = domain_map.find(url);
+		if(iter != domain_map.end()) {
+			id = iter->second;
+		} else {
+			id = next_domain_id++;
+			domain_map[url] = id;
+			domain_reverse_map[id] = url;
+		}
+	}
+	return id;
 }
 
 uint32_t SearchEngine::get_word_id(const std::string& word)
 {
-	uint32_t word_id = 0;
+	uint32_t id = 0;
 	{
 		auto iter = word_map.find(word);
 		if(iter != word_map.end()) {
-			word_id = iter->second;
+			id = iter->second;
 		} else {
-			word_id = next_word_id++;
-			word_map[word] = word_id;
-			word_reverse_map[word_id] = word;
+			id = next_word_id++;
+			word_map[word] = id;
+			word_reverse_map[id] = word;
 		}
 	}
-	return word_id;
+	return id;
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
@@ -106,12 +127,14 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			
 			const auto url = pair->key.to_string_value();
 			const auto page_id = get_url_id(url);
+			const Url::Url parsed(url);
 			
 			auto& page = page_index[page_id];
 			if(!page) {
 				page = std::make_shared<page_t>();
 			}
 			page->id = page_id;
+			page->domain_id = get_domain_id(parsed.host());
 			page->title = index->title;
 			page->last_modified = index->last_modified;
 			
@@ -140,10 +163,16 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 			std::lock_guard<std::mutex> lock(index_mutex);
 			is_initialized = true;
 			subscribe(input_page_index, 1000);
-			log(INFO).out << "Initialized with " << url_map.size() << " urls, "
+			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages and " << word_index.size() << " words.";
 		}
 	}
+}
+
+static
+bool has_flag(const std::vector<search_flags_e>& flags, search_flags_e flag)
+{
+	return std::find(flags.begin(), flags.end(), flag) != flags.end();
 }
 
 void SearchEngine::work_loop()
@@ -234,6 +263,21 @@ void SearchEngine::work_loop()
 		std::multimap<int64_t, std::shared_ptr<const page_t>, std::greater<int64_t>> sorted;
 		for(const auto& entry : pages) {
 			sorted.emplace(entry.second.score, entry.second.page);
+		}
+		
+		if(has_flag(request->flags, search_flags_e::GROUP_BY_DOMAIN))
+		{
+			std::unordered_map<uint32_t, std::pair<int64_t, std::shared_ptr<const page_t>>> best_of;
+			for(const auto& entry : sorted) {
+				auto& current = best_of[entry.second->domain_id];
+				if(entry.first > current.first) {
+					current = entry;
+				}
+			}
+			sorted.clear();
+			for(const auto& entry : best_of) {
+				sorted.insert(entry.second);
+			}
 		}
 		
 		result->num_results_total = sorted.size();
