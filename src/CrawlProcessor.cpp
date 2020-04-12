@@ -100,10 +100,30 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	if(url.size() > max_url_length) {
 		return false;
 	}
-	if(url_map.find(url) != url_map.end()) {
-		return false;
+	{
+		auto url_iter = url_map.find(url);
+		if(url_iter != url_map.end()) {
+			url_t& entry = url_iter->second;
+			if(depth < entry.depth) {
+				const Url::Url parsed(url);
+				domain_t& domain = domain_map[parsed.host()];
+				for(auto it = domain.queue.lower_bound(entry.depth); it != domain.queue.upper_bound(entry.depth); ++it) {
+					if(it->second == url) {
+						domain.queue.erase(it);
+						break;
+					}
+				}
+				for(auto it = waiting.begin(); it != waiting.end(); ++it) {
+					if(it->second == url) {
+						waiting.erase(it);
+						break;
+					}
+				}
+			} else {
+				return false;
+			}
+		}
 	}
-	
 	const Url::Url parsed(url);
 	const auto host = parsed.host();
 	
