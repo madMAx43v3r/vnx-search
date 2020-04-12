@@ -9,6 +9,7 @@
 #include <vnx/search/PageIndex.hxx>
 
 #include <url.h>
+#include <omp.h>
 #include <algorithm>
 
 
@@ -175,6 +176,17 @@ bool has_flag(const std::vector<search_flags_e>& flags, search_flags_e flag)
 	return std::find(flags.begin(), flags.end(), flag) != flags.end();
 }
 
+template<typename T>
+T advance_until(T iter, const T& end, const ssize_t offset)
+{
+	if(offset > 0) {
+		for(ssize_t i = 0; i < offset && iter != end; ++i) {
+			iter++;
+		}
+	}
+	return iter;
+}
+
 void SearchEngine::work_loop()
 {
 	while(vnx_do_run())
@@ -222,7 +234,7 @@ void SearchEngine::work_loop()
 		struct result_t {
 			std::shared_ptr<const page_t> page;
 			int64_t score = 1;
-			int64_t add_score = 0;
+			std::atomic<int64_t> add_score;
 		};
 		
 		std::unordered_map<uint32_t, result_t> pages;
@@ -237,18 +249,23 @@ void SearchEngine::work_loop()
 				}
 			}
 		}
-		page_hits.clear();
 		
 		for(int iteration = 0; iteration < num_iterations; ++iteration)
 		{
-			for(const auto& entry : pages)
+			const int N = omp_get_max_threads();
+#pragma omp parallel for
+			for(int k = 0; k < N; ++k)
 			{
-				const auto& result = entry.second;
-				for(auto link : result.page->links)
+				for(auto entry = advance_until(pages.begin(), pages.end(), k); entry != pages.end();
+						 entry = advance_until(entry, pages.end(), N))
 				{
-					auto iter = pages.find(link);
-					if(iter != pages.end()) {
-						iter->second.add_score += result.score;
+					const auto& result = entry->second;
+					for(auto link : result.page->links)
+					{
+						auto iter = pages.find(link);
+						if(iter != pages.end()) {
+							iter->second.add_score += result.score;
+						}
 					}
 				}
 			}

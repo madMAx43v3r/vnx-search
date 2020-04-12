@@ -12,7 +12,7 @@ module SearchEngine {
 	
 	int num_iterations = 1;
 	
-	int num_threads = 10;
+	int num_threads = 2;
 	
 	
 	SearchResult* query(vector<string> words, long limit, long offset, vector<search_flags_e> flags) const async;
