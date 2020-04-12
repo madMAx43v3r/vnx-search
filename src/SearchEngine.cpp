@@ -209,7 +209,7 @@ void SearchEngine::work_loop()
 		auto result = SearchResult::create();
 		
 		uint32_t num_words = 0;
-		std::unordered_map<uint32_t, uint32_t> page_hits;
+		std::unordered_map<uint32_t, std::atomic<uint32_t>> page_hits;
 		
 		for(const auto& word : request->words) {
 			std::shared_ptr<word_t> entry;
@@ -224,8 +224,9 @@ void SearchEngine::work_loop()
 				}
 			}
 			if(entry) {
-				for(auto page : entry->pages) {
-					page_hits[page]++;
+#pragma omp parallel for
+				for(size_t i = 0; i < entry->pages.size(); ++i) {
+					page_hits[entry->pages[i]]++;
 				}
 				result->words.push_back(word);
 				num_words++;
