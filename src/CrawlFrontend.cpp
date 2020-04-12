@@ -65,7 +65,7 @@ void CrawlFrontend::init()
 
 void CrawlFrontend::main()
 {
-	subscribe(output_http, UNLIMITED);
+	subscribe(output_http, 1000);
 	
 	work_threads.resize(num_threads);
 	for(int i = 0; i < num_threads; ++i) {

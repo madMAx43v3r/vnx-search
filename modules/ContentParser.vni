@@ -4,8 +4,6 @@ module ContentParser {
 	
 	string frontend_server = "CrawlFrontend";
 	
-	int max_queue_ms = 1000;
-	
 	
 	TextResponse* parse(HttpResponse* response) const;
 	

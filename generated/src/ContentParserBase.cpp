@@ -18,13 +18,12 @@ namespace search {
 
 
 const vnx::Hash64 ContentParserBase::VNX_TYPE_HASH(0xbe968e62c4bea207ull);
-const vnx::Hash64 ContentParserBase::VNX_CODE_HASH(0x890b1ec6711d486ull);
+const vnx::Hash64 ContentParserBase::VNX_CODE_HASH(0x7711f34b6e9a4060ull);
 
 ContentParserBase::ContentParserBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
 	vnx::read_config(vnx_name + ".frontend_server", frontend_server);
-	vnx::read_config(vnx_name + ".max_queue_ms", max_queue_ms);
 }
 
 vnx::Hash64 ContentParserBase::get_type_hash() const {
@@ -42,14 +41,12 @@ void ContentParserBase::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_ContentParser;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, frontend_server);
-	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, max_queue_ms);
 	_visitor.type_end(*_type_code);
 }
 
 void ContentParserBase::write(std::ostream& _out) const {
 	_out << "{";
 	_out << "\"frontend_server\": "; vnx::write(_out, frontend_server);
-	_out << ", \"max_queue_ms\": "; vnx::write(_out, max_queue_ms);
 	_out << "}";
 }
 
@@ -59,8 +56,6 @@ void ContentParserBase::read(std::istream& _in) {
 	for(const auto& _entry : _object) {
 		if(_entry.first == "frontend_server") {
 			vnx::from_string(_entry.second, frontend_server);
-		} else if(_entry.first == "max_queue_ms") {
-			vnx::from_string(_entry.second, max_queue_ms);
 		}
 	}
 }
@@ -68,7 +63,6 @@ void ContentParserBase::read(std::istream& _in) {
 vnx::Object ContentParserBase::to_object() const {
 	vnx::Object _object;
 	_object["frontend_server"] = frontend_server;
-	_object["max_queue_ms"] = max_queue_ms;
 	return _object;
 }
 
@@ -76,8 +70,6 @@ void ContentParserBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
 		if(_entry.first == "frontend_server") {
 			_entry.second.to(frontend_server);
-		} else if(_entry.first == "max_queue_ms") {
-			_entry.second.to(max_queue_ms);
 		}
 	}
 }
@@ -106,7 +98,7 @@ std::shared_ptr<vnx::TypeCode> ContentParserBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.ContentParser";
 	type_code->type_hash = vnx::Hash64(0xbe968e62c4bea207ull);
-	type_code->code_hash = vnx::Hash64(0x890b1ec6711d486ull);
+	type_code->code_hash = vnx::Hash64(0x7711f34b6e9a4060ull);
 	type_code->methods.resize(1);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -140,19 +132,13 @@ std::shared_ptr<vnx::TypeCode> ContentParserBase::static_create_type_code() {
 		call_type->build();
 		type_code->methods[0] = vnx::register_type_code(call_type);
 	}
-	type_code->fields.resize(2);
+	type_code->fields.resize(1);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "frontend_server";
 		field.value = vnx::to_string("CrawlFrontend");
 		field.code = {12, 5};
-	}
-	{
-		vnx::TypeField& field = type_code->fields[1];
-		field.name = "max_queue_ms";
-		field.value = vnx::to_string(1000);
-		field.code = {7};
 	}
 	type_code->build();
 	return type_code;
@@ -216,12 +202,6 @@ void read(TypeInput& in, ::vnx::search::ContentParserBase& value, const TypeCode
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[1];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_queue_ms, _field->code.data());
-			}
-		}
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
@@ -240,8 +220,6 @@ void write(TypeOutput& out, const ::vnx::search::ContentParserBase& value, const
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(4);
-	vnx::write_value(_buf + 0, value.max_queue_ms);
 	vnx::write(out, value.frontend_server, type_code, type_code->fields[0].code.data());
 }
 

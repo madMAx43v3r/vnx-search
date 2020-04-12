@@ -24,12 +24,12 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 
 void SearchEngine::init()
 {
-	vnx::open_pipe(vnx_name, this, 1000);
+	vnx::open_pipe(vnx_name, this, UNLIMITED);
 }
 
 void SearchEngine::main()
 {
-	subscribe(input_page_index_sync, 100);
+	subscribe(input_page_index_sync, 1000);
 	
 	page_index_client = std::make_shared<keyvalue::ServerClient>(page_index_server);
 	page_index_client->sync_all(input_page_index_sync);
