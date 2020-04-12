@@ -50,14 +50,14 @@ void SearchEngine::main()
 }
 
 void SearchEngine::query_async(	const std::vector<std::string>& words,
-								const int64_t& limit, const int64_t& offset,
+								const int32_t& limit, const int64_t& offset,
 								const std::vector<search_flags_e>& flags,
 								const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 								const vnx::request_id_t& _request_id) const
 {
 	auto request = std::make_shared<query_t>();
 	request->words = words;
-	request->limit = std::min(limit, int64_t(100));
+	request->limit = std::min(limit, 100);
 	request->offset = offset;
 	request->flags = flags;
 	request->callback = _callback;
@@ -66,6 +66,24 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 		work_queue.push(request);
 	}
 	work_condition.notify_one();
+}
+
+std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
+{
+	std::vector<std::string> result;
+	for(auto it = word_map.lower_bound(prefix); it != word_map.end() && result.size() < size_t(limit); ++it) {
+		result.push_back(it->first);
+	}
+	return result;
+}
+
+std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix, const int32_t& limit) const
+{
+	std::vector<std::string> result;
+	for(auto it = domain_map.lower_bound(prefix); it != domain_map.end() && result.size() < size_t(limit); ++it) {
+		result.push_back(it->first);
+	}
+	return result;
 }
 
 uint32_t SearchEngine::get_url_id(const std::string& url)
@@ -309,16 +327,15 @@ void SearchEngine::work_loop()
 				if(offset++ < request->offset) {
 					continue;
 				}
+				if(result->items.size() >= size_t(request->limit)) {
+					break;
+				}
 				result_item_t item;
 				item.title = entry.second->title;
 				item.url = url_reverse_map[entry.second->id];
 				item.score = entry.first;
 				item.last_modified = entry.second->last_modified;
 				result->items.push_back(item);
-				
-				if(result->items.size() >= request->limit) {
-					break;
-				}
 			}
 		}
 		request->callback(result);

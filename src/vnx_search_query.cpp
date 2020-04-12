@@ -27,6 +27,7 @@ int main(int argc, char** argv)
 	options["limit"] = "max results";
 	options["page"] = "page index";
 	options["options"] = "search flags";
+	options["complete"] = "complete word";
 	
 	vnx::init("vnx_search_query", argc, argv, options);
 	
@@ -35,12 +36,14 @@ int main(int argc, char** argv)
 	int limit = 10;
 	int page = 0;
 	std::vector<vnx::search::search_flags_e> flags;
+	bool complete = false;
 	
 	vnx::read_config("server", server);
 	vnx::read_config("words", words);
 	vnx::read_config("limit", limit);
 	vnx::read_config("page", page);
 	vnx::read_config("options", flags);
+	vnx::read_config("complete", complete);
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
@@ -53,10 +56,16 @@ int main(int argc, char** argv)
 	}
 	
 	vnx::search::SearchEngineClient client("SearchEngine");
-	auto result = client.query(words, limit, page * limit, flags);
-	
-	vnx::PrettyPrinter print(std::cout);
-	vnx::accept(print, result);
+	if(complete) {
+		if(!words.empty()) {
+			auto result = client.suggest_words(words[0], limit);
+			std::cout << vnx::to_string(result) << std::endl;
+		}
+	} else {
+		auto result = client.query(words, limit, page * limit, flags);
+		vnx::PrettyPrinter print(std::cout);
+		vnx::accept(print, result);
+	}
 	
 	vnx::close();
 }
