@@ -381,19 +381,37 @@ void CrawlProcessor::publish_stats()
 	stats->num_queued = url_map.size();
 	stats->num_waiting = waiting.size();
 	{
-		std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> domains;
+		std::vector<crawl_domain_stats_t> domains;
 		for(const auto& entry : domain_map) {
 			crawl_domain_stats_t dstats;
 			dstats.host = entry.first;
 			dstats.num_fetched = entry.second.num_fetched;
 			dstats.num_errors = entry.second.num_errors;
 			dstats.num_queued = entry.second.queue.size();
-			domains.emplace(dstats.num_fetched, dstats);
+			domains.push_back(dstats);
 		}
-		for(const auto& entry : domains) {
-			stats->domains.push_back(entry.second);
-			if(stats->domains.size() >= 1000) {
-				break;
+		{
+			std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> sorted;
+			for(const auto& entry : domains) {
+				sorted.emplace(entry.num_fetched, entry);
+			}
+			for(const auto& entry : sorted) {
+				stats->most_fetched.push_back(entry.second);
+				if(stats->most_fetched.size() >= 100) {
+					break;
+				}
+			}
+		}
+		{
+			std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> sorted;
+			for(const auto& entry : domains) {
+				sorted.emplace(entry.num_queued, entry);
+			}
+			for(const auto& entry : sorted) {
+				stats->most_queued.push_back(entry.second);
+				if(stats->most_queued.size() >= 100) {
+					break;
+				}
 			}
 		}
 	}
