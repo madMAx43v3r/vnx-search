@@ -11,6 +11,7 @@
 #include <url.h>
 #include <time.h>
 #include <math.h>
+#include <algorithm>
 
 
 namespace vnx {
@@ -20,6 +21,9 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
 	url_sync_topic = vnx_name + ".url_index.sync";
+	
+	protocols.push_back("http");
+	protocols.push_back("https");
 }
 
 void CrawlProcessor::main()
@@ -130,6 +134,9 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	}
 	
 	const Url::Url parsed(url);
+	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
+		return false;
+	}
 	const auto host = parsed.host();
 	if(host.empty()) {
 		return false;

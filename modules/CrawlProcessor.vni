@@ -30,6 +30,8 @@ module CrawlProcessor {
 	
 	float reload_power = 4;
 	
+	vector<string> protocols;
+	
 	vector<string> root_urls;
 	
 	vector<string> domain_blacklist;
