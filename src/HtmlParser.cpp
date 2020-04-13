@@ -14,6 +14,47 @@
 namespace vnx {
 namespace search {
 
+template<typename T>
+std::vector<T> get_unique(std::vector<T> in)
+{
+	std::set<T> tmp(in.begin(), in.end());
+	return std::vector<T>(tmp.begin(), tmp.end());
+}
+
+// trim from left
+inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    s.erase(0, s.find_first_not_of(t));
+    return s;
+}
+
+// trim from right
+inline std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// trim from left & right
+inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    return ltrim(rtrim(s, t), t);
+}
+
+// remove chars from string
+inline std::string& clean(std::string& s, const char* t = "\n\r\f\v")
+{
+	while(true) {
+		const auto pos = s.find_first_of(t);
+		if(pos != std::string::npos) {
+			s.erase(pos, 1);
+		} else {
+			break;
+		}
+	}
+	return s;
+}
+
 HtmlParser::HtmlParser(const std::string& _vnx_name)
 	:	ContentParserBase(_vnx_name)
 {
@@ -83,33 +124,6 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	}
 }
 
-template<typename T>
-std::vector<T> get_unique(std::vector<T> in)
-{
-	std::set<T> tmp(in.begin(), in.end());
-	return std::vector<T>(tmp.begin(), tmp.end());
-}
-
-// trim from left
-inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")
-{
-    s.erase(0, s.find_first_not_of(t));
-    return s;
-}
-
-// trim from right
-inline std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v")
-{
-    s.erase(s.find_last_not_of(t) + 1);
-    return s;
-}
-
-// trim from left & right
-inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
-{
-    return ltrim(rtrim(s, t), t);
-}
-
 std::shared_ptr<const TextResponse>
 HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 {
@@ -154,6 +168,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 			if(text) {
 				result->title = text->get_content();
 				trim(result->title);
+				clean(result->title);
 				result->text += result->title;
 				result->text += "\n\n";
 			}
