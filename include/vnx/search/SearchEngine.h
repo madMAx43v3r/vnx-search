@@ -106,7 +106,7 @@ private:
 	uint32_t next_domain_id = 1;
 	uint32_t next_word_id = 1;
 	
-	mutable std::atomic<int64_t> query_counter;
+	mutable std::atomic<int64_t> query_counter {0};
 	
 	// below work_loop() private
 	std::mutex parallel_mutex;
