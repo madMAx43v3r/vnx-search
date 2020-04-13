@@ -70,8 +70,10 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 
 std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
 {
+	std::lock_guard<std::mutex> lock(index_mutex);
+	
 	std::vector<std::string> result;
-	for(auto it = word_map.lower_bound(prefix); it != word_map.end() && result.size() < size_t(limit); ++it) {
+	for(auto it = ordered_word_map.lower_bound(prefix); it != ordered_word_map.end() && result.size() < size_t(limit); ++it) {
 		result.push_back(it->first);
 	}
 	return result;
@@ -79,6 +81,8 @@ std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, 
 
 std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix, const int32_t& limit) const
 {
+	std::lock_guard<std::mutex> lock(index_mutex);
+	
 	std::vector<std::string> result;
 	for(auto it = domain_map.lower_bound(prefix); it != domain_map.end() && result.size() < size_t(limit); ++it) {
 		result.push_back(it->first);
@@ -128,6 +132,7 @@ uint32_t SearchEngine::get_word_id(const std::string& word)
 		} else {
 			id = next_word_id++;
 			word_map[word] = id;
+			ordered_word_map[word] = id;
 			word_reverse_map[id] = word;
 		}
 	}

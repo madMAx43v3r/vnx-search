@@ -82,16 +82,20 @@ private:
 	std::vector<std::thread> work_threads;
 	
 	mutable std::mutex work_mutex;
+	mutable std::mutex index_mutex;
 	mutable std::condition_variable work_condition;
 	mutable std::queue<std::shared_ptr<query_t>> work_queue;
 	
-	mutable std::mutex index_mutex;
 	std::unordered_map<std::string, uint32_t> url_map;
 	std::unordered_map<uint32_t, std::string> url_reverse_map;
+	
 	std::map<std::string, uint32_t> domain_map;
 	std::unordered_map<uint32_t, std::string> domain_reverse_map;
-	std::map<std::string, uint32_t> word_map;
+	
+	std::unordered_map<std::string, uint32_t> word_map;
+	std::map<std::string, uint32_t> ordered_word_map;
 	std::unordered_map<uint32_t, std::string> word_reverse_map;
+	
 	std::unordered_map<uint32_t, std::shared_ptr<word_t>> word_index;
 	std::unordered_map<uint32_t, std::shared_ptr<page_t>> page_index;
 	
