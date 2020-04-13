@@ -111,23 +111,7 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	{
 		auto url_iter = url_map.find(url);
 		if(url_iter != url_map.end()) {
-			url_t& entry = url_iter->second;
-			if(depth < entry.depth) {
-				const Url::Url parsed(url);
-				domain_t& domain = domain_map[parsed.host()];
-				for(auto it = domain.queue.lower_bound(entry.depth); it != domain.queue.upper_bound(entry.depth); ++it) {
-					if(it->second == url) {
-						domain.queue.erase(it);
-						break;
-					}
-				}
-				for(auto it = waiting.begin(); it != waiting.end(); ++it) {
-					if(it->second == url) {
-						waiting.erase(it);
-						break;
-					}
-				}
-			} else {
+			if(depth >= url_iter->second.depth) {
 				return false;
 			}
 		}
@@ -172,8 +156,11 @@ void CrawlProcessor::check_queue()
 	{
 		const auto entry = waiting.begin();
 		if(entry->first <= now_posix) {
-			const url_t& url = url_map[entry->second];
-			domain_map[url.domain].queue.emplace(url.depth, entry->second);
+			auto url_iter = url_map.find(entry->second);
+			if(url_iter != url_map.end()) {
+				const url_t& url = url_iter->second;
+				domain_map[url.domain].queue.emplace(url.depth, entry->second);
+			}
 			waiting.erase(entry);
 		} else {
 			break;
@@ -202,7 +189,12 @@ void CrawlProcessor::check_queue()
 			try {
 				const auto iter = domain.queue.begin();
 				const auto url_str = iter->second;
-				url_t& url = url_map[url_str];
+				const auto url_iter = url_map.find(url_str);
+				if(url_iter == url_map.end()) {
+					domain.queue.erase(iter);		// already fetched with lower depth
+					continue;
+				}
+				url_t& url = url_iter->second;
 				
 				url.request_id = crawl_frontend_async->fetch(url_str,
 						std::bind(&CrawlProcessor::url_fetch_callback, this, url_str, std::placeholders::_1));
