@@ -8,6 +8,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/search/CrawlStats.hxx>
 
 
 namespace vnx {
@@ -18,6 +19,9 @@ public:
 	CrawlProcessorAsyncClient(const std::string& service_name);
 	
 	CrawlProcessorAsyncClient(vnx::Hash64 service_addr);
+	
+	uint64_t get_stats(const ::int32_t& limit, 
+			const std::function<void(::std::shared_ptr<const ::vnx::search::CrawlStats>)>& _callback = std::function<void(::std::shared_ptr<const ::vnx::search::CrawlStats>)>());
 	
 	uint64_t handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample, 
 			const std::function<void()>& _callback = std::function<void()>());
@@ -30,6 +34,7 @@ protected:
 	void vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Binary> _data) override;
 	
 private:
+	std::map<uint64_t, std::function<void(::std::shared_ptr<const ::vnx::search::CrawlStats>)>> vnx_queue_get_stats;
 	std::map<uint64_t, std::function<void()>> vnx_queue_handle_vnx_keyvalue_KeyValuePair;
 	
 };

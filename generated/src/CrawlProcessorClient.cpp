@@ -20,6 +20,37 @@ CrawlProcessorClient::CrawlProcessorClient(vnx::Hash64 service_addr)
 {
 }
 
+::std::shared_ptr<const ::vnx::search::CrawlStats> CrawlProcessorClient::get_stats(const ::int32_t& limit) {
+	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
+	vnx::BinaryOutputStream _stream_out(_argument_data.get());
+	vnx::TypeOutput _out(&_stream_out);
+	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_CrawlProcessor_get_stats;
+	{
+		char* const _buf = _out.write(4);
+		vnx::write_value(_buf + 0, limit);
+	}
+	_out.flush();
+	_argument_data->type_code = _type_code;
+	vnx_request(_argument_data);
+	
+	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
+	vnx::TypeInput _in(&_stream_in);
+	const vnx::TypeCode* _return_type = _type_code->return_type;
+	::std::shared_ptr<const ::vnx::search::CrawlStats> _ret_0;
+	{
+		const char* const _buf = _in.read(_return_type->total_field_size);
+		if(_return_type->is_matched) {
+		}
+		for(const vnx::TypeField* _field : _return_type->ext_fields) {
+			switch(_field->native_index) {
+				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
+				default: vnx::skip(_in, _return_type, _field->code.data());
+			}
+		}
+	}
+	return _ret_0;
+}
+
 void CrawlProcessorClient::handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample) {
 	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
 	vnx::BinaryOutputStream _stream_out(_argument_data.get());

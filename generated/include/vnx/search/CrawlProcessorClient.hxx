@@ -8,6 +8,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/search/CrawlStats.hxx>
 
 
 namespace vnx {
@@ -18,6 +19,8 @@ public:
 	CrawlProcessorClient(const std::string& service_name);
 	
 	CrawlProcessorClient(vnx::Hash64 service_addr);
+	
+	::std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const ::int32_t& limit);
 	
 	void handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
 	

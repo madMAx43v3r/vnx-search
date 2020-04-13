@@ -8,6 +8,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/search/CrawlStats.hxx>
 
 
 namespace vnx {
@@ -30,6 +31,7 @@ public:
 	::int32_t max_url_length = 256;
 	::int32_t update_interval_ms = 200;
 	::vnx::float32_t reload_power = 4;
+	::std::vector<::std::string> protocols;
 	::std::vector<::std::string> root_urls;
 	::std::vector<::std::string> domain_blacklist;
 	
@@ -59,6 +61,7 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	virtual ::std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const ::int32_t& limit) const = 0;
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	
