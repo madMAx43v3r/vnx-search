@@ -17,6 +17,21 @@
 namespace vnx {
 namespace search {
 
+template<typename T, typename K, typename V>
+void limited_emplace(T& queue, const K& key, const V& value, size_t limit)
+{
+	if(queue.size() < limit) {
+		queue.emplace(key, value);
+	} else {
+		const auto back = std::prev(queue.end());
+		typename T::key_compare compare;
+		if(compare(key, back->first)) {
+			queue.emplace(key, value);
+			queue.erase(back);
+		}
+	}
+}
+
 CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
@@ -162,16 +177,8 @@ void CrawlProcessor::check_queue()
 	for(auto& entry : domain_map) {
 		auto& domain = entry.second;
 		if(!domain.queue.empty()) {
-			auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
-			if(queue.size() < max_num_pending) {
-				queue.emplace(key, &domain);
-			} else {
-				const auto back = std::prev(queue.end());
-				if(key < back->first) {
-					queue.emplace(key, &domain);
-					queue.erase(back);
-				}
-			}
+			const auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
+			limited_emplace(queue, key, &domain, max_num_pending);
 		}
 	}
 	
@@ -359,6 +366,7 @@ std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit
 	stats->num_waiting = waiting.size();
 	{
 		std::vector<crawl_domain_stats_t> domains;
+		domains.reserve(domain_map.size());
 		for(const auto& entry : domain_map) {
 			crawl_domain_stats_t dstats;
 			dstats.host = entry.first;
@@ -370,7 +378,7 @@ std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit
 		{
 			std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> sorted;
 			for(const auto& entry : domains) {
-				sorted.emplace(entry.num_fetched, entry);
+				limited_emplace(sorted, entry.num_fetched, entry, size_t(limit));
 			}
 			for(const auto& entry : sorted) {
 				stats->most_fetched.push_back(entry.second);
@@ -382,7 +390,7 @@ std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit
 		{
 			std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> sorted;
 			for(const auto& entry : domains) {
-				sorted.emplace(entry.num_queued, entry);
+				limited_emplace(sorted, entry.num_queued, entry, size_t(limit));
 			}
 			for(const auto& entry : sorted) {
 				stats->most_queued.push_back(entry.second);
