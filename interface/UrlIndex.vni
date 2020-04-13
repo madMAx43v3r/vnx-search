@@ -12,9 +12,9 @@ class UrlIndex {
 	
 	long fetch_duration_us;			// [usec]
 	
-	int http_status;
+	int http_status = -1;
 	
-	int curl_status;
+	int curl_status = -1;
 	
 	int fetch_count;
 	
