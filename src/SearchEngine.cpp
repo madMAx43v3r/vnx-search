@@ -185,8 +185,9 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 	if(value->code == keyvalue::SyncInfo::END) {
 		if(!is_initialized) {
 			std::lock_guard<std::mutex> lock(index_mutex);
+			
 			is_initialized = true;
-			subscribe(input_page_index, UNLIMITED);		// unlimited since we don't want to block the database
+			subscribe(input_page_index, 1000);		// publisher runs in a separate thread so we can block here
 			
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages and " << word_index.size() << " words.";
