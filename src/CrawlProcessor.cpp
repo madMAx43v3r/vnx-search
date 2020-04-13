@@ -297,9 +297,6 @@ void CrawlProcessor::url_update_callback(	const std::string& url,
 {
 	auto previous = std::dynamic_pointer_cast<const UrlIndex>(previous_);
 	if(previous) {
-		if(previous->depth >= 0) {
-			fetched->depth = std::min(previous->depth, fetched->depth);
-		}
 		fetched->first_seen = previous->first_seen ? previous->first_seen : fetched->last_fetched;
 		fetched->fetch_count = previous->fetch_count + 1;
 	}
