@@ -99,9 +99,9 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 		return false;
 	}
 	{
-		auto url_iter = url_map.find(url);
-		if(url_iter != url_map.end()) {
-			if(depth >= url_iter->second.depth) {
+		auto iter = url_map.find(url);
+		if(iter != url_map.end()) {
+			if(depth >= iter->second.depth) {
 				return false;
 			}
 		}
@@ -160,12 +160,20 @@ void CrawlProcessor::check_queue()
 	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
 	
 	for(auto& entry : domain_map) {
-		if(!entry.second.queue.empty()) {
-			queue.emplace(std::make_pair(entry.second.queue.begin()->first,
-										entry.second.last_fetch_us), &entry.second);
+		auto& domain = entry.second;
+		if(!domain.queue.empty()) {
+			auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
+			if(queue.size() < max_num_pending) {
+				queue.emplace(key, &domain);
+			} else {
+				const auto back = std::prev(queue.end());
+				if(key < back->first) {
+					queue.emplace(key, &domain);
+					queue.erase(back);
+				}
+			}
 		}
 	}
-	active_domains = queue.size();
 	
 	for(const auto& entry : queue)
 	{
@@ -346,7 +354,7 @@ std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit
 	stats->num_fetched = fetch_counter;
 	stats->num_errors = error_counter;
 	stats->num_reload = reload_counter;
-	stats->num_active_domains = active_domains;
+	stats->num_domains = domain_map.size();
 	stats->num_queued = url_map.size();
 	stats->num_waiting = waiting.size();
 	{
@@ -397,7 +405,7 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
 			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
 			<< error_counter << " failed, " << reload_counter << " reload, "
-			<< active_domains << " domains, " << average_depth << " avg. depth";
+			<< domain_map.size() << " domains, " << average_depth << " avg. depth";
 }
 
 

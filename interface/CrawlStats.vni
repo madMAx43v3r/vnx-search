@@ -8,7 +8,7 @@ class CrawlStats {
 	
 	long num_reload;
 	
-	long num_active_domains;
+	long num_domains;
 	
 	long num_queued;
 	

@@ -90,7 +90,6 @@ private:
 	uint64_t fetch_counter = 0;
 	uint64_t error_counter = 0;
 	uint64_t reload_counter = 0;
-	uint64_t active_domains = 0;
 	double average_depth = 0;
 	
 };
