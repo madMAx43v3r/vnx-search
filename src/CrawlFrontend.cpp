@@ -138,17 +138,10 @@ void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 	{
 		const auto& parser = iter->second;
 		if(parser.content_types.count(value->content_type)) {
-			try {
-				parse_id = parser.client->parse(value,
-						std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
-				parse_ok = true;
-				break;
-			}
-			catch(const std::exception& ex) {
-				log(WARN).out << "parse(): " << ex.what();
-			}
-			rem_async_client(parser.client);
-			iter = parser_map.erase(iter);
+			parse_id = parser.client->parse(value,
+					std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
+			parse_ok = true;
+			break;
 		} else {
 			iter++;
 		}

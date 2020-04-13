@@ -58,12 +58,7 @@ void CrawlProcessor::main()
 		parsed.strip();
 		parsed.abspath();
 		const auto link = parsed.str();
-		try {
-			url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, 0, std::placeholders::_1));
-		}
-		catch(const std::exception& ex) {
-			log(WARN).out << "UrlIndex: " << ex.what();
-		}
+		url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, 0, std::placeholders::_1));
 	}
 	
 	for(const auto& domain : domain_blacklist) {
@@ -88,13 +83,8 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	{
 		auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 		if(index) {
-			try {
-				url_index_async->get_value(pair->key,
-						std::bind(&CrawlProcessor::check_page_callback, this, url, std::placeholders::_1, index));
-			}
-			catch(const std::exception& ex) {
-				log(WARN).out << "UrlIndex: " << ex.what();
-			}
+			url_index_async->get_value(pair->key,
+					std::bind(&CrawlProcessor::check_page_callback, this, url, std::placeholders::_1, index));
 			return;
 		}
 	}
@@ -231,25 +221,15 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 			enqueue(url, depth);
 		}
 		if(depth < index->depth) {
-			try {
-				auto copy = vnx::clone(index);
-				copy->depth = depth;
-				url_index_async->store_value(url, copy);
-			}
-			catch(const std::exception& ex) {
-				log(WARN).out << "UrlIndex: " << ex.what();
-			}
+			auto copy = vnx::clone(index);
+			copy->depth = depth;
+			url_index_async->store_value(url, copy);
 		}
 	} else {
-		try {
-			auto index = UrlIndex::create();
-			index->depth = depth;
-			index->first_seen = std::time(0);
-			url_index_async->store_value(url, index);
-		}
-		catch(const std::exception& ex) {
-			log(WARN).out << "UrlIndex: " << ex.what();
-		}
+		auto index = UrlIndex::create();
+		index->depth = depth;
+		index->first_seen = std::time(0);
+		url_index_async->store_value(url, index);
 		enqueue(url, depth);
 	}
 }
@@ -271,17 +251,12 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 	for(const auto& link : index->links)
 	{
 		const Url::Url parsed(link);
-		
 		const int link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
 		
-		if(link_depth <= max_depth && link.size() <= max_url_length) {
-			try {
-				url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link,
-															link_depth, std::placeholders::_1));
-			}
-			catch(const std::exception& ex) {
-				log(WARN).out << "UrlIndex: " << ex.what();
-			}
+		if(link_depth <= max_depth && link.size() <= max_url_length)
+		{
+			url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link,
+														link_depth, std::placeholders::_1));
 		}
 	}
 	
@@ -304,13 +279,8 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	if(index) {
 		auto copy = vnx::clone(index);
 		copy->depth = entry.depth;
-		try {
-			url_index_async->get_value(url, std::bind(&CrawlProcessor::url_update_callback, this, url,
-														copy, std::placeholders::_1));
-		}
-		catch(const std::exception& ex) {
-			log(WARN).out << "UrlIndex: " << ex.what();
-		}
+		url_index_async->get_value(url, std::bind(&CrawlProcessor::url_update_callback, this, url,
+													copy, std::placeholders::_1));
 		
 		domain_t& domain = domain_map[entry.domain];
 		if(index->is_fail) {
@@ -333,12 +303,8 @@ void CrawlProcessor::url_update_callback(	const std::string& url,
 		fetched->first_seen = previous->first_seen ? previous->first_seen : fetched->last_fetched;
 		fetched->fetch_count = previous->fetch_count + 1;
 	}
-	try {
-		url_index_async->store_value(url, fetched);
-	}
-	catch(const std::exception& ex) {
-		log(WARN).out << "UrlIndex: " << ex.what();
-	}
+	url_index_async->store_value(url, fetched);
+	
 	if(fetched->is_fail) {
 		error_counter++;
 	} else {
@@ -361,17 +327,12 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 			if(std::dynamic_pointer_cast<const NoSuchService>(vnx_except->value())) {
 				enqueue(url, entry.depth);
 			} else {
-				try {
-					auto index = UrlIndex::create();
-					index->depth = entry.depth;
-					index->last_fetched = std::time(0);
-					index->is_fail = true;
-					url_index_async->get_value(url, std::bind(&CrawlProcessor::url_update_callback, this, url,
-																index, std::placeholders::_1));
-				}
-				catch(const std::exception& ex) {
-					log(WARN).out << "UrlIndex: " << ex.what();
-				}
+				auto index = UrlIndex::create();
+				index->depth = entry.depth;
+				index->last_fetched = std::time(0);
+				index->is_fail = true;
+				url_index_async->get_value(url, std::bind(&CrawlProcessor::url_update_callback, this, url,
+															index, std::placeholders::_1));
 			}
 		}
 	}

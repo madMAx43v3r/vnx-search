@@ -123,24 +123,12 @@ void PageProcessor::handle(std::shared_ptr<const TextResponse> value)
 	index->links = get_unique(index->links);
 	index->images = get_unique(index->images);
 	
-	try {
-		page_index->store_value(value->url, index);
-	}
-	catch(const std::exception& ex) {
-		log(WARN).out << "page_index->store_value(): " << ex.what();
-		return;
-	}
+	page_index->store_value(value->url, index);
 	
 	auto content = PageContent::create();
 	content->text = value->text;
 	
-	try {
-		page_content->store_value(value->url, content);
-	}
-	catch(const std::exception& ex) {
-		log(WARN).out << "page_index->store_value(): " << ex.what();
-		return;
-	}
+	page_content->store_value(value->url, content);
 	
 	log(INFO).out << "Processed '" << value->url << "': " << index->words.size() << " index words";
 }
