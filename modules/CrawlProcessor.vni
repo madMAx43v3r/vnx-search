@@ -35,6 +35,8 @@ module CrawlProcessor {
 	vector<string> domain_blacklist;
 	
 	
+	CrawlStats* get_stats(int limit) const;
+	
 	void handle(vnx.keyvalue.KeyValuePair sample);
 	
 }

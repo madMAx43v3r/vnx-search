@@ -383,7 +383,7 @@ void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& 
 	log(WARN).out << "UrlIndex: " << ex.what();
 }
 
-void CrawlProcessor::publish_stats()
+std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit) const
 {
 	auto stats = CrawlStats::create();
 	stats->num_fetched = fetch_counter;
@@ -409,7 +409,7 @@ void CrawlProcessor::publish_stats()
 			}
 			for(const auto& entry : sorted) {
 				stats->most_fetched.push_back(entry.second);
-				if(stats->most_fetched.size() >= 100) {
+				if(stats->most_fetched.size() >= size_t(limit)) {
 					break;
 				}
 			}
@@ -421,13 +421,18 @@ void CrawlProcessor::publish_stats()
 			}
 			for(const auto& entry : sorted) {
 				stats->most_queued.push_back(entry.second);
-				if(stats->most_queued.size() >= 100) {
+				if(stats->most_queued.size() >= size_t(limit)) {
 					break;
 				}
 			}
 		}
 	}
-	publish(stats, output_crawl_stats);
+	return stats;
+}
+
+void CrawlProcessor::publish_stats()
+{
+	publish(get_stats(100), output_crawl_stats);
 }
 
 void CrawlProcessor::print_stats()
