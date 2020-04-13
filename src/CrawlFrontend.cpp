@@ -359,6 +359,7 @@ void CrawlFrontend::fetch_loop()
 			index->content_type = out->content_type;
 			index->fetch_duration_us = fetch_time;
 		}
+		index->curl_status = res;
 		
 		if(res == CURLE_OK && out->status == 200)
 		{
