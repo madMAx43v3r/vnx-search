@@ -11,10 +11,15 @@
 #include <vnx/search/CrawlProcessorBase.hxx>
 #include <vnx/search/UrlIndex.hxx>
 #include <vnx/search/PageIndex.hxx>
+#include <vnx/search/PageContent.hxx>
 #include <vnx/search/CrawlFrontendAsyncClient.hxx>
 
 #include <vnx/keyvalue/ServerClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
+
+namespace googlebot {
+	class RobotsMatcher;
+}
 
 
 namespace vnx {
@@ -34,10 +39,13 @@ protected:
 	
 	struct domain_t {
 		std::multimap<int, std::string> queue;
+		std::shared_ptr<const PageContent> robots;
 		int64_t num_fetched = 0;
 		int64_t num_errors = 0;
+		int64_t num_disallowed = 0;
 		int64_t last_fetch_us = 0;			// [usec]
 		int num_pending = 0;
+		bool is_init = false;
 		bool is_blacklisted = false;
 	};
 	
@@ -66,9 +74,13 @@ private:
 	
 	void url_update_callback(const std::string& url, std::shared_ptr<UrlIndex> fetched, std::shared_ptr<const Value> previous);
 	
+	void robots_txt_callback(const std::string& url, std::shared_ptr<const Value> value);
+	
 	void url_fetch_error(uint64_t request_id, const std::exception& ex);
 	
 	void url_index_error(uint64_t request_id, const std::exception& ex);
+	
+	void page_content_error(uint64_t request_id, const std::exception& ex);
 	
 	void publish_stats();
 	
@@ -85,11 +97,14 @@ private:
 	
 	std::shared_ptr<keyvalue::ServerClient> url_index;
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
+	std::shared_ptr<keyvalue::ServerAsyncClient> page_content_async;
 	std::shared_ptr<CrawlFrontendAsyncClient> crawl_frontend_async;
 	
-	uint64_t fetch_counter = 0;
-	uint64_t error_counter = 0;
-	uint64_t reload_counter = 0;
+	std::shared_ptr<googlebot::RobotsMatcher> matcher;
+	
+	int64_t fetch_counter = 0;
+	int64_t error_counter = 0;
+	int64_t reload_counter = 0;
 	double average_depth = 0;
 	
 };

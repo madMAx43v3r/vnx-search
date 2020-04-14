@@ -4,3 +4,6 @@
 [submodule "lib/libxmlplusplus"]
 	path = lib/libxmlplusplus
 	url = https://github.com/madMAx43v3r/libxmlplusplus.git
+[submodule "lib/robotstxt"]
+	path = lib/robotstxt
+	url = https://github.com/google/robotstxt.git

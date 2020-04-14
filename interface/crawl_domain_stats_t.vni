@@ -8,6 +8,8 @@ struct crawl_domain_stats_t {
 	
 	long num_errors;
 	
+	long num_disallowed;
+	
 	long num_queued;
 	
 }

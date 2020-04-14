@@ -11,6 +11,7 @@
 #include <url.h>
 #include <time.h>
 #include <math.h>
+#include <robots.h>
 #include <algorithm>
 
 
@@ -39,6 +40,8 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	
 	protocols.push_back("http");
 	protocols.push_back("https");
+	
+	matcher = std::make_shared<googlebot::RobotsMatcher>();
 }
 
 void CrawlProcessor::main()
@@ -49,12 +52,15 @@ void CrawlProcessor::main()
 	
 	url_index = std::make_shared<keyvalue::ServerClient>(url_index_server);
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
+	page_content_async = std::make_shared<keyvalue::ServerAsyncClient>(page_content_server);
 	crawl_frontend_async = std::make_shared<CrawlFrontendAsyncClient>(crawl_frontend_server);
 	
 	url_index_async->vnx_set_error_callback(std::bind(&CrawlProcessor::url_index_error, this, std::placeholders::_1, std::placeholders::_2));
+	page_content_async->vnx_set_error_callback(std::bind(&CrawlProcessor::page_content_error, this, std::placeholders::_1, std::placeholders::_2));
 	crawl_frontend_async->vnx_set_error_callback(std::bind(&CrawlProcessor::url_fetch_error, this, std::placeholders::_1, std::placeholders::_2));
 	
 	add_async_client(url_index_async);
+	add_async_client(page_content_async);
 	add_async_client(crawl_frontend_async);
 	
 	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
@@ -135,6 +141,11 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	if(domain.is_blacklisted) {
 		return false;
 	}
+	if(!domain.is_init) {
+		const std::string link = "http://" + host + "/robots.txt";
+		url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, -1, std::placeholders::_1));
+		domain.is_init = true;
+	}
 	
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
@@ -192,7 +203,18 @@ void CrawlProcessor::check_queue()
 		if(now_wall - domain.last_fetch_us > int64_t(60 * 1000 * 1000) / max_per_minute)
 		{
 			try {
-				const auto iter = domain.queue.begin();
+				auto iter = domain.queue.begin();
+				while(domain.robots && !domain.queue.empty()) {
+					if(matcher->OneAgentAllowedByRobots(domain.robots->text, user_agent, iter->second)) {
+						break;
+					}
+					iter = domain.queue.erase(iter);
+					domain.num_disallowed++;
+				}
+				if(domain.queue.empty()) {
+					continue;
+				}
+				
 				const auto url_str = iter->second;
 				const auto url_iter = url_map.find(url_str);
 				if(url_iter == url_map.end()) {
@@ -226,19 +248,35 @@ void CrawlProcessor::check_all_urls()
 
 void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
 {
+	static const std::string robots_txt = "/robots.txt";
+	const bool is_robots = url.size() >= robots_txt.size()
+						&& url.substr(url.size() - robots_txt.size()) == robots_txt
+						&& std::count(url.begin(), url.end(), '/') == 3;
+	
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
 	if(index) {
 		depth = std::min(depth, index->depth);
-		if(index->last_fetched > 0) {
-			const int64_t load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
-			enqueue(url, depth, load_time);
+		if(is_robots) {
+			if(index->last_fetched > 0) {
+				if(!index->is_fail) {
+					page_content_async->get_value(url, std::bind(&CrawlProcessor::robots_txt_callback, this, url, std::placeholders::_1));
+				}
+				enqueue(url, depth, index->last_fetched + 604800);
+			} else {
+				enqueue(url, depth);
+			}
 		} else {
-			enqueue(url, depth);
-		}
-		if(depth < index->depth) {
-			auto copy = vnx::clone(index);
-			copy->depth = depth;
-			url_index_async->store_value(url, copy);
+			if(index->last_fetched > 0) {
+				const int64_t load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
+				enqueue(url, depth, load_time);
+			} else {
+				enqueue(url, depth);
+			}
+			if(depth < index->depth) {
+				auto copy = vnx::clone(index);
+				copy->depth = depth;
+				url_index_async->store_value(url, copy);
+			}
 		}
 	} else {
 		auto index = UrlIndex::create();
@@ -274,7 +312,6 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 														link_depth, std::placeholders::_1));
 		}
 	}
-	
 }
 
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url)
@@ -350,9 +387,25 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 	}
 }
 
+void CrawlProcessor::robots_txt_callback(const std::string& url, std::shared_ptr<const Value> value)
+{
+	auto content = std::dynamic_pointer_cast<const PageContent>(value);
+	if(content) {
+		const Url::Url parsed(url);
+		const auto host = parsed.host();
+		domain_map[host].robots = content;
+		log(INFO).out << "Got robots.txt for '" << host << "'";
+	}
+}
+
 void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& ex)
 {
 	log(WARN).out << "UrlIndex: " << ex.what();
+}
+
+void CrawlProcessor::page_content_error(uint64_t request_id, const std::exception& ex)
+{
+	log(WARN).out << "PageContent: " << ex.what();
 }
 
 std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit) const
@@ -372,6 +425,7 @@ std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit
 			dstats.host = entry.first;
 			dstats.num_fetched = entry.second.num_fetched;
 			dstats.num_errors = entry.second.num_errors;
+			dstats.num_disallowed = entry.second.num_disallowed;
 			dstats.num_queued = entry.second.queue.size();
 			domains.push_back(dstats);
 		}

@@ -15,6 +15,10 @@ add_library(xmlpp SHARED IMPORTED GLOBAL)
 set_target_properties(xmlpp PROPERTIES
 	IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/libxmlplusplus/libxml++/.libs/libxml++-2.6.so)
 
+add_library(robotstxt SHARED IMPORTED GLOBAL)
+set_target_properties(robotstxt PROPERTIES
+	IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/robotstxt/build/librobots.so)
+
 add_library(vnx_search SHARED
 	${GENERATED_SOURCE_FILES}
 	${URL_CPP_SOURCE_FILES}
@@ -33,12 +37,14 @@ target_include_directories(vnx_search
 	PRIVATE
 		lib/url-cpp/include
 		lib/libxmlplusplus
+		lib/robotstxt
+		lib/robotstxt/build/libs/abseil-cpp-src
 		${LIBXML2_INCLUDE_DIRS}
 		${PC_GLIBMM_INCLUDE_DIRS}
 )
 target_link_libraries(vnx_search
 	vnx_keyvalue vnx_base
-	xmlpp curl
+	xmlpp robotstxt curl
 	${LIBXML2_LIBRARIES}
 	${PC_GLIBMM_LIBRARIES}
 )

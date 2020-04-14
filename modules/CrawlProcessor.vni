@@ -10,6 +10,8 @@ module CrawlProcessor {
 	
 	string url_index_server = "UrlIndex";
 	
+	string page_content_server = "PageContent";
+	
 	string crawl_frontend_server = "CrawlFrontend";
 	
 	int jump_cost = 3;
@@ -29,6 +31,8 @@ module CrawlProcessor {
 	int update_interval_ms = 200;
 	
 	float reload_power = 4;
+	
+	string user_agent = "Wget";			// for robots.txt matching
 	
 	vector<string> protocols;
 	
