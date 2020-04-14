@@ -37,15 +37,23 @@ protected:
 		bool is_reload = false;
 	};
 	
+	enum robots_txt_state_e {
+		ROBOTS_TXT_UNKNOWN,
+		ROBOTS_TXT_PENDING,
+		ROBOTS_TXT_MISSING,
+		ROBOTS_TXT_FOUND
+	};
+	
 	struct domain_t {
+		std::string host;
 		std::multimap<int, std::string> queue;
-		std::shared_ptr<const PageContent> robots;
+		std::shared_ptr<const PageContent> robots_txt;
 		int64_t num_fetched = 0;
 		int64_t num_errors = 0;
 		int64_t num_disallowed = 0;
 		int64_t last_fetch_us = 0;			// [usec]
 		int num_pending = 0;
-		bool is_init = false;
+		robots_txt_state_e robots_state = ROBOTS_TXT_UNKNOWN;
 		bool is_blacklisted = false;
 	};
 	
@@ -56,6 +64,8 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::KeyValuePair> value) override;
 	
 private:
+	domain_t& get_domain(const std::string& host);
+	
 	bool enqueue(const std::string& url, int depth, int64_t load_time = 0);
 	
 	void check_queue();
@@ -105,6 +115,9 @@ private:
 	int64_t fetch_counter = 0;
 	int64_t error_counter = 0;
 	int64_t reload_counter = 0;
+	int64_t pending_robots_txt = 0;
+	int64_t missing_robots_txt = 0;
+	int64_t found_robots_txt = 0;
 	double average_depth = 0;
 	
 };

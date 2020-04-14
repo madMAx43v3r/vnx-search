@@ -82,8 +82,8 @@ void CrawlProcessor::main()
 		url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, 0, std::placeholders::_1));
 	}
 	
-	for(const auto& domain : domain_blacklist) {
-		domain_map[domain].is_blacklisted = true;
+	for(const auto& host : domain_blacklist) {
+		get_domain(host).is_blacklisted = true;
 	}
 	
 	check_all_urls();
@@ -111,6 +111,15 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	}
 }
 
+CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
+{
+	domain_t& domain = domain_map[host];
+	if(domain.host.empty()) {
+		domain.host = host;
+	}
+	return domain;
+}
+
 bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
 {
 	if(depth > max_depth) {
@@ -136,15 +145,9 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	if(host.empty()) {
 		return false;
 	}
-	
-	domain_t& domain = domain_map[host];
+	domain_t& domain = get_domain(host);
 	if(domain.is_blacklisted) {
 		return false;
-	}
-	if(!domain.is_init) {
-		const std::string link = "http://" + host + "/robots.txt";
-		url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, -1, std::placeholders::_1));
-		domain.is_init = true;
 	}
 	
 	const auto delta = load_time - std::time(0);
@@ -175,7 +178,7 @@ void CrawlProcessor::check_queue()
 			auto url_iter = url_map.find(entry->second);
 			if(url_iter != url_map.end()) {
 				const url_t& url = url_iter->second;
-				domain_map[url.domain].queue.emplace(url.depth, entry->second);
+				get_domain(url.domain).queue.emplace(url.depth, entry->second);
 			}
 			waiting.erase(entry);
 		} else {
@@ -193,19 +196,39 @@ void CrawlProcessor::check_queue()
 		}
 	}
 	
+	pending_robots_txt = 0;
+	
 	for(const auto& entry : queue)
 	{
-		if(pending_urls.size() >= max_num_pending) {
-			break;
-		}
+		const int depth = entry.first.first;
 		domain_t& domain = *entry.second;
+		const int64_t fetch_delta_ms = (now_wall - domain.last_fetch_us) / 1000;
 		
-		if(now_wall - domain.last_fetch_us > int64_t(60 * 1000 * 1000) / max_per_minute)
-		{
+		if(depth >= 0) {
+			pending_robots_txt++;
+			switch(domain.robots_state) {
+				case ROBOTS_TXT_UNKNOWN:
+				case ROBOTS_TXT_PENDING:
+					if(fetch_delta_ms > 10 * 1000) {
+						const std::string link = "http://" + domain.host + "/robots.txt";
+						url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, -1, std::placeholders::_1));
+						domain.robots_state = ROBOTS_TXT_PENDING;
+					}
+					continue;
+				case ROBOTS_TXT_MISSING:
+				case ROBOTS_TXT_FOUND:
+					break;
+				default:
+					continue;
+			}
+			pending_robots_txt--;
+		}
+		
+		if(pending_urls.size() < max_num_pending && fetch_delta_ms > int64_t(60 * 1000) / max_per_minute) {
 			try {
 				auto iter = domain.queue.begin();
-				while(domain.robots && !domain.queue.empty()) {
-					if(matcher->OneAgentAllowedByRobots(domain.robots->text, user_agent, iter->second)) {
+				while(domain.robots_txt && !domain.queue.empty()) {
+					if(matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, iter->second)) {
 						break;
 					}
 					iter = domain.queue.erase(iter);
@@ -249,7 +272,7 @@ void CrawlProcessor::check_all_urls()
 void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
 {
 	static const std::string robots_txt = "/robots.txt";
-	const bool is_robots = url.size() >= robots_txt.size()
+	const bool is_robots = url.size() > robots_txt.size()
 						&& url.substr(url.size() - robots_txt.size()) == robots_txt
 						&& std::count(url.begin(), url.end(), '/') == 3;
 	
@@ -258,10 +281,19 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 		depth = std::min(depth, index->depth);
 		if(is_robots) {
 			if(index->last_fetched > 0) {
-				if(!index->is_fail) {
+				const Url::Url parsed(url);
+				auto& domain = get_domain(parsed.host());
+				if(index->is_fail) {
+					if(domain.robots_state != ROBOTS_TXT_FOUND) {
+						if(domain.robots_state != ROBOTS_TXT_MISSING) {
+							missing_robots_txt++;
+						}
+						domain.robots_state = ROBOTS_TXT_MISSING;
+					}
+				} else {
 					page_content_async->get_value(url, std::bind(&CrawlProcessor::robots_txt_callback, this, url, std::placeholders::_1));
 				}
-				enqueue(url, depth, index->last_fetched + 604800);
+				enqueue(url, depth, index->last_fetched + 2678400);
 			} else {
 				enqueue(url, depth);
 			}
@@ -318,7 +350,7 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url)
 {
 	const auto entry = url_map[url];
 	reload_counter += entry.is_reload ? 1 : 0;
-	domain_map[entry.domain].num_pending--;
+	get_domain(entry.domain).num_pending--;
 	pending_urls.erase(entry.request_id);
 	url_map.erase(url);
 	return entry;
@@ -334,7 +366,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		url_index_async->get_value(url, std::bind(&CrawlProcessor::url_update_callback, this, url,
 													copy, std::placeholders::_1));
 		
-		domain_t& domain = domain_map[entry.domain];
+		domain_t& domain = get_domain(entry.domain);
 		if(index->is_fail) {
 			domain.num_errors++;
 		} else {
@@ -389,12 +421,22 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 
 void CrawlProcessor::robots_txt_callback(const std::string& url, std::shared_ptr<const Value> value)
 {
+	const Url::Url parsed(url);
+	const auto host = parsed.host();
+	domain_t& domain = get_domain(host);
+	
 	auto content = std::dynamic_pointer_cast<const PageContent>(value);
 	if(content) {
-		const Url::Url parsed(url);
-		const auto host = parsed.host();
-		domain_map[host].robots = content;
-		log(INFO).out << "Got robots.txt for '" << host << "'";
+		if(!domain.robots_txt) {
+			found_robots_txt++;
+			log(INFO).out << "Got robots.txt for '" << host << "'";
+		}
+		domain.robots_txt = content;
+		domain.robots_state = ROBOTS_TXT_FOUND;
+	}
+	else  {
+		domain.robots_state = ROBOTS_TXT_UNKNOWN;
+		log(WARN).out << "Missing robots.txt for '" << host << "'";
 	}
 }
 
@@ -427,6 +469,7 @@ std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit
 			dstats.num_errors = entry.second.num_errors;
 			dstats.num_disallowed = entry.second.num_disallowed;
 			dstats.num_queued = entry.second.queue.size();
+			dstats.has_robots_txt = entry.second.robots_state == ROBOTS_TXT_FOUND;
 			domains.push_back(dstats);
 		}
 		{
@@ -468,6 +511,8 @@ void CrawlProcessor::print_stats()
 			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
 			<< error_counter << " failed, " << reload_counter << " reload, "
 			<< domain_map.size() << " domains, " << average_depth << " avg. depth";
+	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
+			<< missing_robots_txt << " missing, " << found_robots_txt << " found";
 }
 
 

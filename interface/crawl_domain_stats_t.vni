@@ -12,4 +12,6 @@ struct crawl_domain_stats_t {
 	
 	long num_queued;
 	
+	bool has_robots_txt;
+	
 }
