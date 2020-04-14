@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 crawl_domain_stats_t::VNX_TYPE_HASH(0xf57ddd168a5985ddull);
-const vnx::Hash64 crawl_domain_stats_t::VNX_CODE_HASH(0xd4e3db09ca66e649ull);
+const vnx::Hash64 crawl_domain_stats_t::VNX_CODE_HASH(0x7363396e7c63f73bull);
 
 vnx::Hash64 crawl_domain_stats_t::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -50,7 +50,9 @@ void crawl_domain_stats_t::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, host);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, num_fetched);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, num_errors);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, num_queued);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, num_disallowed);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, num_queued);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, has_robots_txt);
 	_visitor.type_end(*_type_code);
 }
 
@@ -59,7 +61,9 @@ void crawl_domain_stats_t::write(std::ostream& _out) const {
 	_out << "\"host\": "; vnx::write(_out, host);
 	_out << ", \"num_fetched\": "; vnx::write(_out, num_fetched);
 	_out << ", \"num_errors\": "; vnx::write(_out, num_errors);
+	_out << ", \"num_disallowed\": "; vnx::write(_out, num_disallowed);
 	_out << ", \"num_queued\": "; vnx::write(_out, num_queued);
+	_out << ", \"has_robots_txt\": "; vnx::write(_out, has_robots_txt);
 	_out << "}";
 }
 
@@ -67,8 +71,12 @@ void crawl_domain_stats_t::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "host") {
+		if(_entry.first == "has_robots_txt") {
+			vnx::from_string(_entry.second, has_robots_txt);
+		} else if(_entry.first == "host") {
 			vnx::from_string(_entry.second, host);
+		} else if(_entry.first == "num_disallowed") {
+			vnx::from_string(_entry.second, num_disallowed);
 		} else if(_entry.first == "num_errors") {
 			vnx::from_string(_entry.second, num_errors);
 		} else if(_entry.first == "num_fetched") {
@@ -84,14 +92,20 @@ vnx::Object crawl_domain_stats_t::to_object() const {
 	_object["host"] = host;
 	_object["num_fetched"] = num_fetched;
 	_object["num_errors"] = num_errors;
+	_object["num_disallowed"] = num_disallowed;
 	_object["num_queued"] = num_queued;
+	_object["has_robots_txt"] = has_robots_txt;
 	return _object;
 }
 
 void crawl_domain_stats_t::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "host") {
+		if(_entry.first == "has_robots_txt") {
+			_entry.second.to(has_robots_txt);
+		} else if(_entry.first == "host") {
 			_entry.second.to(host);
+		} else if(_entry.first == "num_disallowed") {
+			_entry.second.to(num_disallowed);
 		} else if(_entry.first == "num_errors") {
 			_entry.second.to(num_errors);
 		} else if(_entry.first == "num_fetched") {
@@ -126,10 +140,10 @@ std::shared_ptr<vnx::TypeCode> crawl_domain_stats_t::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.crawl_domain_stats_t";
 	type_code->type_hash = vnx::Hash64(0xf57ddd168a5985ddull);
-	type_code->code_hash = vnx::Hash64(0xd4e3db09ca66e649ull);
+	type_code->code_hash = vnx::Hash64(0x7363396e7c63f73bull);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<crawl_domain_stats_t>>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(4);
+	type_code->fields.resize(6);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -148,8 +162,18 @@ std::shared_ptr<vnx::TypeCode> crawl_domain_stats_t::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[3];
+		field.name = "num_disallowed";
+		field.code = {8};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[4];
 		field.name = "num_queued";
 		field.code = {8};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[5];
+		field.name = "has_robots_txt";
+		field.code = {1};
 	}
 	type_code->build();
 	return type_code;
@@ -190,7 +214,19 @@ void read(TypeInput& in, ::vnx::search::crawl_domain_stats_t& value, const TypeC
 		{
 			const vnx::TypeField* const _field = type_code->field_map[3];
 			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.num_disallowed, _field->code.data());
+			}
+		}
+		{
+			const vnx::TypeField* const _field = type_code->field_map[4];
+			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.num_queued, _field->code.data());
+			}
+		}
+		{
+			const vnx::TypeField* const _field = type_code->field_map[5];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.has_robots_txt, _field->code.data());
 			}
 		}
 	}
@@ -211,10 +247,12 @@ void write(TypeOutput& out, const ::vnx::search::crawl_domain_stats_t& value, co
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(24);
+	char* const _buf = out.write(33);
 	vnx::write_value(_buf + 0, value.num_fetched);
 	vnx::write_value(_buf + 8, value.num_errors);
-	vnx::write_value(_buf + 16, value.num_queued);
+	vnx::write_value(_buf + 16, value.num_disallowed);
+	vnx::write_value(_buf + 24, value.num_queued);
+	vnx::write_value(_buf + 32, value.has_robots_txt);
 	vnx::write(out, value.host, type_code, type_code->fields[0].code.data());
 }
 

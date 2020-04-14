@@ -17,7 +17,9 @@ struct crawl_domain_stats_t {
 	::std::string host;
 	::int64_t num_fetched = 0;
 	::int64_t num_errors = 0;
+	::int64_t num_disallowed = 0;
 	::int64_t num_queued = 0;
+	::vnx::bool_t has_robots_txt = 0;
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;

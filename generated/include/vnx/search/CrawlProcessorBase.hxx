@@ -21,6 +21,7 @@ public:
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
 	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
 	::std::string url_index_server = "UrlIndex";
+	::std::string page_content_server = "PageContent";
 	::std::string crawl_frontend_server = "CrawlFrontend";
 	::int32_t jump_cost = 3;
 	::int32_t max_depth = 9;
@@ -31,6 +32,7 @@ public:
 	::int32_t max_url_length = 256;
 	::int32_t update_interval_ms = 200;
 	::vnx::float32_t reload_power = 4;
+	::std::string user_agent = "Googlebot";
 	::std::vector<::std::string> protocols;
 	::std::vector<::std::string> root_urls;
 	::std::vector<::std::string> domain_blacklist;

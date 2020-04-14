@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 UrlIndex::VNX_TYPE_HASH(0xab26319d1802d1b6ull);
-const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0xe798ad3358354c55ull);
+const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0xf10bb785f460f087ull);
 
 vnx::Hash64 UrlIndex::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -168,7 +168,7 @@ std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.UrlIndex";
 	type_code->type_hash = vnx::Hash64(0xab26319d1802d1b6ull);
-	type_code->code_hash = vnx::Hash64(0xe798ad3358354c55ull);
+	type_code->code_hash = vnx::Hash64(0xf10bb785f460f087ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<UrlIndex>(); };
 	type_code->methods.resize(0);
@@ -202,11 +202,13 @@ std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[5];
 		field.name = "http_status";
+		field.value = vnx::to_string(-1);
 		field.code = {7};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.name = "curl_status";
+		field.value = vnx::to_string(-1);
 		field.code = {7};
 	}
 	{

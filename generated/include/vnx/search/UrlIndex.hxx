@@ -19,8 +19,8 @@ public:
 	::int64_t last_fetched = 0;
 	::int64_t last_modified = 0;
 	::int64_t fetch_duration_us = 0;
-	::int32_t http_status = 0;
-	::int32_t curl_status = 0;
+	::int32_t http_status = -1;
+	::int32_t curl_status = -1;
 	::int32_t fetch_count = 0;
 	::int32_t depth = -1;
 	::vnx::bool_t is_fail = 0;

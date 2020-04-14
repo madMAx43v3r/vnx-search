@@ -18,7 +18,7 @@ public:
 	::int64_t num_fetched = 0;
 	::int64_t num_errors = 0;
 	::int64_t num_reload = 0;
-	::int64_t num_active_domains = 0;
+	::int64_t num_domains = 0;
 	::int64_t num_queued = 0;
 	::int64_t num_waiting = 0;
 	::std::vector<::vnx::search::crawl_domain_stats_t> most_fetched;
