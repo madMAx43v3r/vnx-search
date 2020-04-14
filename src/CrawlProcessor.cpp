@@ -168,6 +168,7 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 
 void CrawlProcessor::check_queue()
 {
+	pending_robots_txt = 0;
 	const int64_t now_posix = std::time(0);
 	const int64_t now_wall = vnx::get_wall_time_micros();
 	
@@ -195,8 +196,6 @@ void CrawlProcessor::check_queue()
 			limited_emplace(queue, key, &domain, max_num_pending);
 		}
 	}
-	
-	pending_robots_txt = 0;
 	
 	for(const auto& entry : queue)
 	{
@@ -429,14 +428,12 @@ void CrawlProcessor::robots_txt_callback(const std::string& url, std::shared_ptr
 	if(content) {
 		if(!domain.robots_txt) {
 			found_robots_txt++;
-			log(INFO).out << "Got robots.txt for '" << host << "'";
 		}
 		domain.robots_txt = content;
 		domain.robots_state = ROBOTS_TXT_FOUND;
 	}
 	else  {
 		domain.robots_state = ROBOTS_TXT_UNKNOWN;
-		log(WARN).out << "Missing robots.txt for '" << host << "'";
 	}
 }
 
