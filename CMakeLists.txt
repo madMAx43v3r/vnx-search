@@ -23,6 +23,7 @@ add_library(vnx_search SHARED
 	src/PageProcessor.cpp
 	src/CrawlProcessor.cpp
 	src/SearchEngine.cpp
+	src/PlainTextParser.cpp
 )
 
 target_include_directories(vnx_search
