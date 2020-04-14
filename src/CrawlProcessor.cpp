@@ -258,7 +258,7 @@ void CrawlProcessor::check_queue()
 				average_depth = url.depth * 0.01 + average_depth * 0.99;
 			}
 			catch(const std::exception& ex) {
-				break;
+				log(WARN).out << "check_queue(): " << ex.what();
 			}
 		}
 	}
