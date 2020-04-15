@@ -12,9 +12,9 @@ module CrawlFrontend {
 	
 	int stats_interval_ms = 10000;
 	
-	long max_content_length = 4194304;
+	long max_content_length = 1048576;
 	
-	long max_response_size = 16777216;
+	long max_response_size = 4194304;
 	
 	string processor_server = "CrawlProcessor";
 	
