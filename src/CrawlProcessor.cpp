@@ -330,6 +330,9 @@ void CrawlProcessor::check_page_callback(	const std::string& url,
 
 void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_ptr<const PageIndex> index)
 {
+	if(depth < 0) {
+		return;
+	}
 	const Url::Url parent(url);
 	
 	for(const auto& link : index->links)
