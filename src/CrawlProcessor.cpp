@@ -345,7 +345,7 @@ void CrawlProcessor::check_queue()
 			url_t& url = url_iter->second;
 			
 			url.request_id = crawl_frontend_async->fetch(url_str,
-					std::bind(&CrawlProcessor::url_fetch_callback, this, url_key, std::placeholders::_1));
+					std::bind(&CrawlProcessor::url_fetch_callback, this, url_str, std::placeholders::_1));
 			
 			pending_urls.emplace(url.request_id, url_str);
 			
@@ -456,9 +456,10 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key)
 	return entry;
 }
 
-void CrawlProcessor::url_fetch_callback(const std::string& url_key, std::shared_ptr<const UrlIndex> index)
+void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index)
 {
-	const Url::Url parsed(url_key);
+	const Url::Url parsed(url);
+	const auto url_key = get_url_key(parsed);
 	const auto entry = url_fetch_done(url_key);
 	
 	if(index) {

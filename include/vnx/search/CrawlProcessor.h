@@ -90,7 +90,7 @@ private:
 	
 	url_t url_fetch_done(const std::string& url_key);
 	
-	void url_fetch_callback(const std::string& url_key, std::shared_ptr<const UrlIndex> index);
+	void url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index);
 	
 	void url_update_callback(const std::string& url_key, std::shared_ptr<UrlIndex> fetched, std::shared_ptr<const Value> previous);
 	
