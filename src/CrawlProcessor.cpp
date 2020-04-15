@@ -6,7 +6,12 @@
  */
 
 #include <vnx/search/CrawlProcessor.h>
+#include <vnx/search/Util.h>
 #include <vnx/search/CrawlStats.hxx>
+
+#include <unicode/unistr.h>
+#include <unicode/brkiter.h>
+using namespace icu;
 
 #include <url.h>
 #include <time.h>
@@ -17,21 +22,6 @@
 
 namespace vnx {
 namespace search {
-
-template<typename T, typename K, typename V>
-void limited_emplace(T& queue, const K& key, const V& value, size_t limit)
-{
-	if(queue.size() < limit) {
-		queue.emplace(key, value);
-	} else {
-		const auto back = std::prev(queue.end());
-		typename T::key_compare compare;
-		if(compare(key, back->first)) {
-			queue.emplace(key, value);
-			queue.erase(back);
-		}
-	}
-}
 
 CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
@@ -46,20 +36,23 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 
 void CrawlProcessor::main()
 {
+	subscribe(input_text, 1000);				// need to block here since we are a bottleneck
 	subscribe(input_url_index, 1000);			// publisher runs in a separate thread so we can block here
 	subscribe(input_page_index, 1000);			// publisher runs in a separate thread so we can block here
 	subscribe(url_sync_topic, 100);				// sync runs in a separate thread so we can block here
 	
-	url_index = std::make_shared<keyvalue::ServerClient>(url_index_server);
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
+	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
 	page_content_async = std::make_shared<keyvalue::ServerAsyncClient>(page_content_server);
 	crawl_frontend_async = std::make_shared<CrawlFrontendAsyncClient>(crawl_frontend_server);
 	
 	url_index_async->vnx_set_error_callback(std::bind(&CrawlProcessor::url_index_error, this, std::placeholders::_1, std::placeholders::_2));
+	page_index_async->vnx_set_error_callback(std::bind(&CrawlProcessor::page_index_error, this, std::placeholders::_1, std::placeholders::_2));
 	page_content_async->vnx_set_error_callback(std::bind(&CrawlProcessor::page_content_error, this, std::placeholders::_1, std::placeholders::_2));
 	crawl_frontend_async->vnx_set_error_callback(std::bind(&CrawlProcessor::url_fetch_error, this, std::placeholders::_1, std::placeholders::_2));
 	
 	add_async_client(url_index_async);
+	add_async_client(page_index_async);
 	add_async_client(page_content_async);
 	add_async_client(crawl_frontend_async);
 	
@@ -70,16 +63,9 @@ void CrawlProcessor::main()
 	
 	for(const auto& url : root_urls)
 	{
-		Url::Url parsed(url);
-		parsed.defrag();
-		if(parsed.scheme().empty()) {
-			parsed.setScheme("https");
-		}
-		parsed.remove_default_port();
-		parsed.strip();
-		parsed.abspath();
-		const auto link = parsed.str();
-		url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, 0, std::placeholders::_1));
+		const Url::Url parsed = process_url(Url::Url(url));
+		url_index_async->get_value(get_url_key(parsed),
+				std::bind(&CrawlProcessor::check_url, this, parsed.str(), 0, std::placeholders::_1));
 	}
 	
 	for(const auto& host : domain_blacklist) {
@@ -91,13 +77,92 @@ void CrawlProcessor::main()
 	Super::main();
 }
 
+void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
+{
+    std::set<std::string> word_set;
+    {
+		const UnicodeString text = UnicodeString::fromUTF8(value->text);
+		
+    	UErrorCode status = U_ZERO_ERROR;
+		BreakIterator* bi = BreakIterator::createWordInstance(Locale::getUS(), status);
+		bi->setText(text);
+		
+		auto pos = bi->first();
+		auto begin = pos;
+		while(pos != BreakIterator::DONE) {
+			begin = pos;
+			pos = bi->next();
+			if(pos != BreakIterator::DONE) {
+				if(bi->getRuleStatus() != UBRK_WORD_NONE) {
+					UnicodeString word;
+					text.extractBetween(begin, pos, word);
+					word.toLower();
+					std::string tmp;
+					word.toUTF8String(tmp);
+					word_set.insert(tmp);
+				}
+			}
+		}
+		delete bi;
+    }
+	
+	const Url::Url parent(value->url);
+	const auto parent_key = get_url_key(parent);
+	
+	auto index = PageIndex::create();
+	index->title = value->title;
+	index->last_modified = value->last_modified;
+	
+	for(const auto& word : word_set)
+	{
+		if(word.size() <= max_word_length) {
+			index->words.push_back(word);
+		}
+	}
+	
+	for(const auto& link : value->links)
+	{
+		const auto parsed = process_link(Url::Url(link), parent);
+		if(filter_url(parsed)) {
+			const auto full_link = parsed.str();
+			if(full_link.size() <= max_url_length) {
+				index->links.push_back(full_link);
+			}
+		}
+	}
+	
+	for(const auto& link : value->images)
+	{
+		const auto parsed = process_link(Url::Url(link), parent);
+		if(filter_url(parsed)) {
+			const auto full_link = parsed.str();
+			if(full_link.size() <= max_url_length) {
+				index->images.push_back(full_link);
+			}
+		}
+	}
+	
+	index->links = get_unique(index->links);
+	index->images = get_unique(index->images);
+	
+	page_index_async->store_value(parent_key, index);
+	
+	auto content = PageContent::create();
+	content->text = value->text;
+	
+	page_content_async->store_value(parent_key, content);
+	
+	log(INFO).out << "Processed '" << parent_key << "': " << index->words.size() << " index words, "
+			<< index->links.size() << " links, " << index->images.size() << " images";
+}
+
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> pair)
 {
-	const std::string url = pair->key.to_string_value();
+	const std::string url_key = pair->key.to_string_value();
 	{
 		auto index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
 		if(index) {
-			check_url(url, index->depth, index);
+			check_url(index->scheme + ":" + url_key, index->depth, index);
 			return;
 		}
 	}
@@ -105,7 +170,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 		auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 		if(index) {
 			url_index_async->get_value(pair->key,
-					std::bind(&CrawlProcessor::check_page_callback, this, url, std::placeholders::_1, index));
+					std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
 			return;
 		}
 	}
@@ -120,6 +185,21 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 	return domain;
 }
 
+bool CrawlProcessor::filter_url(const Url::Url& parsed)
+{
+	auto& domain = get_domain(parsed.host());
+	if(domain.is_blacklisted) {
+		return false;
+	}
+	if(domain.robots_txt &&
+		!matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, parsed.str()))
+	{
+		domain.num_disallowed++;
+		return false;
+	}
+	return true;
+}
+
 bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
 {
 	if(depth > max_depth) {
@@ -128,16 +208,16 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 	if(url.size() > max_url_length) {
 		return false;
 	}
+	const Url::Url parsed(url);
+	const auto url_key = get_url_key(parsed);
 	{
-		auto iter = url_map.find(url);
+		auto iter = url_map.find(url_key);
 		if(iter != url_map.end()) {
 			if(depth >= iter->second.depth) {
 				return false;
 			}
 		}
 	}
-	
-	const Url::Url parsed(url);
 	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
 		return false;
 	}
@@ -159,7 +239,7 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 		return false;
 	}
 	
-	url_t& entry = url_map[url];
+	url_t& entry = url_map[url_key];
 	entry.domain = host;
 	entry.depth = depth;
 	entry.is_reload = load_time > 0;
@@ -176,7 +256,7 @@ void CrawlProcessor::check_queue()
 	{
 		const auto entry = waiting.begin();
 		if(entry->first <= now_posix) {
-			auto url_iter = url_map.find(entry->second);
+			auto url_iter = url_map.find(get_url_key(entry->second));
 			if(url_iter != url_map.end()) {
 				const url_t& url = url_iter->second;
 				get_domain(url.domain).queue.emplace(url.depth, entry->second);
@@ -199,22 +279,30 @@ void CrawlProcessor::check_queue()
 	
 	for(const auto& entry : queue)
 	{
-		const int depth = entry.first.first;
 		domain_t& domain = *entry.second;
 		const int64_t fetch_delta_ms = (now_wall - domain.last_fetch_us) / 1000;
 		
-		if(depth >= 0) {
+		if(entry.first.first >= 0)
+		{
+			const std::string link_key = "//" + domain.host + "/robots.txt";
+			const std::string link_url = "http:" + link_key;
+			
 			pending_robots_txt++;
 			switch(domain.robots_state) {
 				case ROBOTS_TXT_UNKNOWN:
-				case ROBOTS_TXT_PENDING:
-					if(fetch_delta_ms > 10 * 1000) {
-						const std::string link = "http://" + domain.host + "/robots.txt";
-						url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link, -1, std::placeholders::_1));
-						domain.robots_state = ROBOTS_TXT_PENDING;
-					}
+					url_index_async->get_value(link_key,
+							std::bind(&CrawlProcessor::check_url, this, link_url, -1, std::placeholders::_1));
+					domain.robot_start_time = now_posix;
+					domain.robots_state = ROBOTS_TXT_PENDING;
 					continue;
+				case ROBOTS_TXT_PENDING: {
+					const bool is_timeout = now_posix - domain.robot_start_time > robots_txt_timeout;
+					page_content_async->get_value(link_key, std::bind(&CrawlProcessor::robots_txt_callback, this, link_key,
+									is_timeout ? ROBOTS_TXT_TIMEOUT : ROBOTS_TXT_PENDING, std::placeholders::_1));
+					continue;
+				}
 				case ROBOTS_TXT_MISSING:
+				case ROBOTS_TXT_TIMEOUT:
 				case ROBOTS_TXT_FOUND:
 					break;
 				default:
@@ -223,80 +311,88 @@ void CrawlProcessor::check_queue()
 			pending_robots_txt--;
 		}
 		
-		if(pending_urls.size() < max_num_pending && fetch_delta_ms > int64_t(60 * 1000) / max_per_minute) {
-			try {
-				auto iter = domain.queue.begin();
-				while(domain.robots_txt && !domain.queue.empty()) {
-					if(matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, iter->second)) {
-						break;
-					}
-					iter = domain.queue.erase(iter);
-					domain.num_disallowed++;
+		if(pending_urls.size() < size_t(max_num_pending)
+			&& fetch_delta_ms > int64_t(60 * 1000) / max_per_minute)
+		{
+			auto iter = domain.queue.begin();
+			while(domain.robots_txt && iter != domain.queue.end()) {
+				if(matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, iter->second)) {
+					break;
 				}
-				if(domain.queue.empty()) {
-					continue;
+				{
+					auto index = UrlIndex::create();
+					index->depth = iter->first;
+					index->last_fetched = std::time(0);
+					index->http_status = 403;	// fake HTTP Forbidden
+					index->is_fail = true;
+					url_index_async->get_value(get_url_key(iter->second),
+							std::bind(&CrawlProcessor::url_update_callback, this, iter->second, index, std::placeholders::_1));
 				}
-				
-				const auto url_str = iter->second;
-				const auto url_iter = url_map.find(url_str);
-				if(url_iter == url_map.end()) {
-					domain.queue.erase(iter);		// already fetched with lower depth
-					continue;
-				}
-				url_t& url = url_iter->second;
-				
-				url.request_id = crawl_frontend_async->fetch(url_str,
-						std::bind(&CrawlProcessor::url_fetch_callback, this, url_str, std::placeholders::_1));
-				
-				pending_urls.emplace(url.request_id, url_str);
-				
-				domain.queue.erase(iter);
-				domain.num_pending++;
-				domain.last_fetch_us = now_wall;
-				
-				average_depth = url.depth * 0.01 + average_depth * 0.99;
+				iter = domain.queue.erase(iter);
+				domain.num_disallowed++;
 			}
-			catch(const std::exception& ex) {
-				log(WARN).out << "check_queue(): " << ex.what();
+			if(iter == domain.queue.end()) {
+				continue;
 			}
+			
+			const auto url_str = iter->second;
+			const auto url_key = get_url_key(url_str);
+			const auto url_iter = url_map.find(url_key);
+			if(url_iter == url_map.end()) {
+				domain.queue.erase(iter);		// already fetched with lower depth
+				continue;
+			}
+			url_t& url = url_iter->second;
+			
+			url.request_id = crawl_frontend_async->fetch(url_str,
+					std::bind(&CrawlProcessor::url_fetch_callback, this, url_key, std::placeholders::_1));
+			
+			pending_urls.emplace(url.request_id, url_str);
+			
+			domain.queue.erase(iter);
+			domain.num_pending++;
+			domain.last_fetch_us = now_wall;
+			
+			average_depth = url.depth * 0.01 + average_depth * 0.99;
 		}
 	}
 }
 
 void CrawlProcessor::check_all_urls()
 {
-	url_index->sync_all(url_sync_topic);
+	url_index_async->sync_all(url_sync_topic);
 }
 
 void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
 {
-	static const std::string robots_txt = "/robots.txt";
-	const bool is_robots = url.size() > robots_txt.size()
-						&& url.substr(url.size() - robots_txt.size()) == robots_txt
-						&& std::count(url.begin(), url.end(), '/') == 3;
+	const Url::Url parsed(url);
+	const auto url_key = get_url_key(parsed);
+	const bool is_robots = is_robots_txt(parsed);
 	
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
 	if(index) {
-		depth = std::min(depth, index->depth);
 		if(is_robots) {
 			if(index->last_fetched > 0) {
-				const Url::Url parsed(url);
+				const bool is_queued = enqueue(url, depth, index->last_fetched + 2678400);
+				
 				auto& domain = get_domain(parsed.host());
 				if(index->is_fail) {
-					if(domain.robots_state != ROBOTS_TXT_FOUND) {
-						if(domain.robots_state != ROBOTS_TXT_MISSING) {
-							missing_robots_txt++;
-						}
-						domain.robots_state = ROBOTS_TXT_MISSING;
+					if(domain.robots_state != ROBOTS_TXT_MISSING) {
+						missing_robots_txt++;
 					}
+					domain.robots_state = ROBOTS_TXT_MISSING;
+					domain.robots_txt = 0;
 				} else {
-					page_content_async->get_value(url, std::bind(&CrawlProcessor::robots_txt_callback, this, url, std::placeholders::_1));
+					if(!is_queued && domain.robots_state != ROBOTS_TXT_PENDING) {
+						page_content_async->get_value(url_key,
+								std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
+					}
 				}
-				enqueue(url, depth, index->last_fetched + 2678400);
 			} else {
 				enqueue(url, depth);
 			}
 		} else {
+			depth = std::min(depth, index->depth);
 			if(index->last_fetched > 0) {
 				const int64_t load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
 				enqueue(url, depth, load_time);
@@ -305,80 +401,73 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 			}
 			if(depth < index->depth) {
 				auto copy = vnx::clone(index);
+				copy->scheme = parsed.scheme();
 				copy->depth = depth;
-				url_index_async->store_value(url, copy);
+				url_index_async->store_value(url_key, copy);
 			}
 		}
 	} else {
 		auto index = UrlIndex::create();
+		index->scheme = parsed.scheme();
 		index->depth = depth;
 		index->first_seen = std::time(0);
-		url_index_async->store_value(url, index);
+		url_index_async->store_value(url_key, index);
 		enqueue(url, depth);
 	}
 }
 
-void CrawlProcessor::check_page_callback(	const std::string& url,
+void CrawlProcessor::check_page_callback(	const std::string& url_key,
 											std::shared_ptr<const Value> url_index_,
 											std::shared_ptr<const PageIndex> page_index_)
 {
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(url_index_);
 	if(index) {
-		check_page(url, index->depth, page_index_);
+		check_page(url_key, index->depth, page_index_);
 	}
 }
 
-void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_ptr<const PageIndex> index)
+void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shared_ptr<const PageIndex> index)
 {
 	if(depth < 0) {
-		return;
+		return;		// don't follow links in this case
 	}
-	const Url::Url parent(url);
+	const Url::Url parent(url_key);
 	
 	for(const auto& link : index->links)
 	{
 		const Url::Url parsed(link);
-		auto& domain = get_domain(parsed.host());
-		if(domain.is_blacklisted) {
-			continue;
-		}
+		const auto link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
 		
-		if(domain.robots_txt &&
-			!matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, link))
+		if(link_depth <= max_depth)
 		{
-			domain.num_disallowed++;
-			continue;
-		}
-		
-		const int link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
-		
-		if(link_depth <= max_depth && link.size() <= max_url_length)
-		{
-			url_index_async->get_value(link, std::bind(&CrawlProcessor::check_url, this, link,
-														link_depth, std::placeholders::_1));
+			url_index_async->get_value(get_url_key(parsed),
+					std::bind(&CrawlProcessor::check_url, this, link, link_depth, std::placeholders::_1));
 		}
 	}
 }
 
-CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url)
+CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key)
 {
-	const auto entry = url_map[url];
+	const auto entry = url_map[url_key];
 	reload_counter += entry.is_reload ? 1 : 0;
 	get_domain(entry.domain).num_pending--;
 	pending_urls.erase(entry.request_id);
-	url_map.erase(url);
+	url_map.erase(url_key);
 	return entry;
 }
 
-void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index)
+void CrawlProcessor::url_fetch_callback(const std::string& url_key, std::shared_ptr<const UrlIndex> index)
 {
-	const url_t entry = url_fetch_done(url);
+	const Url::Url parsed(url_key);
+	const auto entry = url_fetch_done(url_key);
 	
 	if(index) {
 		auto copy = vnx::clone(index);
+		copy->scheme = parsed.scheme();
 		copy->depth = entry.depth;
-		url_index_async->get_value(url, std::bind(&CrawlProcessor::url_update_callback, this, url,
-													copy, std::placeholders::_1));
+		
+		url_index_async->get_value(url_key,
+				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
 		
 		domain_t& domain = get_domain(entry.domain);
 		if(index->is_fail) {
@@ -389,7 +478,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	}
 }
 
-void CrawlProcessor::url_update_callback(	const std::string& url,
+void CrawlProcessor::url_update_callback(	const std::string& url_key,
 											std::shared_ptr<UrlIndex> fetched,
 											std::shared_ptr<const Value> previous_)
 {
@@ -398,7 +487,7 @@ void CrawlProcessor::url_update_callback(	const std::string& url,
 		fetched->first_seen = previous->first_seen ? previous->first_seen : fetched->last_fetched;
 		fetched->fetch_count = previous->fetch_count + 1;
 	}
-	url_index_async->store_value(url, fetched);
+	url_index_async->store_value(url_key, fetched);
 	
 	if(fetched->is_fail) {
 		error_counter++;
@@ -413,7 +502,9 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 	if(iter != pending_urls.end())
 	{
 		const auto url = iter->second;
-		const auto entry = url_fetch_done(url);		// after this iter will be invalid
+		const Url::Url parsed(url);
+		const auto url_key = get_url_key(parsed);
+		const auto entry = url_fetch_done(url_key);		// after this iter will be invalid
 		
 		log(WARN).out << "fetch('" << url << "'): " << ex.what();
 		
@@ -423,21 +514,23 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 				enqueue(url, entry.depth);
 			} else {
 				auto index = UrlIndex::create();
+				index->scheme = parsed.scheme();
 				index->depth = entry.depth;
 				index->last_fetched = std::time(0);
 				index->is_fail = true;
-				url_index_async->get_value(url, std::bind(&CrawlProcessor::url_update_callback, this, url,
-															index, std::placeholders::_1));
+				url_index_async->get_value(url_key,
+						std::bind(&CrawlProcessor::url_update_callback, this, url_key, index, std::placeholders::_1));
 			}
 		}
 	}
 }
 
-void CrawlProcessor::robots_txt_callback(const std::string& url, std::shared_ptr<const Value> value)
+void CrawlProcessor::robots_txt_callback(	const std::string& url_key,
+											robots_txt_state_e missing_state,
+											std::shared_ptr<const Value> value)
 {
-	const Url::Url parsed(url);
-	const auto host = parsed.host();
-	domain_t& domain = get_domain(host);
+	const Url::Url parsed(url_key);
+	domain_t& domain = get_domain(parsed.host());
 	
 	auto content = std::dynamic_pointer_cast<const PageContent>(value);
 	if(content) {
@@ -445,16 +538,25 @@ void CrawlProcessor::robots_txt_callback(const std::string& url, std::shared_ptr
 			found_robots_txt++;
 		}
 		domain.robots_txt = content;
-		domain.robots_state = ROBOTS_TXT_FOUND;
 	}
-	else  {
-		domain.robots_state = ROBOTS_TXT_UNKNOWN;
+	if(domain.robots_txt) {
+		domain.robots_state = ROBOTS_TXT_FOUND;
+	} else {
+		if(missing_state == ROBOTS_TXT_TIMEOUT) {
+			timed_out_robots_txt++;
+		}
+		domain.robots_state = missing_state;
 	}
 }
 
 void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& ex)
 {
 	log(WARN).out << "UrlIndex: " << ex.what();
+}
+
+void CrawlProcessor::page_index_error(uint64_t request_id, const std::exception& ex)
+{
+	log(WARN).out << "PageIndex: " << ex.what();
 }
 
 void CrawlProcessor::page_content_error(uint64_t request_id, const std::exception& ex)
@@ -524,7 +626,8 @@ void CrawlProcessor::print_stats()
 			<< error_counter << " failed, " << reload_counter << " reload, "
 			<< domain_map.size() << " domains, " << average_depth << " avg. depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
-			<< missing_robots_txt << " missing, " << found_robots_txt << " found";
+			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
+			<< found_robots_txt << " found";
 }
 
 

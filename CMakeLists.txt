@@ -24,7 +24,6 @@ add_library(vnx_search SHARED
 	${URL_CPP_SOURCE_FILES}
 	src/CrawlFrontend.cpp
 	src/HtmlParser.cpp
-	src/PageProcessor.cpp
 	src/CrawlProcessor.cpp
 	src/SearchEngine.cpp
 	src/PlainTextParser.cpp

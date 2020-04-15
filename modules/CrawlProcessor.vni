@@ -2,6 +2,8 @@ package vnx.search;
 
 module CrawlProcessor {
 	
+	vnx.TopicPtr input_text = "frontend.text_responses";			// TextResponse
+	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
 	
 	vnx.TopicPtr input_page_index = "backend.page_index.updates";
@@ -9,6 +11,8 @@ module CrawlProcessor {
 	vnx.TopicPtr output_crawl_stats = "backend.crawl_stats";
 	
 	string url_index_server = "UrlIndex";
+	
+	string page_index_server = "PageIndex";
 	
 	string page_content_server = "PageContent";
 	
@@ -22,13 +26,17 @@ module CrawlProcessor {
 	
 	int sync_interval = 3600;			// checking all urls [sec]
 	
-	int max_per_minute = 30;
+	int max_per_minute = 12;
 	
-	int max_num_pending = 50;
+	int max_num_pending = 100;
 	
 	int max_url_length = 256;
 	
-	int update_interval_ms = 200;
+	int max_word_length = 64;
+	
+	int update_interval_ms = 500;
+	
+	int robots_txt_timeout = 60;			// max time to wait for robots.txt [sec]
 	
 	float reload_power = 4;
 	
@@ -42,6 +50,8 @@ module CrawlProcessor {
 	
 	
 	CrawlStats* get_stats(int limit) const;
+	
+	void handle(TextResponse sample);
 	
 	void handle(vnx.keyvalue.KeyValuePair sample);
 	

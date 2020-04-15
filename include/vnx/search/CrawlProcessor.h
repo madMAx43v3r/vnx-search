@@ -17,6 +17,10 @@
 #include <vnx/keyvalue/ServerClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
 
+namespace Url {
+	class Url;
+}
+
 namespace googlebot {
 	class RobotsMatcher;
 }
@@ -41,6 +45,7 @@ protected:
 		ROBOTS_TXT_UNKNOWN,
 		ROBOTS_TXT_PENDING,
 		ROBOTS_TXT_MISSING,
+		ROBOTS_TXT_TIMEOUT,
 		ROBOTS_TXT_FOUND
 	};
 	
@@ -52,6 +57,7 @@ protected:
 		int64_t num_errors = 0;
 		int64_t num_disallowed = 0;
 		int64_t last_fetch_us = 0;			// [usec]
+		int64_t robot_start_time = 0;		// [sec]
 		int num_pending = 0;
 		robots_txt_state_e robots_state = ROBOTS_TXT_UNKNOWN;
 		bool is_blacklisted = false;
@@ -61,10 +67,14 @@ protected:
 	
 	std::shared_ptr<const CrawlStats> get_stats(const int32_t& limit) const override;
 	
+	void handle(std::shared_ptr<const TextResponse> value) override;
+	
 	void handle(std::shared_ptr<const keyvalue::KeyValuePair> value) override;
 	
 private:
 	domain_t& get_domain(const std::string& host);
+	
+	bool filter_url(const Url::Url& parsed);
 	
 	bool enqueue(const std::string& url, int depth, int64_t load_time = 0);
 	
@@ -74,21 +84,23 @@ private:
 	
 	void check_all_urls();
 	
-	void check_page_callback(const std::string& url, std::shared_ptr<const Value> url_index, std::shared_ptr<const PageIndex> page_index);
+	void check_page_callback(const std::string& url_key, std::shared_ptr<const Value> url_index, std::shared_ptr<const PageIndex> page_index);
 	
-	void check_page(const std::string& url, int depth, std::shared_ptr<const PageIndex> index);
+	void check_page(const std::string& url_key, int depth, std::shared_ptr<const PageIndex> index);
 	
-	url_t url_fetch_done(const std::string& url);
+	url_t url_fetch_done(const std::string& url_key);
 	
-	void url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index);
+	void url_fetch_callback(const std::string& url_key, std::shared_ptr<const UrlIndex> index);
 	
-	void url_update_callback(const std::string& url, std::shared_ptr<UrlIndex> fetched, std::shared_ptr<const Value> previous);
+	void url_update_callback(const std::string& url_key, std::shared_ptr<UrlIndex> fetched, std::shared_ptr<const Value> previous);
 	
-	void robots_txt_callback(const std::string& url, std::shared_ptr<const Value> value);
+	void robots_txt_callback(const std::string& url_key, robots_txt_state_e missing_state, std::shared_ptr<const Value> value);
 	
 	void url_fetch_error(uint64_t request_id, const std::exception& ex);
 	
 	void url_index_error(uint64_t request_id, const std::exception& ex);
+	
+	void page_index_error(uint64_t request_id, const std::exception& ex);
 	
 	void page_content_error(uint64_t request_id, const std::exception& ex);
 	
@@ -105,8 +117,8 @@ private:
 	
 	std::map<uint64_t, std::string> pending_urls;
 	
-	std::shared_ptr<keyvalue::ServerClient> url_index;
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
+	std::shared_ptr<keyvalue::ServerAsyncClient> page_index_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> page_content_async;
 	std::shared_ptr<CrawlFrontendAsyncClient> crawl_frontend_async;
 	
@@ -117,6 +129,7 @@ private:
 	int64_t reload_counter = 0;
 	int64_t pending_robots_txt = 0;
 	int64_t missing_robots_txt = 0;
+	int64_t timed_out_robots_txt = 0;
 	int64_t found_robots_txt = 0;
 	double average_depth = 0;
 	

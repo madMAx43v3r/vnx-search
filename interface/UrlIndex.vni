@@ -2,6 +2,8 @@ package vnx.search;
 
 class UrlIndex {
 	
+	string scheme;					// 'http' or 'https'
+	
 	string content_type;			// mime type
 	
 	long first_seen;				// posix timestamp [sec]
