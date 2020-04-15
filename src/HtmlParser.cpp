@@ -132,7 +132,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	const std::string payload((const char*)response->payload.data(), response->payload.size());
 	
-	xmlDoc* doc = ::htmlReadDoc((xmlChar*)payload.data(), 0, 0,
+	xmlDoc* doc = ::htmlReadDoc((xmlChar*)payload.data(), 0, response->content_charset.c_str(),
 			HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
 	
 	if(!doc) {
