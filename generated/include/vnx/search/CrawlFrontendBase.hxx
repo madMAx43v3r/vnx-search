@@ -23,8 +23,8 @@ public:
 	::int32_t num_threads = 10;
 	::int32_t response_timeout_ms = 30000;
 	::int32_t stats_interval_ms = 10000;
-	::int64_t max_content_length = 4194304;
-	::int64_t max_response_size = 16777216;
+	::int64_t max_content_length = 1048576;
+	::int64_t max_response_size = 4194304;
 	::std::string processor_server = "CrawlProcessor";
 	::std::string user_agent = "Mozilla/5.0";
 	

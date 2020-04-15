@@ -53,6 +53,22 @@ uint64_t CrawlProcessorAsyncClient::handle(const ::std::shared_ptr<const ::vnx::
 	return _request_id;
 }
 
+uint64_t CrawlProcessorAsyncClient::handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample, const std::function<void()>& _callback) {
+	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
+	vnx::BinaryOutputStream _stream_out(_argument_data.get());
+	vnx::TypeOutput _out(&_stream_out);
+	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_CrawlProcessor_handle_vnx_search_TextResponse;
+	{
+		vnx::write(_out, sample, _type_code, _type_code->fields[0].code.data());
+	}
+	_out.flush();
+	_argument_data->type_code = _type_code;
+	const uint64_t _request_id = vnx_request(_argument_data);
+	vnx_queue_handle_vnx_search_TextResponse[_request_id] = _callback;
+	vnx_num_pending++;
+	return _request_id;
+}
+
 std::vector<uint64_t>CrawlProcessorAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
 	for(const auto& entry : vnx_queue_get_stats) {
@@ -61,12 +77,16 @@ std::vector<uint64_t>CrawlProcessorAsyncClient::vnx_get_pending_ids() const {
 	for(const auto& entry : vnx_queue_handle_vnx_keyvalue_KeyValuePair) {
 		_list.push_back(entry.first);
 	}
+	for(const auto& entry : vnx_queue_handle_vnx_search_TextResponse) {
+		_list.push_back(entry.first);
+	}
 	return _list;
 }
 
 void CrawlProcessorAsyncClient::vnx_purge_request(uint64_t _request_id) {
 	vnx_num_pending -= vnx_queue_get_stats.erase(_request_id);
 	vnx_num_pending -= vnx_queue_handle_vnx_keyvalue_KeyValuePair.erase(_request_id);
+	vnx_num_pending -= vnx_queue_handle_vnx_search_TextResponse.erase(_request_id);
 }
 
 void CrawlProcessorAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Binary> _data) {
@@ -102,6 +122,17 @@ void CrawlProcessorAsyncClient::vnx_callback_switch(uint64_t _request_id, std::s
 		if(_iter != vnx_queue_handle_vnx_keyvalue_KeyValuePair.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_handle_vnx_keyvalue_KeyValuePair.erase(_iter);
+			vnx_num_pending--;
+			if(_callback) {
+				_callback();
+			}
+		}
+	}
+	else if(_return_type->type_hash == vnx::Hash64(0x479b82f813561a66ull)) {
+		auto _iter = vnx_queue_handle_vnx_search_TextResponse.find(_request_id);
+		if(_iter != vnx_queue_handle_vnx_search_TextResponse.end()) {
+			const auto _callback = std::move(_iter->second);
+			vnx_queue_handle_vnx_search_TextResponse.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback();

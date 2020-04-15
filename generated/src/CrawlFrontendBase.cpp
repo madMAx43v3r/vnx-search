@@ -18,7 +18,7 @@ namespace search {
 
 
 const vnx::Hash64 CrawlFrontendBase::VNX_TYPE_HASH(0xd91536edf3f184e2ull);
-const vnx::Hash64 CrawlFrontendBase::VNX_CODE_HASH(0xcba1bbbb36052639ull);
+const vnx::Hash64 CrawlFrontendBase::VNX_CODE_HASH(0xf46b5bac48e265b1ull);
 
 CrawlFrontendBase::CrawlFrontendBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -162,7 +162,7 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.CrawlFrontend";
 	type_code->type_hash = vnx::Hash64(0xd91536edf3f184e2ull);
-	type_code->code_hash = vnx::Hash64(0xcba1bbbb36052639ull);
+	type_code->code_hash = vnx::Hash64(0xf46b5bac48e265b1ull);
 	type_code->methods.resize(3);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -293,13 +293,13 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[5];
 		field.name = "max_content_length";
-		field.value = vnx::to_string(4194304);
+		field.value = vnx::to_string(1048576);
 		field.code = {8};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.name = "max_response_size";
-		field.value = vnx::to_string(16777216);
+		field.value = vnx::to_string(4194304);
 		field.code = {8};
 	}
 	{

@@ -14,6 +14,7 @@ namespace search {
 class UrlIndex : public ::vnx::Value {
 public:
 	
+	::std::string scheme;
 	::std::string content_type;
 	::int64_t first_seen = 0;
 	::int64_t last_fetched = 0;

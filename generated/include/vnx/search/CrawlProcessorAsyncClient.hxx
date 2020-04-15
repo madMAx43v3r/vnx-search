@@ -9,6 +9,7 @@
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/search/CrawlStats.hxx>
+#include <vnx/search/TextResponse.hxx>
 
 
 namespace vnx {
@@ -26,6 +27,9 @@ public:
 	uint64_t handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample, 
 			const std::function<void()>& _callback = std::function<void()>());
 	
+	uint64_t handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample, 
+			const std::function<void()>& _callback = std::function<void()>());
+	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	
 protected:
@@ -36,6 +40,7 @@ protected:
 private:
 	std::map<uint64_t, std::function<void(::std::shared_ptr<const ::vnx::search::CrawlStats>)>> vnx_queue_get_stats;
 	std::map<uint64_t, std::function<void()>> vnx_queue_handle_vnx_keyvalue_KeyValuePair;
+	std::map<uint64_t, std::function<void()>> vnx_queue_handle_vnx_search_TextResponse;
 	
 };
 

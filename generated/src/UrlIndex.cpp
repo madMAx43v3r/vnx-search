@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 UrlIndex::VNX_TYPE_HASH(0xab26319d1802d1b6ull);
-const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0xf10bb785f460f087ull);
+const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0x938dc55792840162ull);
 
 vnx::Hash64 UrlIndex::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -47,22 +47,24 @@ void UrlIndex::write(vnx::TypeOutput& _out, const vnx::TypeCode* _type_code, con
 void UrlIndex::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_UrlIndex;
 	_visitor.type_begin(*_type_code);
-	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, content_type);
-	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, first_seen);
-	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, last_fetched);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, last_modified);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, fetch_duration_us);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, http_status);
-	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, curl_status);
-	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, fetch_count);
-	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, depth);
-	_visitor.type_field(_type_code->fields[9], 9); vnx::accept(_visitor, is_fail);
+	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, scheme);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, content_type);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, first_seen);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, last_fetched);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, last_modified);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, fetch_duration_us);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, http_status);
+	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, curl_status);
+	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, fetch_count);
+	_visitor.type_field(_type_code->fields[9], 9); vnx::accept(_visitor, depth);
+	_visitor.type_field(_type_code->fields[10], 10); vnx::accept(_visitor, is_fail);
 	_visitor.type_end(*_type_code);
 }
 
 void UrlIndex::write(std::ostream& _out) const {
 	_out << "{";
-	_out << "\"content_type\": "; vnx::write(_out, content_type);
+	_out << "\"scheme\": "; vnx::write(_out, scheme);
+	_out << ", \"content_type\": "; vnx::write(_out, content_type);
 	_out << ", \"first_seen\": "; vnx::write(_out, first_seen);
 	_out << ", \"last_fetched\": "; vnx::write(_out, last_fetched);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
@@ -99,12 +101,15 @@ void UrlIndex::read(std::istream& _in) {
 			vnx::from_string(_entry.second, last_fetched);
 		} else if(_entry.first == "last_modified") {
 			vnx::from_string(_entry.second, last_modified);
+		} else if(_entry.first == "scheme") {
+			vnx::from_string(_entry.second, scheme);
 		}
 	}
 }
 
 vnx::Object UrlIndex::to_object() const {
 	vnx::Object _object;
+	_object["scheme"] = scheme;
 	_object["content_type"] = content_type;
 	_object["first_seen"] = first_seen;
 	_object["last_fetched"] = last_fetched;
@@ -140,6 +145,8 @@ void UrlIndex::from_object(const vnx::Object& _object) {
 			_entry.second.to(last_fetched);
 		} else if(_entry.first == "last_modified") {
 			_entry.second.to(last_modified);
+		} else if(_entry.first == "scheme") {
+			_entry.second.to(scheme);
 		}
 	}
 }
@@ -168,62 +175,68 @@ std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.UrlIndex";
 	type_code->type_hash = vnx::Hash64(0xab26319d1802d1b6ull);
-	type_code->code_hash = vnx::Hash64(0xf10bb785f460f087ull);
+	type_code->code_hash = vnx::Hash64(0x938dc55792840162ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<UrlIndex>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(10);
+	type_code->fields.resize(11);
 	{
 		vnx::TypeField& field = type_code->fields[0];
+		field.is_extended = true;
+		field.name = "scheme";
+		field.code = {12, 5};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "content_type";
 		field.code = {12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		vnx::TypeField& field = type_code->fields[2];
 		field.name = "first_seen";
 		field.code = {8};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		vnx::TypeField& field = type_code->fields[3];
 		field.name = "last_fetched";
 		field.code = {8};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[3];
+		vnx::TypeField& field = type_code->fields[4];
 		field.name = "last_modified";
 		field.code = {8};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		vnx::TypeField& field = type_code->fields[5];
 		field.name = "fetch_duration_us";
 		field.code = {8};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		vnx::TypeField& field = type_code->fields[6];
 		field.name = "http_status";
 		field.value = vnx::to_string(-1);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[6];
+		vnx::TypeField& field = type_code->fields[7];
 		field.name = "curl_status";
 		field.value = vnx::to_string(-1);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[7];
+		vnx::TypeField& field = type_code->fields[8];
 		field.name = "fetch_count";
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[8];
+		vnx::TypeField& field = type_code->fields[9];
 		field.name = "depth";
 		field.value = vnx::to_string(-1);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[9];
+		vnx::TypeField& field = type_code->fields[10];
 		field.name = "is_fail";
 		field.code = {1};
 	}
@@ -252,55 +265,55 @@ void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_co
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
 		{
-			const vnx::TypeField* const _field = type_code->field_map[1];
+			const vnx::TypeField* const _field = type_code->field_map[2];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.first_seen, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[2];
+			const vnx::TypeField* const _field = type_code->field_map[3];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.last_fetched, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[3];
+			const vnx::TypeField* const _field = type_code->field_map[4];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.last_modified, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[4];
+			const vnx::TypeField* const _field = type_code->field_map[5];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.fetch_duration_us, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[5];
+			const vnx::TypeField* const _field = type_code->field_map[6];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.http_status, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[6];
+			const vnx::TypeField* const _field = type_code->field_map[7];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.curl_status, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[7];
+			const vnx::TypeField* const _field = type_code->field_map[8];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.fetch_count, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[8];
+			const vnx::TypeField* const _field = type_code->field_map[9];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.depth, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[9];
+			const vnx::TypeField* const _field = type_code->field_map[10];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.is_fail, _field->code.data());
 			}
@@ -308,7 +321,8 @@ void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_co
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 0: vnx::read(in, value.content_type, type_code, _field->code.data()); break;
+			case 0: vnx::read(in, value.scheme, type_code, _field->code.data()); break;
+			case 1: vnx::read(in, value.content_type, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -333,7 +347,8 @@ void write(TypeOutput& out, const ::vnx::search::UrlIndex& value, const TypeCode
 	vnx::write_value(_buf + 40, value.fetch_count);
 	vnx::write_value(_buf + 44, value.depth);
 	vnx::write_value(_buf + 48, value.is_fail);
-	vnx::write(out, value.content_type, type_code, type_code->fields[0].code.data());
+	vnx::write(out, value.scheme, type_code, type_code->fields[0].code.data());
+	vnx::write(out, value.content_type, type_code, type_code->fields[1].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::UrlIndex& value) {

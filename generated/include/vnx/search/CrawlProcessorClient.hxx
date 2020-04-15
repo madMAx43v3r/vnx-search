@@ -9,6 +9,7 @@
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/search/CrawlStats.hxx>
+#include <vnx/search/TextResponse.hxx>
 
 
 namespace vnx {
@@ -25,6 +26,10 @@ public:
 	void handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
 	
 	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
+	
+	void handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample);
+	
+	void handle_async(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample);
 	
 };
 

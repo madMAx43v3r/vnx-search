@@ -9,6 +9,7 @@
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/search/CrawlStats.hxx>
+#include <vnx/search/TextResponse.hxx>
 
 
 namespace vnx {
@@ -17,20 +18,24 @@ namespace search {
 class CrawlProcessorBase : public ::vnx::Module {
 public:
 	
+	::vnx::TopicPtr input_text = "frontend.text_responses";
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
 	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
 	::std::string url_index_server = "UrlIndex";
+	::std::string page_index_server = "PageIndex";
 	::std::string page_content_server = "PageContent";
 	::std::string crawl_frontend_server = "CrawlFrontend";
 	::int32_t jump_cost = 3;
 	::int32_t max_depth = 9;
 	::int32_t reload_interval = 10800;
 	::int32_t sync_interval = 3600;
-	::int32_t max_per_minute = 30;
-	::int32_t max_num_pending = 50;
+	::int32_t max_per_minute = 12;
+	::int32_t max_num_pending = 100;
 	::int32_t max_url_length = 256;
-	::int32_t update_interval_ms = 200;
+	::int32_t max_word_length = 64;
+	::int32_t update_interval_ms = 500;
+	::int32_t robots_txt_timeout = 60;
 	::vnx::float32_t reload_power = 4;
 	::std::string user_agent = "Googlebot";
 	::std::vector<::std::string> protocols;
@@ -66,6 +71,8 @@ protected:
 	virtual ::std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const ::int32_t& limit) const = 0;
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
+	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;
