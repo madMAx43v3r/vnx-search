@@ -338,6 +338,15 @@ void CrawlProcessor::check_page(const std::string& url, int depth, std::shared_p
 	for(const auto& link : index->links)
 	{
 		const Url::Url parsed(link);
+		auto& domain = get_domain(parsed.host());
+		
+		if(domain.robots_txt &&
+			!matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, link))
+		{
+			domain.num_disallowed++;
+			continue;
+		}
+		
 		const int link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
 		
 		if(link_depth <= max_depth && link.size() <= max_url_length)
