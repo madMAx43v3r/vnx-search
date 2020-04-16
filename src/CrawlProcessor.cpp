@@ -122,23 +122,31 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	
 	for(const auto& link : value->links)
 	{
-		const auto parsed = process_link(Url::Url(link), parent);
-		if(filter_url(parsed)) {
-			const auto full_link = parsed.str();
-			if(full_link.size() <= max_url_length) {
-				index->links.push_back(full_link);
+		try {
+			const auto parsed = process_link(Url::Url(link), parent);
+			if(filter_url(parsed)) {
+				const auto full_link = parsed.str();
+				if(full_link.size() <= max_url_length) {
+					index->links.push_back(full_link);
+				}
 			}
+		} catch(...) {
+			// ignore bad links
 		}
 	}
 	
 	for(const auto& link : value->images)
 	{
-		const auto parsed = process_link(Url::Url(link), parent);
-		if(filter_url(parsed)) {
-			const auto full_link = parsed.str();
-			if(full_link.size() <= max_url_length) {
-				index->images.push_back(full_link);
+		try {
+			const auto parsed = process_link(Url::Url(link), parent);
+			if(filter_url(parsed)) {
+				const auto full_link = parsed.str();
+				if(full_link.size() <= max_url_length) {
+					index->images.push_back(full_link);
+				}
 			}
+		} catch(...) {
+			// ignore bad links
 		}
 	}
 	
