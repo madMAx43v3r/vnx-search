@@ -337,26 +337,29 @@ void SearchEngine::work_loop()
 		}
 		
 		std::multimap<int64_t, std::shared_ptr<const page_t>, std::greater<int64_t>> sorted;
-		for(const auto& entry : pages) {
-			sorted.emplace(entry.second.score, entry.second.page);
-		}
 		
 		if(has_flag(request->flags, search_flags_e::GROUP_BY_DOMAIN))
 		{
 			std::unordered_map<uint32_t, std::pair<int64_t, std::shared_ptr<const page_t>>> best_of;
-			for(const auto& entry : sorted) {
-				auto& current = best_of[entry.second->domain_id];
-				if(entry.first > current.first) {
-					current = entry;
+			for(const auto& entry : pages) {
+				const auto& result = entry.second;
+				auto& current = best_of[result.page->domain_id];
+				if(result.score > current.first) {
+					current.first = result.score;
+					current.second = result.page;
 				}
 			}
-			sorted.clear();
 			for(const auto& entry : best_of) {
-				sorted.insert(entry.second);
+				limited_emplace(sorted, entry.second.first, entry.second.second, request->offset + request->limit);
+			}
+		}
+		else {
+			for(const auto& entry : pages) {
+				limited_emplace(sorted, entry.second.score, entry.second.page, request->offset + request->limit);
 			}
 		}
 		
-		result->num_results_total = sorted.size();
+		result->num_results_total = pages.size();
 		{
 			std::lock_guard<std::mutex> lock(index_mutex);
 			int64_t offset = 0;
