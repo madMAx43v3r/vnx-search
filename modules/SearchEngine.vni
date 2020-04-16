@@ -6,6 +6,8 @@ module SearchEngine {
 	
 	vnx.TopicPtr input_page_index_sync;
 	
+	string url_index_server = "UrlIndex";
+	
 	string page_index_server = "PageIndex";
 	
 	string page_content_server = "PageContent";
@@ -13,6 +15,8 @@ module SearchEngine {
 	int num_iterations = 1;
 	
 	int num_threads = 8;
+	
+	vector<string> protocols;		// protocols to allow as links
 	
 	
 	SearchResult* query(vector<string> words, int limit, long offset, vector<search_flags_e> flags) const async;

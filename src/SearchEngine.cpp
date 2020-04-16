@@ -6,6 +6,8 @@
  */
 
 #include <vnx/search/SearchEngine.h>
+#include <vnx/search/Util.h>
+#include <vnx/search/UrlIndex.hxx>
 #include <vnx/search/PageIndex.hxx>
 
 #include <url.h>
@@ -20,6 +22,9 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 	:	SearchEngineBase(_vnx_name)
 {
 	input_page_index_sync = vnx_name + ".page_index.sync";
+	
+	protocols.push_back("http");
+	protocols.push_back("https");
 }
 
 void SearchEngine::init()
@@ -29,10 +34,15 @@ void SearchEngine::init()
 
 void SearchEngine::main()
 {
-	subscribe(input_page_index_sync, 100);		// sync runs in a separate thread so we can block here
+	subscribe(input_page_index_sync, 1000);		// sync runs in a separate thread so we can block here
 	
-	page_index_client = std::make_shared<keyvalue::ServerClient>(page_index_server);
-	page_index_client->sync_all(input_page_index_sync);
+	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
+	page_index_sync = std::make_shared<keyvalue::ServerClient>(page_index_server);
+	page_content_sync = std::make_shared<keyvalue::ServerClient>(page_content_server);
+	
+	add_async_client(url_index_async);
+	
+	page_index_sync->sync_all(input_page_index_sync);
 	
 	work_threads.resize(num_threads);
 	for(int i = 0; i < num_threads; ++i) {
@@ -57,7 +67,7 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 {
 	auto request = std::make_shared<query_t>();
 	request->words = words;
-	request->limit = std::min(limit, 100);
+	request->limit = limit;
 	request->offset = offset;
 	request->flags = flags;
 	request->callback = _callback;
@@ -90,33 +100,33 @@ std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix
 	return result;
 }
 
-uint32_t SearchEngine::get_url_id(const std::string& url)
+uint32_t SearchEngine::get_url_id(const std::string& url_key)
 {
 	uint32_t id = 0;
 	{
-		auto iter = url_map.find(url);
+		auto iter = url_map.find(url_key);
 		if(iter != url_map.end()) {
 			id = iter->second;
 		} else {
 			id = next_url_id++;
-			url_map[url] = id;
-			url_reverse_map[id] = url;
+			url_map[url_key] = id;
+			url_reverse_map[id] = url_key;
 		}
 	}
 	return id;
 }
 
-uint32_t SearchEngine::get_domain_id(const std::string& url)
+uint32_t SearchEngine::get_domain_id(const std::string& host)
 {
 	uint32_t id = 0;
 	{
-		auto iter = domain_map.find(url);
+		auto iter = domain_map.find(host);
 		if(iter != domain_map.end()) {
 			id = iter->second;
 		} else {
 			id = next_domain_id++;
-			domain_map[url] = id;
-			domain_reverse_map[id] = url;
+			domain_map[host] = id;
+			domain_reverse_map[id] = host;
 		}
 	}
 	return id;
@@ -149,9 +159,9 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		else {
 			std::lock_guard<std::mutex> lock(index_mutex);
 			
-			const auto url = pair->key.to_string_value();
-			const auto page_id = get_url_id(url);
-			const Url::Url parsed(url);
+			const auto url_key = pair->key.to_string_value();
+			const Url::Url parsed(url_key);
+			const auto page_id = get_url_id(url_key);
 			
 			auto& page = page_index[page_id];
 			if(!page) {
@@ -163,7 +173,10 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			page->last_modified = index->last_modified;
 			
 			for(const auto& link : index->links) {
-				page->links.push_back(get_url_id(link));
+				const Url::Url parsed(link);
+				if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end()) {
+					page->links.push_back(get_url_id(get_url_key(parsed)));
+				}
 			}
 			
 			for(const auto& word : index->words)
@@ -176,6 +189,9 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 				entry->pages.push_back(page_id);
 				page->words.push_back(word_id);
 			}
+			
+			url_index_async->get_value(url_key,
+					std::bind(&SearchEngine::url_index_callback, this, page_id, std::placeholders::_1));
 		}
 	}
 }
@@ -191,6 +207,22 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 			
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages and " << word_index.size() << " words.";
+		}
+	}
+}
+
+void SearchEngine::url_index_callback(uint32_t page_id, std::shared_ptr<const Value> index_)
+{
+	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
+	if(index) {
+		std::lock_guard<std::mutex> lock(index_mutex);
+		
+		auto page = page_index[page_id];
+		if(page) {
+			page->first_seen = index->first_seen;
+			page->last_modified = index->last_modified;
+			page->last_fetched = index->last_fetched;
+			page->scheme = index->scheme;
 		}
 	}
 }
@@ -338,7 +370,7 @@ void SearchEngine::work_loop()
 				}
 				result_item_t item;
 				item.title = entry.second->title;
-				item.url = url_reverse_map[entry.second->id];
+				item.url = entry.second->scheme + url_reverse_map[entry.second->id];
 				item.score = entry.first;
 				item.last_modified = entry.second->last_modified;
 				result->items.push_back(item);

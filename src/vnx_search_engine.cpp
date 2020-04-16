@@ -37,6 +37,7 @@ int main(int argc, char** argv)
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
 	
 	vnx::Handle<vnx::search::SearchEngine> module = new vnx::search::SearchEngine("SearchEngine");
+	proxy->forward_list.push_back(module->url_index_server);
 	proxy->forward_list.push_back(module->page_index_server);
 	proxy->forward_list.push_back(module->page_content_server);
 	proxy->import_list.push_back(module->input_page_index->get_name());

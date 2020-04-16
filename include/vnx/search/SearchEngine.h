@@ -10,6 +10,7 @@
 
 #include <vnx/search/SearchEngineBase.hxx>
 #include <vnx/keyvalue/ServerClient.hxx>
+#include <vnx/keyvalue/ServerAsyncClient.hxx>
 
 #include <atomic>
 
@@ -30,9 +31,10 @@ protected:
 	struct page_t {
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
+		int64_t first_seen = 0;
 		int64_t last_modified = 0;
 		int64_t last_fetched = 0;
-		int64_t first_fetched = 0;
+		std::string scheme;
 		std::string title;
 		std::vector<uint32_t> links;
 		std::vector<uint32_t> words;
@@ -65,19 +67,22 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::SyncInfo> value) override;
 	
 private:
-	uint32_t get_url_id(const std::string& url);
+	uint32_t get_url_id(const std::string& url_key);
 	
-	uint32_t get_domain_id(const std::string& url);
+	uint32_t get_domain_id(const std::string& host);
 	
 	uint32_t get_word_id(const std::string& word);
+	
+	void url_index_callback(uint32_t page_id, std::shared_ptr<const Value> index);
 	
 	void work_loop();
 	
 	void update_func(std::vector<std::shared_ptr<const keyvalue::KeyValuePair>> values);
 	
 private:
-	std::shared_ptr<keyvalue::ServerClient> page_index_client;
-	std::shared_ptr<keyvalue::ServerClient> page_content_client;
+	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
+	std::shared_ptr<keyvalue::ServerClient> page_index_sync;
+	std::shared_ptr<keyvalue::ServerClient> page_content_sync;
 	
 	std::vector<std::thread> work_threads;
 	
