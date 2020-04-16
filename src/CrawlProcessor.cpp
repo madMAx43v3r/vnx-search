@@ -63,7 +63,7 @@ void CrawlProcessor::main()
 	
 	for(const auto& url : root_urls)
 	{
-		const Url::Url parsed = process_url(Url::Url(url));
+		const auto parsed = process_url(Url::Url(url));
 		url_index_async->get_value(get_url_key(parsed),
 				std::bind(&CrawlProcessor::check_url, this, parsed.str(), 0, std::placeholders::_1));
 	}
