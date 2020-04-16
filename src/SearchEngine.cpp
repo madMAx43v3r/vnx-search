@@ -173,9 +173,13 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			page->last_modified = index->last_modified;
 			
 			for(const auto& link : index->links) {
-				const Url::Url parsed(link);
-				if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end()) {
-					page->links.push_back(get_url_id(get_url_key(parsed)));
+				try {
+					const Url::Url parsed(link);
+					if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end()) {
+						page->all_links.push_back(get_url_id(get_url_key(parsed)));
+					}
+				} catch(...) {
+					// ignore bad links
 				}
 			}
 			
@@ -207,6 +211,23 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 			
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages and " << word_index.size() << " words.";
+			
+			uint64_t num_links = 0;
+			uint64_t num_links_total = 0;
+			
+			for(const auto& entry : page_index)
+			{
+				auto page = entry.second;
+				for(const auto link_id : page->all_links) {
+					if(page_index.find(link_id) != page_index.end()) {
+						page->links.push_back(link_id);
+					}
+				}
+				num_links += page->links.size();
+				num_links_total += page->all_links.size();
+			}
+			
+			log(INFO).out << "Initialized with " << num_links << " links out of " << num_links_total << " total.";
 		}
 	}
 }

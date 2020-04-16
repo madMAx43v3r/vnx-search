@@ -37,6 +37,7 @@ protected:
 		std::string scheme;
 		std::string title;
 		std::vector<uint32_t> links;
+		std::vector<uint32_t> all_links;
 		std::vector<uint32_t> words;
 	};
 	
