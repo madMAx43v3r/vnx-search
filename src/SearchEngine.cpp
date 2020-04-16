@@ -373,7 +373,7 @@ void SearchEngine::work_loop()
 				}
 				result_item_t item;
 				item.title = entry.second->title;
-				item.url = entry.second->scheme + url_reverse_map[entry.second->id];
+				item.url = entry.second->scheme + ":" + url_reverse_map[entry.second->id];
 				item.score = entry.first;
 				item.last_modified = entry.second->last_modified;
 				result->items.push_back(item);
