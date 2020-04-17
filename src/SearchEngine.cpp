@@ -29,12 +29,13 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 
 void SearchEngine::init()
 {
-	vnx::open_pipe(vnx_name, this, 1000);		// we can block here since clients are external
+	vnx::open_pipe(vnx_name, this, 1000);
 }
 
 void SearchEngine::main()
 {
-	subscribe(input_page_index_sync, 1000);		// sync runs in a separate thread so we can block here
+	subscribe(input_page_index, 1000);
+	subscribe(input_page_index_sync, 1000);
 	
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_sync = std::make_shared<keyvalue::ServerClient>(page_index_server);
@@ -151,24 +152,19 @@ uint32_t SearchEngine::get_word_id(const std::string& word)
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 {
+	std::lock_guard<std::mutex> lock(index_mutex);
+	
 	auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 	if(index) {
-		if(is_initialized) {
-			update_buffer.push_back(pair);
-		}
-		else {
-			std::lock_guard<std::mutex> lock(index_mutex);
-			
-			const auto url_key = pair->key.to_string_value();
-			const Url::Url parsed(url_key);
-			const auto page_id = get_url_id(url_key);
-			
-			auto& page = page_index[page_id];
-			if(!page) {
-				page = std::make_shared<page_t>();
-			}
+		const auto url_key = pair->key.to_string_value();
+		const auto page_id = get_url_id(url_key);
+		
+		auto& page = page_index[page_id];
+		if(!page) {
+			page = std::make_shared<page_t>();
 			page->id = page_id;
-			page->domain_id = get_domain_id(parsed.host());
+			page->domain_id = get_domain_id(Url::Url(url_key).host());
+			page->version = pair->version;
 			page->title = index->title;
 			page->last_modified = index->last_modified;
 			
@@ -176,7 +172,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 				try {
 					const Url::Url parsed(link);
 					if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end()) {
-						page->all_links.push_back(get_url_id(get_url_key(parsed)));
+						page->links.push_back(get_url_id(get_url_key(parsed)));
 					}
 				} catch(...) {
 					// ignore bad links
@@ -197,47 +193,37 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			url_index_async->get_value(url_key,
 					std::bind(&SearchEngine::url_index_callback, this, page_id, std::placeholders::_1));
 		}
+		else {
+			update_buffer.push_back(pair);
+		}
 	}
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 {
+	std::lock_guard<std::mutex> lock(index_mutex);
+	
 	if(value->code == keyvalue::SyncInfo::END) {
 		if(!is_initialized) {
-			std::lock_guard<std::mutex> lock(index_mutex);
-			
 			is_initialized = true;
-			subscribe(input_page_index, 1000);		// publisher runs in a separate thread so we can block here
-			
-			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
-					<< page_index.size() << " pages and " << word_index.size() << " words.";
 			
 			uint64_t num_links = 0;
-			uint64_t num_links_total = 0;
-			
-			for(const auto& entry : page_index)
-			{
-				auto page = entry.second;
-				for(const auto link_id : page->all_links) {
-					if(page_index.find(link_id) != page_index.end()) {
-						page->links.push_back(link_id);
-					}
-				}
-				num_links += page->links.size();
-				num_links_total += page->all_links.size();
+			for(const auto& entry : page_index) {
+				num_links += entry.second->links.size();
 			}
 			
-			log(INFO).out << "Initialized with " << num_links << " links out of " << num_links_total << " total.";
+			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
+					<< page_index.size() << " pages, " << num_links << " links and " << word_index.size() << " words.";
 		}
 	}
 }
 
 void SearchEngine::url_index_callback(uint32_t page_id, std::shared_ptr<const Value> index_)
 {
+	std::lock_guard<std::mutex> lock(index_mutex);
+	
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
 	if(index) {
-		std::lock_guard<std::mutex> lock(index_mutex);
-		
 		auto page = page_index[page_id];
 		if(page) {
 			page->first_seen = index->first_seen;

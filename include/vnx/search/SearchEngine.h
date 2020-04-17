@@ -31,13 +31,13 @@ protected:
 	struct page_t {
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
+		uint64_t version = 0;
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
 		int64_t last_fetched = 0;
 		std::string scheme;
 		std::string title;
 		std::vector<uint32_t> links;
-		std::vector<uint32_t> all_links;
 		std::vector<uint32_t> words;
 	};
 	
