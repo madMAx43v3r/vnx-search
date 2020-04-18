@@ -41,6 +41,8 @@ void CrawlProcessor::main()
 	subscribe(input_page_index, 1000);			// publisher runs in a separate thread so we can block here
 	subscribe(url_sync_topic, 100);				// sync runs in a separate thread so we can block here
 	
+	protocols = get_unique(protocols);
+	
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
 	page_content_async = std::make_shared<keyvalue::ServerAsyncClient>(page_content_server);
@@ -58,7 +60,8 @@ void CrawlProcessor::main()
 	
 	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
 	set_timer_millis(10 * 1000, std::bind(&CrawlProcessor::publish_stats, this));
-	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
+	set_timer_millis(check_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
+	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::update_queue, this));
 	set_timer_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
 	for(const auto& url : root_urls)
@@ -260,33 +263,11 @@ void CrawlProcessor::check_queue()
 	const int64_t now_posix = std::time(0);
 	const int64_t now_wall = vnx::get_wall_time_micros();
 	
-	while(!waiting.empty())
-	{
-		const auto entry = waiting.begin();
-		if(entry->first <= now_posix) {
-			auto url_iter = url_map.find(get_url_key(entry->second));
-			if(url_iter != url_map.end()) {
-				const url_t& url = url_iter->second;
-				get_domain(url.domain).queue.emplace(url.depth, entry->second);
-			}
-			waiting.erase(entry);
-		} else {
-			break;
-		}
-	}
-	
-	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
-	
-	for(auto& entry : domain_map) {
-		auto& domain = entry.second;
-		if(!domain.queue.empty()) {
-			const auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
-			limited_emplace(queue, key, &domain, max_num_pending);
-		}
-	}
-	
 	for(const auto& entry : queue)
 	{
+		if(pending_urls.size() >= max_num_pending) {
+			break;
+		}
 		domain_t& domain = *entry.second;
 		const int64_t fetch_delta_ms = (now_wall - domain.last_fetch_us) / 1000;
 		
@@ -319,8 +300,7 @@ void CrawlProcessor::check_queue()
 			pending_robots_txt--;
 		}
 		
-		if(pending_urls.size() < size_t(max_num_pending)
-			&& fetch_delta_ms > int64_t(60 * 1000) / max_per_minute)
+		if(fetch_delta_ms > int64_t(60 * 1000) / max_per_minute)
 		{
 			auto iter = domain.queue.begin();
 			while(domain.robots_txt && iter != domain.queue.end()) {
@@ -361,7 +341,36 @@ void CrawlProcessor::check_queue()
 			domain.num_pending++;
 			domain.last_fetch_us = now_wall;
 			
-			average_depth = url.depth * 0.01 + average_depth * 0.99;
+			if(url.depth >= 0) {
+				average_depth = url.depth * 0.01 + average_depth * 0.99;
+			}
+		}
+	}
+}
+
+void CrawlProcessor::update_queue()
+{
+	const int64_t now_posix = std::time(0);
+	while(!waiting.empty())
+	{
+		const auto entry = waiting.begin();
+		if(entry->first <= now_posix) {
+			auto url_iter = url_map.find(get_url_key(entry->second));
+			if(url_iter != url_map.end()) {
+				const url_t& url = url_iter->second;
+				get_domain(url.domain).queue.emplace(url.depth, entry->second);
+			}
+			waiting.erase(entry);
+		} else {
+			break;
+		}
+	}
+	queue.clear();
+	for(auto& entry : domain_map) {
+		auto& domain = entry.second;
+		if(!domain.queue.empty()) {
+			const auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
+			limited_emplace(queue, key, &domain, max_queue_size);
 		}
 	}
 }

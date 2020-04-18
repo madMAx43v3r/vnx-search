@@ -20,21 +20,25 @@ module CrawlProcessor {
 	
 	int jump_cost = 3;
 	
-	int max_depth = 9;
+	int max_depth = 6;
 	
-	int reload_interval = 10800;		// [seconds / (depth + 1) ^ reload_power]
+	int reload_interval = 10800;			// [seconds / (depth + 1) ^ reload_power]
 	
-	int sync_interval = 3600;			// checking all urls [sec]
+	int sync_interval = 3600;				// checking all urls [sec]
 	
-	int max_per_minute = 12;
+	int max_per_minute = 12;				// max pages/min for a single domain
 	
-	int max_num_pending = 100;
+	int max_num_pending = 100;				// number of fetches
+	
+	int max_queue_size = 1000;				// number of domains
 	
 	int max_url_length = 256;
 	
 	int max_word_length = 64;
 	
-	int update_interval_ms = 500;
+	int check_interval_ms = 500;			// queue check
+	
+	int update_interval_ms = 5000;			// queue update
 	
 	int robots_txt_timeout = 60;			// max time to wait for robots.txt [sec]
 	
