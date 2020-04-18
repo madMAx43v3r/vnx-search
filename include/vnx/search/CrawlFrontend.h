@@ -57,7 +57,7 @@ private:
 	
 	void print_stats();
 	
-	void fetch_loop();
+	void fetch_loop() const noexcept;
 	
 	static size_t header_callback(char* buffer, size_t size, size_t len, void* userdata);
 	

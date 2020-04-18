@@ -194,7 +194,7 @@ void CrawlFrontend::print_stats()
 struct fetch_t {
 	std::shared_ptr<CrawlFrontend::request_t> request;
 	std::shared_ptr<HttpResponse> out;
-	CrawlFrontend* frontend = 0;
+	const CrawlFrontend* frontend = 0;
 	CURL* client = 0;
 	bool is_begin = true;
 };
@@ -282,7 +282,7 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 	return len;
 }
 
-void CrawlFrontend::fetch_loop()
+void CrawlFrontend::fetch_loop() const noexcept
 {
 	Publisher publisher;
 	
@@ -365,7 +365,7 @@ void CrawlFrontend::fetch_loop()
 				out->last_modified = out->date;
 			}
 			
-			publish(out, output_http, Message::BLOCKING);
+			publisher.publish(out, output_http, Message::BLOCKING);
 			
 			index->is_fail = false;
 			index->last_modified = out->last_modified;
