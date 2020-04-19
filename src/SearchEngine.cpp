@@ -60,7 +60,7 @@ void SearchEngine::main()
 	add_async_client(url_index_async);
 	
 	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
-	set_timer_millis(1000, std::bind(&SearchEngine::update_queue_timer, this));
+	set_timer_millis(update_interval_ms, std::bind(&SearchEngine::update_queue_timer, this));
 	
 	page_info_async->sync_all(input_page_info_sync);
 	
@@ -298,7 +298,7 @@ void SearchEngine::update_queue_timer()
 	{
 		std::shared_lock lock(index_mutex);
 		for(const auto& entry : word_cache) {
-			limited_emplace(new_queue, entry.second->queue_time_us, entry.first, 1000);
+			limited_emplace(new_queue, entry.second->queue_time_us, entry.first, 10000);
 		}
 	}
 	{

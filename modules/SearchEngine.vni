@@ -18,6 +18,8 @@ module SearchEngine {
 	
 	int commit_interval = 1000;				// [sec]
 	
+	int update_interval_ms = 10000;			// word queue update
+	
 	int stats_interval_ms = 10000;
 	
 	vector<string> protocols;				// protocols to allow as links

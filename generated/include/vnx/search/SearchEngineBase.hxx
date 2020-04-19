@@ -27,6 +27,7 @@ public:
 	::int32_t num_query_threads = 4;
 	::int32_t num_update_threads = 1;
 	::int32_t commit_interval = 1000;
+	::int32_t update_interval_ms = 10000;
 	::int32_t stats_interval_ms = 10000;
 	::std::vector<::std::string> protocols;
 	
