@@ -24,6 +24,8 @@ module CrawlProcessor {
 	
 	int reload_interval = 10800;			// [seconds / (depth + 1) ^ reload_power]
 	
+	int error_reload_interval = 86400;		// in case of network failure [seconds]
+	
 	int sync_interval = 3600;				// checking all urls [sec]
 	
 	int max_per_minute = 12;				// max pages/min for a single domain

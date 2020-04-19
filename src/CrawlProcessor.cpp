@@ -422,7 +422,12 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 		} else {
 			depth = std::min(depth, index->depth);
 			if(index->last_fetched > 0) {
-				const int64_t load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
+				int64_t load_time = 0;
+				if(index->curl_status == 6 || index->curl_status == 7) {
+					load_time = index->last_fetched + error_reload_interval;
+				} else {
+					load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
+				}
 				enqueue(url, depth, load_time);
 			} else {
 				enqueue(url, depth);
