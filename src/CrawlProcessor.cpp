@@ -190,8 +190,10 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 		domain.host = host;
 		for(const auto& entry : domain_blacklist) {
 			if(host.size() >= entry.size() && host.substr(host.size() - entry.size()) == entry) {
-				domain.is_blacklisted = true;
-				blacklisted_domains++;
+				if(host.size() == entry.size() || host[host.size() - entry.size() - 1] == '.') {
+					domain.is_blacklisted = true;
+					blacklisted_domains++;
+				}
 			}
 		}
 	}
