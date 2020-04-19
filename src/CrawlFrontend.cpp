@@ -183,13 +183,13 @@ void CrawlFrontend::print_stats()
 	log(INFO).out << (60000 * (fetch_count - last_fetch_count)) / stats_interval_ms << " pages/min, "
 			<< (1000 * (num_bytes_fetched - last_num_bytes_fetched) / 1024) / stats_interval_ms << " KB/s http, "
 			<< (1000 * (num_bytes_parsed - last_num_bytes_parsed) / 1024) / stats_interval_ms << " KB/s text, "
-			<< connection_fail_counter << " network error, "
-			<< server_fail_counter << " server error, "
-			<< invalid_url_counter << " bad url, "
-			<< invalid_content_type_counter << " content type, "
-			<< invalid_response_size_counter << " response size, "
-			<< parse_failed_counter << " parse fail, "
-			<< general_fail_counter << " other error";
+			<< connection_fail_counter << " network, "
+			<< server_fail_counter << " server, "
+			<< invalid_url_counter << " url, "
+			<< invalid_content_type_counter << " content, "
+			<< invalid_response_size_counter << " size, "
+			<< parse_failed_counter << " parse, "
+			<< general_fail_counter << " other";
 	
 	last_fetch_count = fetch_count;
 	last_num_bytes_fetched = num_bytes_fetched;
