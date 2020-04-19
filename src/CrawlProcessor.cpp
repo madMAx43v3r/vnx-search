@@ -424,7 +424,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 			if(index->last_fetched > 0) {
 				int64_t load_time = 0;
 				if(index->curl_status == 6 || index->curl_status == 7) {
-					load_time = index->last_fetched + error_reload_interval;
+					load_time = index->last_fetched + int64_t(pow(index->fetch_count, 2) * error_reload_interval);
 				} else {
 					load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
 				}
