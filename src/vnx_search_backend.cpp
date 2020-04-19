@@ -6,7 +6,7 @@
  */
 
 #include <vnx/keyvalue/Server.h>
-#include <vnx/search/CrawlProcessor.h>
+#include <vnx/search/SearchEngine.h>
 
 #include <vnx/Config.h>
 #include <vnx/Process.h>
@@ -17,24 +17,12 @@
 int main(int argc, char** argv)
 {
 	std::map<std::string, std::string> options;
-	options["s"] = "server";
-	options["server"] = "frontend server url";
 	
 	vnx::init("vnx_search_backend", argc, argv, options);
-	
-	std::string server = ".vnx_search_frontend.sock";
-	vnx::read_config("server", server);
-	
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
 		terminal.start_detached();
-	}
-	{
-		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
-		proxy->forward_list.push_back("CrawlFrontend");
-		proxy->import_list.push_back("frontend.text_responses");
-		proxy.start_detached();
 	}
 	{
 		vnx::Handle<vnx::Server> server = new vnx::Server("Server", vnx::Endpoint::from_url(".vnx_search_backend.sock"));
@@ -59,7 +47,7 @@ int main(int argc, char** argv)
 		module.start_detached();
 	}
 	{
-		vnx::Handle<vnx::search::CrawlProcessor> module = new vnx::search::CrawlProcessor("CrawlProcessor");
+		vnx::Handle<vnx::search::SearchEngine> module = new vnx::search::SearchEngine("SearchEngine");
 		module.start_detached();
 	}
 	

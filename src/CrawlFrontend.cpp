@@ -85,11 +85,13 @@ void CrawlFrontend::main()
 }
 
 void CrawlFrontend::fetch_async(	const std::string& url,
+									const std::string& profile,
 									const std::function<void(const std::shared_ptr<const UrlIndex>&)>& _callback,
 									const vnx::request_id_t& _request_id) const
 {
 	auto request = std::make_shared<request_t>();
 	request->url = url;
+	request->profile = profile;
 	{
 		std::set<std::string> mime_types;
 		for(const auto& entry : parser_map) {
@@ -304,9 +306,11 @@ void CrawlFrontend::fetch_loop() const noexcept
 		
 		auto out = HttpResponse::create();
 		out->url = request->url;
+		out->profile = request->profile;
 		out->payload.reserve(1048576);
 		
 		auto index = UrlIndex::create();
+		index->profile = request->profile;
 		index->last_fetched = std::time(0);
 		index->is_fail = true;
 		

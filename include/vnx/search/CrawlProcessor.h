@@ -31,6 +31,8 @@ namespace search {
 
 class CrawlProcessor : public CrawlProcessorBase {
 public:
+	TopicPtr input_url_index_sync;
+	
 	CrawlProcessor(const std::string& _vnx_name);
 	
 protected:
@@ -111,7 +113,6 @@ private:
 	void print_stats();
 	
 private:
-	TopicPtr url_sync_topic;
 	std::map<uint64_t, std::string> pending_urls;
 	std::multimap<int64_t, std::string> waiting;
 	std::multimap<std::pair<int, int64_t>, domain_t*> queue;

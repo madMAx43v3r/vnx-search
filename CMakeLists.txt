@@ -1,7 +1,10 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.8)
 project(vnx-search)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -fopenmp -pthread")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fopenmp -pthread")
 
 find_package(PkgConfig)
 find_package(LibXml2)
@@ -57,11 +60,11 @@ target_link_libraries(vnx_search_html_parser vnx_search)
 add_executable(vnx_search_backend src/vnx_search_backend.cpp)
 target_link_libraries(vnx_search_backend vnx_search)
 
-add_executable(vnx_search_engine src/vnx_search_engine.cpp)
-target_link_libraries(vnx_search_engine vnx_search)
-
 add_executable(vnx_search_query src/vnx_search_query.cpp)
 target_link_libraries(vnx_search_query vnx_search)
+
+add_executable(vnx_search_crawl src/vnx_search_crawl.cpp)
+target_link_libraries(vnx_search_crawl vnx_search)
 
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY generated/include/ DESTINATION include)

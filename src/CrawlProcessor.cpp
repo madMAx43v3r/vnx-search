@@ -26,7 +26,7 @@ namespace search {
 CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
-	url_sync_topic = vnx_name + ".url_index.sync";
+	input_url_index_sync = vnx_name + ".url_index.sync";
 	
 	protocols.push_back("http");
 	protocols.push_back("https");
@@ -39,7 +39,7 @@ void CrawlProcessor::main()
 	subscribe(input_text, 1000);				// need to block here since we are a bottleneck
 	subscribe(input_url_index, 1000);			// publisher runs in a separate thread so we can block here
 	subscribe(input_page_index, 1000);			// publisher runs in a separate thread so we can block here
-	subscribe(url_sync_topic, 100);				// sync runs in a separate thread so we can block here
+	subscribe(input_url_index_sync, 100);				// sync runs in a separate thread so we can block here
 	
 	protocols = get_unique(protocols);
 	
@@ -78,11 +78,15 @@ void CrawlProcessor::main()
 
 void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 {
-    std::set<std::string> word_set;
-    {
+	if(value->profile != profile) {
+		return;
+	}
+	
+	std::set<std::string> word_set;
+	{
 		const UnicodeString text = UnicodeString::fromUTF8(value->text);
 		
-    	UErrorCode status = U_ZERO_ERROR;
+		UErrorCode status = U_ZERO_ERROR;
 		BreakIterator* bi = BreakIterator::createWordInstance(Locale::getUS(), status);
 		bi->setText(text);
 		
@@ -169,7 +173,9 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	{
 		auto index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
 		if(index) {
-			check_url(index->scheme + ":" + url_key, index->depth, index);
+			if(index->profile == profile) {
+				check_url(index->scheme + ":" + url_key, index->depth, index);
+			}
 			return;
 		}
 	}
@@ -315,6 +321,7 @@ void CrawlProcessor::check_queue()
 					auto index = UrlIndex::create();
 					index->depth = iter->first;
 					index->last_fetched = std::time(0);
+					index->profile = profile;
 					index->http_status = 403;	// fake HTTP Forbidden
 					index->is_fail = true;
 					url_index_async->get_value(get_url_key(iter->second),
@@ -336,7 +343,7 @@ void CrawlProcessor::check_queue()
 			}
 			url_t& url = url_iter->second;
 			
-			url.request_id = crawl_frontend_async->fetch(url_str,
+			url.request_id = crawl_frontend_async->fetch(url_str, profile,
 					std::bind(&CrawlProcessor::url_fetch_callback, this, url_str, std::placeholders::_1));
 			
 			pending_urls.emplace(url.request_id, url_str);
@@ -381,7 +388,7 @@ void CrawlProcessor::update_queue()
 
 void CrawlProcessor::check_all_urls()
 {
-	url_index_async->sync_all(url_sync_topic);
+	url_index_async->sync_all(input_url_index_sync);
 }
 
 void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
@@ -432,6 +439,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 		index->scheme = parsed.scheme();
 		index->depth = depth;
 		index->first_seen = std::time(0);
+		index->profile = profile;
 		url_index_async->store_value(url_key, index);
 		enqueue(url, depth);
 	}
@@ -443,7 +451,9 @@ void CrawlProcessor::check_page_callback(	const std::string& url_key,
 {
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(url_index_);
 	if(index) {
-		check_page(url_key, index->depth, page_index_);
+		if(index->profile == profile) {
+			check_page(url_key, index->depth, page_index_);
+		}
 	}
 }
 
