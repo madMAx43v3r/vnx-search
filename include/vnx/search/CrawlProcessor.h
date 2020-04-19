@@ -133,6 +133,7 @@ private:
 	int64_t missing_robots_txt = 0;
 	int64_t timed_out_robots_txt = 0;
 	int64_t found_robots_txt = 0;
+	int64_t blacklisted_domains = 0;
 	double average_depth = 0;
 	
 };

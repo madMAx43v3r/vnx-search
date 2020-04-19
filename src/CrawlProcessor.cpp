@@ -71,10 +71,6 @@ void CrawlProcessor::main()
 				std::bind(&CrawlProcessor::check_url, this, parsed.str(), 0, std::placeholders::_1));
 	}
 	
-	for(const auto& host : domain_blacklist) {
-		get_domain(host).is_blacklisted = true;
-	}
-	
 	check_all_urls();
 	
 	Super::main();
@@ -192,6 +188,12 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 	domain_t& domain = domain_map[host];
 	if(domain.host.empty()) {
 		domain.host = host;
+		for(const auto& entry : domain_blacklist) {
+			if(host.size() >= entry.size() && host.substr(host.size() - entry.size()) == entry) {
+				domain.is_blacklisted = true;
+				blacklisted_domains++;
+			}
+		}
 	}
 	return domain;
 }
@@ -645,7 +647,8 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
 			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
 			<< error_counter << " failed, " << reload_counter << " reload, "
-			<< domain_map.size() << " domains, " << average_depth << " avg. depth";
+			<< domain_map.size() << " - " << blacklisted_domains << " domains, "
+			<< average_depth << " avg. depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
 			<< found_robots_txt << " found";
