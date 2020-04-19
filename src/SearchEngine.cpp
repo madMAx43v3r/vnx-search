@@ -168,7 +168,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 {
 	auto info = std::dynamic_pointer_cast<const PageInfo>(pair->value);
 	if(info) {
-		if(info->depth <= max_depth)
+		if(info->depth >= 0 && info->depth <= max_depth)
 		{
 			std::unique_lock lock(index_mutex);
 			
@@ -229,7 +229,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 	
 	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(url_index_);
 	if(url_index) {
-		if(url_index->depth > max_depth) {
+		if(url_index->depth < 0 || url_index->depth > max_depth) {
 			return;
 		}
 		const auto page_id = get_url_id(url_key);
