@@ -183,8 +183,8 @@ void CrawlFrontend::print_stats()
 			<< (1000 * (num_bytes_fetched - last_num_bytes_fetched) / 1024) / stats_interval_ms << " KB/s http, "
 			<< (1000 * (num_bytes_parsed - last_num_bytes_parsed) / 1024) / stats_interval_ms << " KB/s text, "
 			<< general_fail_counter << " fetch error, "
+			<< server_fail_counter << " serve error, "
 			<< invalid_content_type_counter << " content type, "
-			<< invalid_protocol_counter << " protocol, "
 			<< invalid_response_size_counter << " response size, "
 			<< parse_failed_counter << " parse fail";
 	
@@ -374,6 +374,9 @@ void CrawlFrontend::fetch_loop() const noexcept
 			index->is_fail = false;
 			index->last_modified = out->last_modified;
 			fetch_counter++;
+		}
+		else if(res == CURLE_OK) {
+			server_fail_counter++;
 		}
 		else if(res == CURLE_UNSUPPORTED_PROTOCOL) {
 			invalid_protocol_counter++;
