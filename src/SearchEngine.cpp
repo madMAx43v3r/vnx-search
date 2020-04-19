@@ -104,7 +104,7 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 	request->flags = flags;
 	request->callback = _callback;
 	{
-		std::lock_guard<std::mutex> lock(query_mutex);
+		std::lock_guard lock(query_mutex);
 		query_queue.push(request);
 	}
 	query_condition.notify_one();
@@ -302,7 +302,7 @@ void SearchEngine::update_queue_timer()
 		}
 	}
 	{
-		std::lock_guard<std::mutex> lock(update_mutex);
+		std::lock_guard lock(update_mutex);
 		update_queue = std::move(new_queue);
 	}
 	update_condition.notify_all();
@@ -405,7 +405,7 @@ void SearchEngine::query_loop() const noexcept
 		}
 		
 		{
-			std::lock_guard<std::mutex> lock(parallel_mutex);
+			std::lock_guard lock(parallel_mutex);
 			
 			const int N = omp_get_max_threads();
 #pragma omp parallel for

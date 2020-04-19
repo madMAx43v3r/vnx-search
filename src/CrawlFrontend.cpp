@@ -105,7 +105,7 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 	request->request_id = _request_id;
 	request->callback = _callback;
 	{
-		std::unique_lock<std::mutex> lock(mutex);
+		std::lock_guard lock(mutex);
 		work_queue.push(request);
 	}
 	work_condition.notify_one();
