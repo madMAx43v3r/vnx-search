@@ -17,6 +17,7 @@
 #include <iomanip>
 #include <time.h>
 #include <signal.h>
+#include <unistd.h>
 
 
 namespace vnx {
@@ -182,11 +183,13 @@ void CrawlFrontend::print_stats()
 	log(INFO).out << (60000 * (fetch_count - last_fetch_count)) / stats_interval_ms << " pages/min, "
 			<< (1000 * (num_bytes_fetched - last_num_bytes_fetched) / 1024) / stats_interval_ms << " KB/s http, "
 			<< (1000 * (num_bytes_parsed - last_num_bytes_parsed) / 1024) / stats_interval_ms << " KB/s text, "
-			<< general_fail_counter << " fetch error, "
-			<< server_fail_counter << " serve error, "
+			<< connection_fail_counter << " network error, "
+			<< server_fail_counter << " server error, "
+			<< invalid_url_counter << " bad url, "
 			<< invalid_content_type_counter << " content type, "
 			<< invalid_response_size_counter << " response size, "
-			<< parse_failed_counter << " parse fail";
+			<< parse_failed_counter << " parse fail, "
+			<< general_fail_counter << " other error";
 	
 	last_fetch_count = fetch_count;
 	last_num_bytes_fetched = num_bytes_fetched;
@@ -351,37 +354,49 @@ void CrawlFrontend::fetch_loop() const noexcept
 		
 		const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
 		
-		if(res == CURLE_OK) {
-			index->http_status = out->status;
-			index->content_type = out->content_type;
-			index->fetch_duration_us = fetch_time;
-		}
+		index->fetch_duration_us = fetch_time;
 		index->curl_status = res;
 		
-		if(res == CURLE_OK && out->status == 200)
-		{
-			out->fetch_duration_us = fetch_time;
-			
-			if(!out->date) {
-				out->date = index->last_fetched;
+		switch(res) {
+			case CURLE_OK:
+				if(out->status == 200)
+				{
+					out->fetch_duration_us = fetch_time;
+					
+					if(!out->date) {
+						out->date = index->last_fetched;
+					}
+					if(!out->last_modified) {
+						out->last_modified = out->date;
+					}
+					
+					publisher.publish(out, output_http, Message::BLOCKING);
+					
+					index->is_fail = false;
+					index->last_modified = out->last_modified;
+					fetch_counter++;
+				}
+				else {
+					server_fail_counter++;
+				}
+				index->http_status = out->status;
+				index->content_type = out->content_type;
+				break;
+			case CURLE_UNSUPPORTED_PROTOCOL:
+			case CURLE_URL_MALFORMAT:
+				invalid_url_counter++;
+				break;
+			case CURLE_COULDNT_RESOLVE_HOST:
+			case CURLE_COULDNT_CONNECT: {
+				const auto diff = 1000 * 1000 - fetch_time;
+				if(diff > 0) {
+					::usleep(diff);
+				}
+				connection_fail_counter++;
+				break;
 			}
-			if(!out->last_modified) {
-				out->last_modified = out->date;
-			}
-			
-			publisher.publish(out, output_http, Message::BLOCKING);
-			
-			index->is_fail = false;
-			index->last_modified = out->last_modified;
-			fetch_counter++;
-		}
-		else if(res == CURLE_OK) {
-			server_fail_counter++;
-		}
-		else if(res == CURLE_UNSUPPORTED_PROTOCOL) {
-			invalid_protocol_counter++;
-		} else {
-			general_fail_counter++;
+			default:
+				general_fail_counter++;
 		}
 		
 		curl_easy_cleanup(client);
