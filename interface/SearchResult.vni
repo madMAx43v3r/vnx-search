@@ -2,6 +2,8 @@ package vnx.search;
 
 class SearchResult {
 	
+	bool is_fail;
+	
 	long num_results_total;
 	
 	vector<string> words;

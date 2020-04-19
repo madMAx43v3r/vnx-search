@@ -1,0 +1,11 @@
+package vnx.search;
+
+class PageInfo {
+	
+	ulong version;
+	
+	string url_key;
+	
+	int depth = -1;
+	
+}

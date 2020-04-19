@@ -9,10 +9,15 @@
 #define INCLUDE_VNX_SEARCH_SEARCHENGINE_H_
 
 #include <vnx/search/SearchEngineBase.hxx>
+#include <vnx/search/WordContext.hxx>
+#include <vnx/search/PageInfo.hxx>
+
+#include <vnx/keyvalue/Server.h>
 #include <vnx/keyvalue/ServerClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
 
 #include <atomic>
+#include <shared_mutex>
 
 
 namespace vnx {
@@ -20,25 +25,36 @@ namespace search {
 
 class SearchEngine : public SearchEngineBase {
 public:
+	TopicPtr input_page_index_sync;
+	
 	SearchEngine(const std::string& _vnx_name);
 	
 protected:
 	struct word_t {
+		int64_t queue_time_us = 0;
+		std::vector<uint32_t> add_pages;
+	};
+	
+	struct domain_t {
 		uint32_t id = 0;
-		std::vector<uint32_t> pages;
+		uint32_t num_pages = 0;
+		std::string host;
 	};
 	
 	struct page_t {
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
+		int depth = -1;
 		uint64_t version = 0;
+		std::string scheme;
+		std::string url_key;
+		std::string title;
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
-		int64_t last_fetched = 0;
-		std::string scheme;
-		std::string title;
 		std::vector<uint32_t> links;
-		std::vector<uint32_t> words;
+		std::vector<uint32_t> reverse_links;
+		std::vector<uint32_t> reverse_domains;
+		std::atomic<size_t> num_pending {0};
 	};
 	
 	struct query_t {
@@ -70,52 +86,62 @@ protected:
 private:
 	uint32_t get_url_id(const std::string& url_key);
 	
-	uint32_t get_domain_id(const std::string& host);
+	SearchEngine::domain_t& get_domain(const std::string& host);
 	
-	uint32_t get_word_id(const std::string& word);
+	void url_index_callback(	const std::string& url_key,
+								const uint64_t version,
+								std::shared_ptr<const PageIndex> page_index_,
+								std::shared_ptr<const Value> url_index_);
 	
-	void url_index_callback(uint32_t page_id, std::shared_ptr<const Value> index);
+	void update_queue_timer();
 	
-	void work_loop();
+	void print_stats();
 	
-	void update_func(std::vector<std::shared_ptr<const keyvalue::KeyValuePair>> values);
+	void query_loop() const noexcept;
+	
+	void update_loop() noexcept;
 	
 private:
+	TopicPtr input_page_info_sync;
+	
+	Handle<keyvalue::Server> module_page_info;
+	Handle<keyvalue::Server> module_word_context;
+	
+	std::vector<std::thread> query_threads;
+	std::vector<std::thread> update_threads;
+	
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
+	std::shared_ptr<keyvalue::ServerAsyncClient> page_info_async;
+	std::shared_ptr<keyvalue::ServerAsyncClient> word_context_async;
 	std::shared_ptr<keyvalue::ServerClient> page_index_sync;
-	std::shared_ptr<keyvalue::ServerClient> page_content_sync;
 	
-	std::vector<std::thread> work_threads;
-	
-	mutable std::mutex work_mutex;
-	mutable std::mutex index_mutex;
-	mutable std::condition_variable work_condition;
-	mutable std::queue<std::shared_ptr<query_t>> work_queue;
+	mutable std::mutex parallel_mutex;
+	mutable std::shared_mutex index_mutex;
 	
 	std::unordered_map<std::string, uint32_t> url_map;
-	std::unordered_map<uint32_t, std::string> url_reverse_map;
-	
 	std::map<std::string, uint32_t> domain_map;
-	std::unordered_map<uint32_t, std::string> domain_reverse_map;
+	std::unordered_map<uint32_t, domain_t> domain_index;
+	std::unordered_map<uint32_t, page_t> page_index;
 	
-	std::unordered_map<std::string, uint32_t> word_map;
-	std::map<std::string, uint32_t> ordered_word_map;
-	std::unordered_map<uint32_t, std::string> word_reverse_map;
+	std::set<std::string> word_set;
+	std::unordered_map<std::string, std::shared_ptr<word_t>> word_cache;
 	
-	std::unordered_map<uint32_t, std::shared_ptr<word_t>> word_index;
-	std::unordered_map<uint32_t, std::shared_ptr<page_t>> page_index;
+	mutable std::mutex query_mutex;
+	mutable std::condition_variable query_condition;
+	mutable std::queue<std::shared_ptr<query_t>> query_queue;
 	
-	std::vector<std::shared_ptr<const keyvalue::KeyValuePair>> update_buffer;
+	mutable std::mutex update_mutex;
+	mutable std::condition_variable update_condition;
+	mutable std::multimap<int64_t, std::string> update_queue;
 	
 	bool is_initialized = false;
+	int init_sync_count = 0;
 	uint32_t next_url_id = 1;
 	uint32_t next_domain_id = 1;
-	uint32_t next_word_id = 1;
 	
 	mutable std::atomic<int64_t> query_counter {0};
-	
-	// below work_loop() private
-	std::mutex parallel_mutex;
+	mutable std::atomic<int64_t> page_update_counter {0};
+	mutable std::atomic<int64_t> word_update_counter {0};
 	
 };
 

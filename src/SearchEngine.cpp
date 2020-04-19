@@ -21,6 +21,7 @@ namespace search {
 SearchEngine::SearchEngine(const std::string& _vnx_name)
 	:	SearchEngineBase(_vnx_name)
 {
+	input_page_info_sync = vnx_name + ".page_info.sync";
 	input_page_index_sync = vnx_name + ".page_index.sync";
 	
 	protocols.push_back("http");
@@ -35,25 +36,55 @@ void SearchEngine::init()
 void SearchEngine::main()
 {
 	subscribe(input_page_index, 1000);
+	subscribe(input_page_info_sync, 1000);
 	subscribe(input_page_index_sync, 1000);
 	
+	protocols = get_unique(protocols);
+	
+	module_page_info = new keyvalue::Server("PageInfo");
+	module_page_info->collection = "page_info";
+	module_page_info->num_read_threads = 1;
+	module_page_info.start();
+	
+	module_word_context = new keyvalue::Server("WordContext");
+	module_word_context->collection = "word_context";
+	module_word_context.start();
+	
+	page_info_async = std::make_shared<keyvalue::ServerAsyncClient>("PageInfo");
+	word_context_async = std::make_shared<keyvalue::ServerAsyncClient>("WordContext");
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_sync = std::make_shared<keyvalue::ServerClient>(page_index_server);
-	page_content_sync = std::make_shared<keyvalue::ServerClient>(page_content_server);
 	
+	add_async_client(page_info_async);
+	add_async_client(word_context_async);
 	add_async_client(url_index_async);
 	
-	page_index_sync->sync_all(input_page_index_sync);
+	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
+	set_timer_millis(1000, std::bind(&SearchEngine::update_queue_timer, this));
 	
-	work_threads.resize(num_threads);
-	for(int i = 0; i < num_threads; ++i) {
-		work_threads[i] = std::thread(&SearchEngine::work_loop, this);
+	page_info_async->sync_all(input_page_info_sync);
+	
+	query_threads.resize(num_query_threads);
+	for(int i = 0; i < num_query_threads; ++i) {
+		query_threads[i] = std::thread(&SearchEngine::query_loop, this);
+	}
+	
+	update_threads.resize(num_update_threads);
+	for(int i = 0; i < num_update_threads; ++i) {
+		update_threads[i] = std::thread(&SearchEngine::update_loop, this);
 	}
 	
 	Super::main();
 	
-	work_condition.notify_all();
-	for(auto& thread : work_threads) {
+	query_condition.notify_all();
+	for(auto& thread : query_threads) {
+		if(thread.joinable()) {
+			thread.join();
+		}
+	}
+	
+	update_condition.notify_all();
+	for(auto& thread : update_threads) {
 		if(thread.joinable()) {
 			thread.join();
 		}
@@ -73,26 +104,26 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 	request->flags = flags;
 	request->callback = _callback;
 	{
-		std::lock_guard<std::mutex> lock(work_mutex);
-		work_queue.push(request);
+		std::lock_guard<std::mutex> lock(query_mutex);
+		query_queue.push(request);
 	}
-	work_condition.notify_one();
+	query_condition.notify_one();
 }
 
 std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
 {
-	std::lock_guard<std::mutex> lock(index_mutex);
+	std::shared_lock lock(index_mutex);
 	
 	std::vector<std::string> result;
-	for(auto it = ordered_word_map.lower_bound(prefix); it != ordered_word_map.end() && result.size() < size_t(limit); ++it) {
-		result.push_back(it->first);
+	for(auto it = word_set.lower_bound(prefix); it != word_set.end() && result.size() < size_t(limit); ++it) {
+		result.push_back(*it);
 	}
 	return result;
 }
 
 std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix, const int32_t& limit) const
 {
-	std::lock_guard<std::mutex> lock(index_mutex);
+	std::shared_lock lock(index_mutex);
 	
 	std::vector<std::string> result;
 	for(auto it = domain_map.lower_bound(prefix); it != domain_map.end() && result.size() < size_t(limit); ++it) {
@@ -111,127 +142,184 @@ uint32_t SearchEngine::get_url_id(const std::string& url_key)
 		} else {
 			id = next_url_id++;
 			url_map[url_key] = id;
-			url_reverse_map[id] = url_key;
 		}
 	}
 	return id;
 }
 
-uint32_t SearchEngine::get_domain_id(const std::string& host)
+SearchEngine::domain_t& SearchEngine::get_domain(const std::string& host)
 {
-	uint32_t id = 0;
-	{
-		auto iter = domain_map.find(host);
-		if(iter != domain_map.end()) {
-			id = iter->second;
-		} else {
-			id = next_domain_id++;
-			domain_map[host] = id;
-			domain_reverse_map[id] = host;
-		}
+	auto iter = domain_map.find(host);
+	if(iter != domain_map.end()) {
+		return domain_index[iter->second];
 	}
-	return id;
-}
-
-uint32_t SearchEngine::get_word_id(const std::string& word)
-{
-	uint32_t id = 0;
-	{
-		auto iter = word_map.find(word);
-		if(iter != word_map.end()) {
-			id = iter->second;
-		} else {
-			id = next_word_id++;
-			word_map[word] = id;
-			ordered_word_map[word] = id;
-			word_reverse_map[id] = word;
-		}
+	else {
+		const auto id = next_domain_id++;
+		domain_map[host] = id;
+		
+		auto& domain = domain_index[id];
+		domain.id = id;
+		domain.host = host;
+		return domain;
 	}
-	return id;
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 {
-	std::lock_guard<std::mutex> lock(index_mutex);
+	auto info = std::dynamic_pointer_cast<const PageInfo>(pair->value);
+	if(info) {
+		if(info->depth <= max_depth)
+		{
+			std::unique_lock lock(index_mutex);
+			
+			const uint32_t page_id = pair->key;
+			url_map[info->url_key] = page_id;
+			next_url_id = std::max(next_url_id, page_id + 1);
+			
+			auto& page = page_index[page_id];
+			page.id = page_id;
+			page.version = info->version;
+			page.url_key = info->url_key;
+			page.depth = info->depth;
+		}
+		return;
+	}
 	
 	auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 	if(index) {
 		const auto url_key = pair->key.to_string_value();
-		const auto page_id = get_url_id(url_key);
-		
-		auto& page = page_index[page_id];
-		if(!page) {
-			page = std::make_shared<page_t>();
-			page->id = page_id;
-			page->domain_id = get_domain_id(Url::Url(url_key).host());
-			page->version = pair->version;
-			page->title = index->title;
-			page->last_modified = index->last_modified;
-			
-			for(const auto& link : index->links) {
-				try {
-					const Url::Url parsed(link);
-					if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end()) {
-						page->links.push_back(get_url_id(get_url_key(parsed)));
-					}
-				} catch(...) {
-					// ignore bad links
-				}
-			}
-			
-			for(const auto& word : index->words)
-			{
-				const auto word_id = get_word_id(word);
-				auto& entry = word_index[word_id];
-				if(!entry) {
-					entry = std::make_shared<word_t>();
-				}
-				entry->pages.push_back(page_id);
-				page->words.push_back(word_id);
-			}
-			
-			url_index_async->get_value(url_key,
-					std::bind(&SearchEngine::url_index_callback, this, page_id, std::placeholders::_1));
-		}
-		else {
-			update_buffer.push_back(pair);
-		}
+		url_index_async->get_value(url_key,
+					std::bind(&SearchEngine::url_index_callback, this, url_key, pair->version, index, std::placeholders::_1));
 	}
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 {
-	std::lock_guard<std::mutex> lock(index_mutex);
+	std::unique_lock lock(index_mutex);
 	
-	if(value->code == keyvalue::SyncInfo::END) {
-		if(!is_initialized) {
+	if(value->code == keyvalue::SyncInfo::END)
+	{
+		init_sync_count++;
+		if(init_sync_count == 1)
+		{
+			page_index_sync->sync_all(input_page_index_sync);
+			log(INFO).out << "Starting PageIndex sync ...";
+		}
+		if(init_sync_count == 2)
+		{
 			is_initialized = true;
-			
 			uint64_t num_links = 0;
 			for(const auto& entry : page_index) {
-				num_links += entry.second->links.size();
+				num_links += entry.second.links.size();
 			}
-			
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
-					<< page_index.size() << " pages, " << num_links << " links and " << word_index.size() << " words.";
+					<< page_index.size() << " pages, " << num_links << " links and " << word_set.size() << " words.";
 		}
 	}
 }
 
-void SearchEngine::url_index_callback(uint32_t page_id, std::shared_ptr<const Value> index_)
+void SearchEngine::url_index_callback(	const std::string& url_key,
+										const uint64_t version,
+										std::shared_ptr<const PageIndex> page_index_,
+										std::shared_ptr<const Value> url_index_)
 {
-	std::lock_guard<std::mutex> lock(index_mutex);
+	std::unique_lock lock(index_mutex);
 	
-	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
-	if(index) {
-		auto page = page_index[page_id];
-		if(page) {
-			page->first_seen = index->first_seen;
-			page->last_modified = index->last_modified;
-			page->last_fetched = index->last_fetched;
-			page->scheme = index->scheme;
+	const auto now_wall_us = vnx::get_wall_time_micros();
+	
+	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(url_index_);
+	if(url_index) {
+		if(url_index->depth > max_depth) {
+			return;
+		}
+		const auto page_id = get_url_id(url_key);
+		
+		auto& page = page_index[page_id];
+		page.id = page_id;
+		page.scheme = url_index->scheme;
+		page.url_key = url_key;
+		page.title = page_index_->title;
+		page.depth = url_index->depth;
+		page.first_seen = url_index->first_seen;
+		page.last_modified = url_index->last_modified;
+		
+		if(!page.domain_id) {
+			auto& domain = get_domain(Url::Url(url_key).host());
+			page.domain_id = domain.id;
+			domain.num_pages++;
+		}
+		
+		page.links.clear();
+		
+		if(page.depth < max_depth)
+		{
+			for(const auto& link : page_index_->links) {
+				try {
+					const Url::Url parsed(link);
+					if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end())
+					{
+						const auto link_id = get_url_id(get_url_key(parsed));
+						page.links.push_back(link_id);
+						
+						auto& child = page_index[link_id];
+						unique_push_back(child.reverse_links, page.id);
+						unique_push_back(child.reverse_domains, page.domain_id);
+					}
+				} catch(...) {
+					// ignore bad links
+				}
+			}
+		}
+		
+		if(version > page.version)
+		{
+			for(const auto& word : page_index_->words)
+			{
+				auto& entry = word_cache[word];
+				if(!entry) {
+					entry = std::make_shared<word_t>();
+					entry->queue_time_us = now_wall_us;
+				}
+				entry->add_pages.push_back(page_id);
+			}
+			page.num_pending += page_index_->words.size();
+			page.version = version;
+		}
+		
+		for(const auto& word : page_index_->words) {
+			word_set.insert(word);
 		}
 	}
+}
+
+void SearchEngine::update_queue_timer()
+{
+	std::multimap<int64_t, std::string> new_queue;
+	{
+		std::shared_lock lock(index_mutex);
+		for(const auto& entry : word_cache) {
+			limited_emplace(new_queue, entry.second->queue_time_us, entry.first, 1000);
+		}
+	}
+	{
+		std::lock_guard<std::mutex> lock(update_mutex);
+		update_queue = std::move(new_queue);
+	}
+	update_condition.notify_all();
+}
+
+void SearchEngine::print_stats()
+{
+	std::shared_lock lock(index_mutex);
+	
+	log(INFO).out << (60000 * word_update_counter) / stats_interval_ms << " words/min, "
+			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
+			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
+			<< word_cache.size() << " words cached";
+	
+	word_update_counter = 0;
+	page_update_counter = 0;
+	query_counter = 0;
 }
 
 static
@@ -240,81 +328,82 @@ bool has_flag(const std::vector<search_flags_e>& flags, search_flags_e flag)
 	return std::find(flags.begin(), flags.end(), flag) != flags.end();
 }
 
-template<typename T>
-T advance_until(T iter, const T& end, const ssize_t offset)
+void SearchEngine::query_loop() const noexcept
 {
-	if(offset > 0) {
-		for(ssize_t i = 0; i < offset && iter != end; ++i) {
-			iter++;
-		}
-	}
-	return iter;
-}
-
-void SearchEngine::work_loop()
-{
+	keyvalue::ServerClient word_context_sync("WordContext");
+	
 	while(vnx_do_run())
 	{
 		std::shared_ptr<query_t> request;
 		{
-			std::unique_lock<std::mutex> lock(work_mutex);
-			while(vnx_do_run() && work_queue.empty()) {
-				work_condition.wait(lock);
+			std::unique_lock<std::mutex> lock(query_mutex);
+			while(vnx_do_run() && query_queue.empty()) {
+				query_condition.wait(lock);
 			}
 			if(vnx_do_run()) {
-				request = work_queue.front();
-				work_queue.pop();
+				request = query_queue.front();
+				query_queue.pop();
 			} else {
 				break;
 			}
 		}
 		
 		auto result = SearchResult::create();
+		result->is_fail = true;
 		
-		uint32_t num_words = 0;
+		std::vector<std::shared_ptr<const WordContext>> context;
+		try {
+			const std::vector<Variant> keys(request->words.begin(), request->words.end());
+			const auto value = word_context_sync.get_values(keys);
+			// TODO
+		}
+		catch(...) {
+			request->callback(result);
+		}
+		const uint32_t num_words = context.size();
+		
 		std::unordered_map<uint32_t, uint32_t> page_hits;
 		
-		for(const auto& word : request->words) {
-			std::shared_ptr<word_t> entry;
-			{
-				std::lock_guard<std::mutex> lock(index_mutex);
-				auto id = word_map.find(word);
-				if(id != word_map.end()) {
-					auto iter = word_index.find(id->second);
-					if(iter != word_index.end()) {
-						entry = iter->second;
-					}
-				}
-			}
-			if(entry) {
-				for(auto page : entry->pages) {
-					page_hits[page]++;
-				}
-				result->words.push_back(word);
-				num_words++;
-			}
-		}
+//		for(const auto& word : request->words) {
+//			std::shared_ptr<word_t> entry;
+//			{
+//				std::lock_guard<std::mutex> lock(index_mutex);
+//				auto id = word_map.find(word);
+//				if(id != word_map.end()) {
+//					auto iter = word_index.find(id->second);
+//					if(iter != word_index.end()) {
+//						entry = iter->second;
+//					}
+//				}
+//			}
+//			if(entry) {
+//				for(auto page : entry->pages) {
+//					page_hits[page]++;
+//				}
+//				result->words.push_back(word);
+//				num_words++;
+//			}
+//		}
 		
 		struct result_t {
-			std::shared_ptr<const page_t> page;
+			const page_t* page = 0;
 			int64_t score = 1;
 			std::atomic<int64_t> add_score;
 		};
 		
 		std::unordered_map<uint32_t, result_t> pages;
 		{
-			std::lock_guard<std::mutex> lock(index_mutex);
+			std::shared_lock lock(index_mutex);
 			for(const auto& entry : page_hits) {
 				if(entry.second >= num_words) {
 					auto iter = page_index.find(entry.first);
 					if(iter != page_index.end()) {
-						pages[entry.first].page = iter->second;
+						pages[entry.first].page = &iter->second;
 					}
 				}
 			}
 		}
 		
-		for(int iteration = 0; iteration < num_iterations; ++iteration)
 		{
 			std::lock_guard<std::mutex> lock(parallel_mutex);
 			
@@ -343,11 +432,12 @@ void SearchEngine::work_loop()
 			}
 		}
 		
-		std::multimap<int64_t, std::shared_ptr<const page_t>, std::greater<int64_t>> sorted;
+		std::multimap<int64_t, const page_t*, std::greater<int64_t>> sorted;
 		
 		if(has_flag(request->flags, search_flags_e::GROUP_BY_DOMAIN))
 		{
-			std::unordered_map<uint32_t, std::pair<int64_t, std::shared_ptr<const page_t>>> best_of;
+			std::unordered_map<uint32_t, std::pair<int64_t, const page_t*>> best_of;
+			
 			for(const auto& entry : pages) {
 				const auto& result = entry.second;
 				auto& current = best_of[result.page->domain_id];
@@ -368,7 +458,8 @@ void SearchEngine::work_loop()
 		
 		result->num_results_total = pages.size();
 		{
-			std::lock_guard<std::mutex> lock(index_mutex);
+			std::shared_lock lock(index_mutex);
+			
 			int64_t offset = 0;
 			for(const auto& entry : sorted)
 			{
@@ -380,21 +471,145 @@ void SearchEngine::work_loop()
 				}
 				result_item_t item;
 				item.title = entry.second->title;
-				item.url = entry.second->scheme + ":" + url_reverse_map[entry.second->id];
+				item.url = entry.second->scheme + ":" + entry.second->url_key;
 				item.score = entry.first;
 				item.last_modified = entry.second->last_modified;
 				result->items.push_back(item);
 			}
 		}
+		
+		result->is_fail = false;
 		request->callback(result);
 		
 		query_counter++;
 	}
 }
 
-void SearchEngine::update_func(std::vector<std::shared_ptr<const keyvalue::KeyValuePair>> values)
+void SearchEngine::update_loop() noexcept
 {
-	// TODO
+	keyvalue::ServerClient page_info_sync("PageInfo");
+	keyvalue::ServerClient word_context_sync("WordContext");
+	
+	bool do_wait = false;
+	
+	while(vnx_do_run())
+	{
+		std::string word;
+		{
+			std::unique_lock<std::mutex> lock(update_mutex);
+			if(vnx_do_run() && do_wait) {
+				update_condition.wait(lock);
+			}
+			do_wait = true;
+			
+			if(vnx_do_run()) {
+				if(update_queue.empty()) {
+					continue;
+				}
+				const auto iter = update_queue.begin();
+				if((vnx::get_wall_time_micros() - iter->first) / 1000000 > commit_interval) {
+					word = iter->second;
+					update_queue.erase(iter);
+				} else {
+					continue;
+				}
+			} else {
+				break;
+			}
+		}
+		do_wait = false;
+		
+		std::shared_ptr<word_t> cached;
+		{
+			std::unique_lock lock(index_mutex);
+			
+			auto iter = word_cache.find(word);
+			if(iter != word_cache.end()) {
+				cached = iter->second;
+				word_cache.erase(iter);
+			}
+		}
+		if(!cached) {
+			continue;
+		}
+		
+		std::shared_ptr<const WordContext> context;
+		try {
+			const auto value = word_context_sync.get_value(word);
+			context = std::dynamic_pointer_cast<const WordContext>(value);
+		}
+		catch(...) {
+			continue;
+		}
+		
+		std::unordered_set<uint32_t> new_pages(cached->add_pages.begin(), cached->add_pages.end());
+		
+		if(context) {
+			for(const auto page : context->pages) {
+				const auto iter = new_pages.find(page);
+				if(iter != new_pages.end()) {
+					new_pages.erase(iter);
+				}
+			}
+		}
+		
+		std::vector<std::pair<uint32_t, uint32_t>> list;
+		list.reserve((context ? context->pages.size() : 0) + new_pages.size());
+		{
+			std::shared_lock lock(index_mutex);
+			
+			if(context) {
+				for(const auto page : context->pages) {
+					auto iter = page_index.find(page);
+					if(iter != page_index.end()) {
+						list.emplace_back(std::min(iter->second.reverse_links.size(),
+													size_t(std::numeric_limits<uint32_t>::max())), page);
+					}
+				}
+			}
+			for(const auto page : new_pages) {
+				auto iter = page_index.find(page);
+				if(iter != page_index.end()) {
+					list.emplace_back(std::min(iter->second.reverse_links.size(),
+												size_t(std::numeric_limits<uint32_t>::max())), page);
+				}
+			}
+		}
+		std::sort(list.begin(), list.end(), std::greater<std::pair<uint32_t, uint32_t>>());
+		
+		auto value = WordContext::create();
+		value->last_update = std::time(0);
+		value->pages.reserve(list.size());
+		for(const auto& entry : list) {
+			value->pages.push_back(entry.second);
+		}
+		word_context_sync.store_value(word, value);
+		
+		std::vector<std::pair<uint32_t, std::shared_ptr<PageInfo>>> page_updates;
+		{
+			std::shared_lock lock(index_mutex);
+			
+			for(const auto page_id : cached->add_pages) {
+				auto iter = page_index.find(page_id);
+				if(iter != page_index.end()) {
+					auto& page = iter->second;
+					if(--(page.num_pending) == 0)
+					{
+						auto info = PageInfo::create();
+						info->version = page.version;
+						info->url_key = page.url_key;
+						info->depth = page.depth;
+						page_updates.emplace_back(page_id, info);
+					}
+				}
+			}
+		}
+		for(const auto& entry : page_updates) {
+			page_info_sync.store_value(entry.first, entry.second);
+			page_update_counter++;
+		}
+		word_update_counter++;
+	}
 }
 
 

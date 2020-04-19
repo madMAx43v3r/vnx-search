@@ -79,6 +79,16 @@ std::vector<T> get_unique(std::vector<T> in)
 	return std::vector<T>(tmp.begin(), tmp.end());
 }
 
+template<typename T>
+bool unique_push_back(std::vector<T>& vector, const T& value)
+{
+	if(std::find(vector.begin(), vector.end(), value) == vector.end()) {
+		vector.push_back(value);
+		return true;
+	}
+	return false;
+}
+
 template<typename T, typename K, typename V>
 void limited_emplace(T& queue, const K& key, const V& value, size_t limit)
 {
@@ -92,6 +102,17 @@ void limited_emplace(T& queue, const K& key, const V& value, size_t limit)
 			queue.erase(back);
 		}
 	}
+}
+
+template<typename T>
+T advance_until(T iter, const T& end, const ssize_t offset)
+{
+	if(offset > 0) {
+		for(ssize_t i = 0; i < offset && iter != end; ++i) {
+			iter++;
+		}
+	}
+	return iter;
 }
 
 

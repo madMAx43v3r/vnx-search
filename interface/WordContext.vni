@@ -1,0 +1,9 @@
+package vnx.search;
+
+class WordContext {
+	
+	long last_update;				// posix [sec]
+	
+	vector<uint> pages;				// (score => page_id)
+	
+}
