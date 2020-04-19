@@ -168,7 +168,7 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
 		call_type->name = "vnx.search.CrawlFrontend.fetch";
 		call_type->type_hash = vnx::Hash64(0xddf8de1011cf63d2ull);
-		call_type->code_hash = vnx::Hash64(0xb13552111e9746c5ull);
+		call_type->code_hash = vnx::Hash64(0xe6ad8daa1f510c93ull);
 		call_type->is_method = true;
 		{
 			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
@@ -186,11 +186,17 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
 		}
-		call_type->fields.resize(1);
+		call_type->fields.resize(2);
 		{
 			vnx::TypeField& field = call_type->fields[0];
 			field.is_extended = true;
 			field.name = "url";
+			field.code = {12, 5};
+		}
+		{
+			vnx::TypeField& field = call_type->fields[1];
+			field.is_extended = true;
+			field.name = "profile";
 			field.code = {12, 5};
 		}
 		call_type->build();
@@ -333,6 +339,7 @@ void CrawlFrontendBase::vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _
 std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) {
 	if(_call_type->type_hash == vnx::Hash64(0xddf8de1011cf63d2ull)) {
 		::std::string url;
+		::std::string profile;
 		{
 			const char* const _buf = _in.read(_call_type->total_field_size);
 			if(_call_type->is_matched) {
@@ -340,11 +347,12 @@ std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(vnx::TypeInput& _
 			for(const vnx::TypeField* _field : _call_type->ext_fields) {
 				switch(_field->native_index) {
 					case 0: vnx::read(_in, url, _call_type, _field->code.data()); break;
+					case 1: vnx::read(_in, profile, _call_type, _field->code.data()); break;
 					default: vnx::skip(_in, _call_type, _field->code.data());
 				}
 			}
 		}
-		fetch_async(url, std::bind(&CrawlFrontendBase::fetch_async_return, this, _request_id, std::placeholders::_1), _request_id);
+		fetch_async(url, profile, std::bind(&CrawlFrontendBase::fetch_async_return, this, _request_id, std::placeholders::_1), _request_id);
 		return 0;
 	} else if(_call_type->type_hash == vnx::Hash64(0x3c451150d4eaa9ebull)) {
 		::std::shared_ptr<const ::vnx::search::HttpResponse> sample;

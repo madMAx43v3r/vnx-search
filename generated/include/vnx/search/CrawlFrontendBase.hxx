@@ -54,7 +54,7 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual void fetch_async(const ::std::string& url, const std::function<void(const ::std::shared_ptr<const ::vnx::search::UrlIndex>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual void fetch_async(const ::std::string& url, const ::std::string& profile, const std::function<void(const ::std::shared_ptr<const ::vnx::search::UrlIndex>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
 	virtual void handle(std::shared_ptr<const ::vnx::search::HttpResponse> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::search::HttpResponse> _value) {}
 	virtual void register_parser(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads) = 0;

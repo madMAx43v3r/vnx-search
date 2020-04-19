@@ -20,13 +20,14 @@ CrawlFrontendAsyncClient::CrawlFrontendAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
-uint64_t CrawlFrontendAsyncClient::fetch(const ::std::string& url, const std::function<void(::std::shared_ptr<const ::vnx::search::UrlIndex>)>& _callback) {
+uint64_t CrawlFrontendAsyncClient::fetch(const ::std::string& url, const ::std::string& profile, const std::function<void(::std::shared_ptr<const ::vnx::search::UrlIndex>)>& _callback) {
 	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
 	vnx::BinaryOutputStream _stream_out(_argument_data.get());
 	vnx::TypeOutput _out(&_stream_out);
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_CrawlFrontend_fetch;
 	{
 		vnx::write(_out, url, _type_code, _type_code->fields[0].code.data());
+		vnx::write(_out, profile, _type_code, _type_code->fields[1].code.data());
 	}
 	_out.flush();
 	_argument_data->type_code = _type_code;

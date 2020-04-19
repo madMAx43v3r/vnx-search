@@ -21,7 +21,7 @@ public:
 	
 	CrawlFrontendAsyncClient(vnx::Hash64 service_addr);
 	
-	uint64_t fetch(const ::std::string& url, 
+	uint64_t fetch(const ::std::string& url, const ::std::string& profile, 
 			const std::function<void(::std::shared_ptr<const ::vnx::search::UrlIndex>)>& _callback = std::function<void(::std::shared_ptr<const ::vnx::search::UrlIndex>)>());
 	
 	uint64_t handle(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample, 

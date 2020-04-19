@@ -10,11 +10,13 @@
 #include <vnx/search/HttpResponse.hxx>
 #include <vnx/search/PageContent.hxx>
 #include <vnx/search/PageIndex.hxx>
+#include <vnx/search/PageInfo.hxx>
 #include <vnx/search/Response.hxx>
 #include <vnx/search/SearchEngineBase.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/TextResponse.hxx>
 #include <vnx/search/UrlIndex.hxx>
+#include <vnx/search/WordContext.hxx>
 #include <vnx/search/crawl_domain_stats_t.hxx>
 #include <vnx/search/result_item_t.hxx>
 #include <vnx/search/search_flags_e.hxx>
@@ -33,11 +35,13 @@ static void register_all_types() {
 	vnx::register_type_code(vnx::search::HttpResponse::static_create_type_code());
 	vnx::register_type_code(vnx::search::PageContent::static_create_type_code());
 	vnx::register_type_code(vnx::search::PageIndex::static_create_type_code());
+	vnx::register_type_code(vnx::search::PageInfo::static_create_type_code());
 	vnx::register_type_code(vnx::search::Response::static_create_type_code());
 	vnx::register_type_code(vnx::search::SearchEngineBase::static_create_type_code());
 	vnx::register_type_code(vnx::search::SearchResult::static_create_type_code());
 	vnx::register_type_code(vnx::search::TextResponse::static_create_type_code());
 	vnx::register_type_code(vnx::search::UrlIndex::static_create_type_code());
+	vnx::register_type_code(vnx::search::WordContext::static_create_type_code());
 	vnx::register_type_code(vnx::search::crawl_domain_stats_t::static_create_type_code());
 	vnx::register_type_code(vnx::search::result_item_t::static_create_type_code());
 	vnx::register_type_code(vnx::search::search_flags_e::static_create_type_code());
@@ -70,6 +74,7 @@ const vnx::TypeCode* const vnx_native_type_code_CrawlStats = vnx::get_type_code(
 const vnx::TypeCode* const vnx_native_type_code_HttpResponse = vnx::get_type_code(vnx::Hash64(0xd6552db423d70e21ull));
 const vnx::TypeCode* const vnx_native_type_code_PageContent = vnx::get_type_code(vnx::Hash64(0x4cd00be0870fbe22ull));
 const vnx::TypeCode* const vnx_native_type_code_PageIndex = vnx::get_type_code(vnx::Hash64(0x4c9c9cf43a382f0ull));
+const vnx::TypeCode* const vnx_native_type_code_PageInfo = vnx::get_type_code(vnx::Hash64(0x547cfd9b2bb19c80ull));
 const vnx::TypeCode* const vnx_native_type_code_Response = vnx::get_type_code(vnx::Hash64(0xcf371c90803a778cull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine = vnx::get_type_code(vnx::Hash64(0x4e0f26d3496896a1ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair = vnx::get_type_code(vnx::Hash64(0xd31e7941dec9d83aull));
@@ -85,6 +90,7 @@ const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words_retur
 const vnx::TypeCode* const vnx_native_type_code_SearchResult = vnx::get_type_code(vnx::Hash64(0x659ce58d97581ddull));
 const vnx::TypeCode* const vnx_native_type_code_TextResponse = vnx::get_type_code(vnx::Hash64(0x7cee1cd5b88ec569ull));
 const vnx::TypeCode* const vnx_native_type_code_UrlIndex = vnx::get_type_code(vnx::Hash64(0xab26319d1802d1b6ull));
+const vnx::TypeCode* const vnx_native_type_code_WordContext = vnx::get_type_code(vnx::Hash64(0xdaa75d84f367905bull));
 const vnx::TypeCode* const vnx_native_type_code_crawl_domain_stats_t = vnx::get_type_code(vnx::Hash64(0xf57ddd168a5985ddull));
 const vnx::TypeCode* const vnx_native_type_code_result_item_t = vnx::get_type_code(vnx::Hash64(0x25b1d557d37a1bdfull));
 const vnx::TypeCode* const vnx_native_type_code_search_flags_e = vnx::get_type_code(vnx::Hash64(0xe55b90a8ffab58ffull));

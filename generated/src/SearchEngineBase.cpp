@@ -18,18 +18,20 @@ namespace search {
 
 
 const vnx::Hash64 SearchEngineBase::VNX_TYPE_HASH(0x4e0f26d3496896a1ull);
-const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0xaab933019adb07f6ull);
+const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0xf55658aa497c4560ull);
 
 SearchEngineBase::SearchEngineBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
+	vnx::read_config(vnx_name + ".commit_interval", commit_interval);
 	vnx::read_config(vnx_name + ".input_page_index", input_page_index);
-	vnx::read_config(vnx_name + ".input_page_index_sync", input_page_index_sync);
-	vnx::read_config(vnx_name + ".num_iterations", num_iterations);
-	vnx::read_config(vnx_name + ".num_threads", num_threads);
+	vnx::read_config(vnx_name + ".max_depth", max_depth);
+	vnx::read_config(vnx_name + ".num_query_threads", num_query_threads);
+	vnx::read_config(vnx_name + ".num_update_threads", num_update_threads);
 	vnx::read_config(vnx_name + ".page_content_server", page_content_server);
 	vnx::read_config(vnx_name + ".page_index_server", page_index_server);
 	vnx::read_config(vnx_name + ".protocols", protocols);
+	vnx::read_config(vnx_name + ".stats_interval_ms", stats_interval_ms);
 	vnx::read_config(vnx_name + ".url_index_server", url_index_server);
 }
 
@@ -48,25 +50,29 @@ void SearchEngineBase::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, input_page_index);
-	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, input_page_index_sync);
-	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, url_index_server);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, page_index_server);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, page_content_server);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, num_iterations);
-	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, num_threads);
-	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, protocols);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, url_index_server);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, page_index_server);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, page_content_server);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, max_depth);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, num_query_threads);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, num_update_threads);
+	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, commit_interval);
+	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, stats_interval_ms);
+	_visitor.type_field(_type_code->fields[9], 9); vnx::accept(_visitor, protocols);
 	_visitor.type_end(*_type_code);
 }
 
 void SearchEngineBase::write(std::ostream& _out) const {
 	_out << "{";
 	_out << "\"input_page_index\": "; vnx::write(_out, input_page_index);
-	_out << ", \"input_page_index_sync\": "; vnx::write(_out, input_page_index_sync);
 	_out << ", \"url_index_server\": "; vnx::write(_out, url_index_server);
 	_out << ", \"page_index_server\": "; vnx::write(_out, page_index_server);
 	_out << ", \"page_content_server\": "; vnx::write(_out, page_content_server);
-	_out << ", \"num_iterations\": "; vnx::write(_out, num_iterations);
-	_out << ", \"num_threads\": "; vnx::write(_out, num_threads);
+	_out << ", \"max_depth\": "; vnx::write(_out, max_depth);
+	_out << ", \"num_query_threads\": "; vnx::write(_out, num_query_threads);
+	_out << ", \"num_update_threads\": "; vnx::write(_out, num_update_threads);
+	_out << ", \"commit_interval\": "; vnx::write(_out, commit_interval);
+	_out << ", \"stats_interval_ms\": "; vnx::write(_out, stats_interval_ms);
 	_out << ", \"protocols\": "; vnx::write(_out, protocols);
 	_out << "}";
 }
@@ -75,20 +81,24 @@ void SearchEngineBase::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "input_page_index") {
+		if(_entry.first == "commit_interval") {
+			vnx::from_string(_entry.second, commit_interval);
+		} else if(_entry.first == "input_page_index") {
 			vnx::from_string(_entry.second, input_page_index);
-		} else if(_entry.first == "input_page_index_sync") {
-			vnx::from_string(_entry.second, input_page_index_sync);
-		} else if(_entry.first == "num_iterations") {
-			vnx::from_string(_entry.second, num_iterations);
-		} else if(_entry.first == "num_threads") {
-			vnx::from_string(_entry.second, num_threads);
+		} else if(_entry.first == "max_depth") {
+			vnx::from_string(_entry.second, max_depth);
+		} else if(_entry.first == "num_query_threads") {
+			vnx::from_string(_entry.second, num_query_threads);
+		} else if(_entry.first == "num_update_threads") {
+			vnx::from_string(_entry.second, num_update_threads);
 		} else if(_entry.first == "page_content_server") {
 			vnx::from_string(_entry.second, page_content_server);
 		} else if(_entry.first == "page_index_server") {
 			vnx::from_string(_entry.second, page_index_server);
 		} else if(_entry.first == "protocols") {
 			vnx::from_string(_entry.second, protocols);
+		} else if(_entry.first == "stats_interval_ms") {
+			vnx::from_string(_entry.second, stats_interval_ms);
 		} else if(_entry.first == "url_index_server") {
 			vnx::from_string(_entry.second, url_index_server);
 		}
@@ -98,32 +108,38 @@ void SearchEngineBase::read(std::istream& _in) {
 vnx::Object SearchEngineBase::to_object() const {
 	vnx::Object _object;
 	_object["input_page_index"] = input_page_index;
-	_object["input_page_index_sync"] = input_page_index_sync;
 	_object["url_index_server"] = url_index_server;
 	_object["page_index_server"] = page_index_server;
 	_object["page_content_server"] = page_content_server;
-	_object["num_iterations"] = num_iterations;
-	_object["num_threads"] = num_threads;
+	_object["max_depth"] = max_depth;
+	_object["num_query_threads"] = num_query_threads;
+	_object["num_update_threads"] = num_update_threads;
+	_object["commit_interval"] = commit_interval;
+	_object["stats_interval_ms"] = stats_interval_ms;
 	_object["protocols"] = protocols;
 	return _object;
 }
 
 void SearchEngineBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "input_page_index") {
+		if(_entry.first == "commit_interval") {
+			_entry.second.to(commit_interval);
+		} else if(_entry.first == "input_page_index") {
 			_entry.second.to(input_page_index);
-		} else if(_entry.first == "input_page_index_sync") {
-			_entry.second.to(input_page_index_sync);
-		} else if(_entry.first == "num_iterations") {
-			_entry.second.to(num_iterations);
-		} else if(_entry.first == "num_threads") {
-			_entry.second.to(num_threads);
+		} else if(_entry.first == "max_depth") {
+			_entry.second.to(max_depth);
+		} else if(_entry.first == "num_query_threads") {
+			_entry.second.to(num_query_threads);
+		} else if(_entry.first == "num_update_threads") {
+			_entry.second.to(num_update_threads);
 		} else if(_entry.first == "page_content_server") {
 			_entry.second.to(page_content_server);
 		} else if(_entry.first == "page_index_server") {
 			_entry.second.to(page_index_server);
 		} else if(_entry.first == "protocols") {
 			_entry.second.to(protocols);
+		} else if(_entry.first == "stats_interval_ms") {
+			_entry.second.to(stats_interval_ms);
 		} else if(_entry.first == "url_index_server") {
 			_entry.second.to(url_index_server);
 		}
@@ -154,7 +170,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.SearchEngine";
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
-	type_code->code_hash = vnx::Hash64(0xaab933019adb07f6ull);
+	type_code->code_hash = vnx::Hash64(0xf55658aa497c4560ull);
 	type_code->methods.resize(5);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -330,7 +346,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		call_type->build();
 		type_code->methods[4] = vnx::register_type_code(call_type);
 	}
-	type_code->fields.resize(8);
+	type_code->fields.resize(10);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -341,44 +357,56 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
-		field.name = "input_page_index_sync";
-		field.code = {12, 5};
-	}
-	{
-		vnx::TypeField& field = type_code->fields[2];
-		field.is_extended = true;
 		field.name = "url_index_server";
 		field.value = vnx::to_string("UrlIndex");
 		field.code = {12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[3];
+		vnx::TypeField& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "page_index_server";
 		field.value = vnx::to_string("PageIndex");
 		field.code = {12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		vnx::TypeField& field = type_code->fields[3];
 		field.is_extended = true;
 		field.name = "page_content_server";
 		field.value = vnx::to_string("PageContent");
 		field.code = {12, 5};
 	}
 	{
+		vnx::TypeField& field = type_code->fields[4];
+		field.name = "max_depth";
+		field.value = vnx::to_string(6);
+		field.code = {7};
+	}
+	{
 		vnx::TypeField& field = type_code->fields[5];
-		field.name = "num_iterations";
-		field.value = vnx::to_string(1);
+		field.name = "num_query_threads";
+		field.value = vnx::to_string(4);
 		field.code = {7};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
-		field.name = "num_threads";
-		field.value = vnx::to_string(8);
+		field.name = "num_update_threads";
+		field.value = vnx::to_string(1);
 		field.code = {7};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[7];
+		field.name = "commit_interval";
+		field.value = vnx::to_string(1000);
+		field.code = {7};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[8];
+		field.name = "stats_interval_ms";
+		field.value = vnx::to_string(10000);
+		field.code = {7};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[9];
 		field.is_extended = true;
 		field.name = "protocols";
 		field.code = {12, 12, 5};
@@ -582,26 +610,43 @@ void read(TypeInput& in, ::vnx::search::SearchEngineBase& value, const TypeCode*
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
 		{
+			const vnx::TypeField* const _field = type_code->field_map[4];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.max_depth, _field->code.data());
+			}
+		}
+		{
 			const vnx::TypeField* const _field = type_code->field_map[5];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.num_iterations, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.num_query_threads, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[6];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.num_threads, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.num_update_threads, _field->code.data());
+			}
+		}
+		{
+			const vnx::TypeField* const _field = type_code->field_map[7];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.commit_interval, _field->code.data());
+			}
+		}
+		{
+			const vnx::TypeField* const _field = type_code->field_map[8];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.stats_interval_ms, _field->code.data());
 			}
 		}
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.input_page_index, type_code, _field->code.data()); break;
-			case 1: vnx::read(in, value.input_page_index_sync, type_code, _field->code.data()); break;
-			case 2: vnx::read(in, value.url_index_server, type_code, _field->code.data()); break;
-			case 3: vnx::read(in, value.page_index_server, type_code, _field->code.data()); break;
-			case 4: vnx::read(in, value.page_content_server, type_code, _field->code.data()); break;
-			case 7: vnx::read(in, value.protocols, type_code, _field->code.data()); break;
+			case 1: vnx::read(in, value.url_index_server, type_code, _field->code.data()); break;
+			case 2: vnx::read(in, value.page_index_server, type_code, _field->code.data()); break;
+			case 3: vnx::read(in, value.page_content_server, type_code, _field->code.data()); break;
+			case 9: vnx::read(in, value.protocols, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -616,15 +661,17 @@ void write(TypeOutput& out, const ::vnx::search::SearchEngineBase& value, const 
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(8);
-	vnx::write_value(_buf + 0, value.num_iterations);
-	vnx::write_value(_buf + 4, value.num_threads);
+	char* const _buf = out.write(20);
+	vnx::write_value(_buf + 0, value.max_depth);
+	vnx::write_value(_buf + 4, value.num_query_threads);
+	vnx::write_value(_buf + 8, value.num_update_threads);
+	vnx::write_value(_buf + 12, value.commit_interval);
+	vnx::write_value(_buf + 16, value.stats_interval_ms);
 	vnx::write(out, value.input_page_index, type_code, type_code->fields[0].code.data());
-	vnx::write(out, value.input_page_index_sync, type_code, type_code->fields[1].code.data());
-	vnx::write(out, value.url_index_server, type_code, type_code->fields[2].code.data());
-	vnx::write(out, value.page_index_server, type_code, type_code->fields[3].code.data());
-	vnx::write(out, value.page_content_server, type_code, type_code->fields[4].code.data());
-	vnx::write(out, value.protocols, type_code, type_code->fields[7].code.data());
+	vnx::write(out, value.url_index_server, type_code, type_code->fields[1].code.data());
+	vnx::write(out, value.page_index_server, type_code, type_code->fields[2].code.data());
+	vnx::write(out, value.page_content_server, type_code, type_code->fields[3].code.data());
+	vnx::write(out, value.protocols, type_code, type_code->fields[9].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::SearchEngineBase& value) {

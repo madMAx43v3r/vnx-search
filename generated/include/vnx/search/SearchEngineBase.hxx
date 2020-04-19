@@ -20,12 +20,14 @@ class SearchEngineBase : public ::vnx::Module {
 public:
 	
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
-	::vnx::TopicPtr input_page_index_sync;
 	::std::string url_index_server = "UrlIndex";
 	::std::string page_index_server = "PageIndex";
 	::std::string page_content_server = "PageContent";
-	::int32_t num_iterations = 1;
-	::int32_t num_threads = 8;
+	::int32_t max_depth = 6;
+	::int32_t num_query_threads = 4;
+	::int32_t num_update_threads = 1;
+	::int32_t commit_interval = 1000;
+	::int32_t stats_interval_ms = 10000;
 	::std::vector<::std::string> protocols;
 	
 	typedef ::vnx::Module Super;
