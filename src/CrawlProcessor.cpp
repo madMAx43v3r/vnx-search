@@ -551,6 +551,7 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 				auto index = UrlIndex::create();
 				index->scheme = parsed.scheme();
 				index->depth = entry.depth;
+				index->profile = profile;
 				index->last_fetched = std::time(0);
 				index->is_fail = true;
 				url_index_async->get_value(url_key,
