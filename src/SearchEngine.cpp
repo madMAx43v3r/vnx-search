@@ -232,6 +232,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		if(url_index->depth < 0 || url_index->depth > max_depth) {
 			return;
 		}
+		const Url::Url parsed_url_key(url_key);
 		const auto page_id = get_url_id(url_key);
 		
 		auto& page = page_index[page_id];
@@ -244,7 +245,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		page.last_modified = url_index->last_modified;
 		
 		if(!page.domain_id) {
-			auto& domain = get_domain(Url::Url(url_key).host());
+			auto& domain = get_domain(parsed_url_key.host());
 			page.domain_id = domain.id;
 			domain.num_pages++;
 		}
@@ -255,10 +256,13 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		{
 			for(const auto& link : page_index_->links) {
 				try {
-					const Url::Url parsed(link);
-					if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end())
+					const Url::Url parsed_link(link);
+					const auto link_depth = page.depth + (parsed_link.host() != parsed_url_key.host() ? jump_cost : 1);
+					
+					if(link_depth <= max_depth &&
+							std::find(protocols.begin(), protocols.end(), parsed_link.scheme()) != protocols.end())
 					{
-						const auto link_id = get_url_id(get_url_key(parsed));
+						const auto link_id = get_url_id(get_url_key(parsed_link));
 						if(link_id == page.id) {
 							continue;		// ignore self links
 						}
