@@ -389,52 +389,91 @@ void SearchEngine::query_loop() const noexcept
 		std::vector<std::shared_ptr<const WordContext>> context;
 		try {
 			const std::vector<Variant> keys(request->words.begin(), request->words.end());
-			const auto value = word_context_sync.get_values(keys);
-			// TODO
+			const auto values = word_context_sync.get_values(keys);
+			int i = 0;
+			for(auto value : values) {
+				auto word_context = std::dynamic_pointer_cast<const WordContext>(value);
+				if(word_context) {
+					context.push_back(word_context);
+					result->words.push_back(request->words[i]);
+				}
+				i++;
+			}
 		}
 		catch(...) {
 			request->callback(result);
 		}
 		const uint32_t num_words = context.size();
 		
-		std::unordered_map<uint32_t, uint32_t> page_hits;
-		
-//		for(const auto& word : request->words) {
-//			std::shared_ptr<word_t> entry;
-//			{
-//				std::lock_guard<std::mutex> lock(index_mutex);
-//				auto id = word_map.find(word);
-//				if(id != word_map.end()) {
-//					auto iter = word_index.find(id->second);
-//					if(iter != word_index.end()) {
-//						entry = iter->second;
-//					}
-//				}
-//			}
-//			if(entry) {
-//				for(auto page : entry->pages) {
-//					page_hits[page]++;
-//				}
-//				result->words.push_back(word);
-//				num_words++;
-//			}
-//		}
-		
 		struct result_t {
 			const page_t* page = 0;
-			int64_t score = 1;
-			std::atomic<int64_t> add_score;
+			uint32_t weight = 1;
+			std::atomic<uint32_t> score {0};
 		};
 		
 		std::unordered_map<uint32_t, result_t> pages;
+		
+		if(num_words > 1)
 		{
-			std::shared_lock lock(index_mutex);
-			for(const auto& entry : page_hits) {
-				if(entry.second >= num_words) {
-					auto iter = page_index.find(entry.first);
-					if(iter != page_index.end()) {
-						pages[entry.first].page = &iter->second;
+			std::unordered_map<uint32_t, uint32_t> page_hits;
+			{
+				std::vector<std::vector<uint32_t>::const_iterator> iter(num_words);
+				std::vector<std::vector<uint32_t>::const_iterator> end(num_words);
+				for(uint32_t i = 0; i < num_words; ++i) {
+					iter[i] = context[i]->pages.begin();
+					end[i] = context[i]->pages.end();
+				}
+				uint32_t k = 0;
+				uint32_t num_iter = num_words;
+				uint32_t num_hits = 0;
+				
+				while(num_iter > 0 && (max_query_pages < 0 || num_hits < max_query_pages))
+				{
+					if(iter[k] != end[k]) {
+						if(++page_hits[*iter[k]] == num_words) {
+							num_hits++;
+						}
+						iter[k]++;
+					} else {
+						iter.erase(iter.begin() + k);
+						end.erase(end.begin() + k);
+						num_iter--;
 					}
+					if(++k >= num_iter) {
+						k = 0;
+					}
+				}
+				pages.reserve(num_hits);
+			}
+			{
+				std::shared_lock lock(index_mutex);
+				
+				for(const auto& entry : page_hits) {
+					if(entry.second >= num_words) {
+						auto iter = page_index.find(entry.first);
+						if(iter != page_index.end()) {
+							auto& result = pages[entry.first];
+							result.page = &iter->second;
+							result.weight = iter->second.reverse_domains.size();
+						}
+					}
+				}
+			}
+		}
+		else {
+			std::shared_lock lock(index_mutex);
+			
+			pages.reserve(std::min(context[0]->pages.size(), size_t(max_query_pages)));
+			
+			for(const auto page_id : context[0]->pages) {
+				if(pages.size() >= size_t(max_query_pages)) {
+					break;
+				}
+				auto iter = page_index.find(page_id);
+				if(iter != page_index.end()) {
+					auto& result = pages[page_id];
+					result.page = &iter->second;
+					result.weight = iter->second.reverse_domains.size();
 				}
 			}
 		}
@@ -450,20 +489,14 @@ void SearchEngine::query_loop() const noexcept
 						 entry = advance_until(entry, pages.end(), N))
 				{
 					const auto& result = entry->second;
-					for(auto link : result.page->links)
+					for(const auto link_id : result.page->links)
 					{
-						auto iter = pages.find(link);
+						const auto iter = pages.find(link_id);
 						if(iter != pages.end()) {
-							iter->second.add_score += result.score;
+							iter->second.score += result.score;
 						}
 					}
 				}
-			}
-			for(auto& entry : pages)
-			{
-				auto& result = entry.second;
-				result.score += result.add_score;
-				result.add_score = 0;
 			}
 		}
 		
