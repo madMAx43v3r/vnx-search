@@ -20,7 +20,7 @@ module CrawlProcessor {
 	
 	int jump_cost = 3;
 	
-	int max_depth = 6;
+	int max_depth = 5;
 	
 	int reload_interval = 10800;			// [seconds / (depth + 1) ^ reload_power]
 	
