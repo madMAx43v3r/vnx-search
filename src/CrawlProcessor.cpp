@@ -208,6 +208,9 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 
 bool CrawlProcessor::filter_url(const Url::Url& parsed)
 {
+	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
+		return true;	// just keep unknown protocols
+	}
 	auto& domain = get_domain(parsed.host());
 	if(domain.is_blacklisted) {
 		return false;
