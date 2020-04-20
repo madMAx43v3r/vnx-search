@@ -577,38 +577,43 @@ void SearchEngine::update_loop() noexcept
 		}
 		std::sort(list.begin(), list.end(), std::greater<std::pair<uint32_t, uint32_t>>());
 		
-		auto value = WordContext::create();
-		value->last_update = std::time(0);
-		value->pages.reserve(list.size());
-		for(const auto& entry : list) {
-			value->pages.push_back(entry.second);
-		}
-		word_context_sync.store_value(word, value);
-		
-		std::vector<std::pair<uint32_t, std::shared_ptr<PageInfo>>> page_updates;
-		{
-			std::shared_lock lock(index_mutex);
+		try {
+			auto value = WordContext::create();
+			value->last_update = std::time(0);
+			value->pages.reserve(list.size());
+			for(const auto& entry : list) {
+				value->pages.push_back(entry.second);
+			}
+			word_context_sync.store_value(word, value);
 			
-			for(const auto page_id : cached->add_pages) {
-				auto iter = page_index.find(page_id);
-				if(iter != page_index.end()) {
-					auto& page = iter->second;
-					if(--(page.num_pending) == 0)
-					{
-						auto info = PageInfo::create();
-						info->version = page.version;
-						info->url_key = page.url_key;
-						info->depth = page.depth;
-						page_updates.emplace_back(page_id, info);
+			std::vector<std::pair<uint32_t, std::shared_ptr<PageInfo>>> page_updates;
+			{
+				std::shared_lock lock(index_mutex);
+				
+				for(const auto page_id : cached->add_pages) {
+					auto iter = page_index.find(page_id);
+					if(iter != page_index.end()) {
+						auto& page = iter->second;
+						if(--(page.num_pending) == 0)
+						{
+							auto info = PageInfo::create();
+							info->version = page.version;
+							info->url_key = page.url_key;
+							info->depth = page.depth;
+							page_updates.emplace_back(page_id, info);
+						}
 					}
 				}
 			}
+			for(const auto& entry : page_updates) {
+				page_info_sync.store_value(entry.first, entry.second);
+				page_update_counter++;
+			}
+			word_update_counter++;
 		}
-		for(const auto& entry : page_updates) {
-			page_info_sync.store_value(entry.first, entry.second);
-			page_update_counter++;
+		catch(...) {
+			// ignore
 		}
-		word_update_counter++;
 	}
 }
 
