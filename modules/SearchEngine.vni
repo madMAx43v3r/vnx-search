@@ -20,7 +20,7 @@ module SearchEngine {
 	
 	int num_update_threads = 4;
 	
-	int commit_interval = 1000;				// [sec]
+	int commit_interval = 3600;				// [sec]
 	
 	int update_interval_ms = 10000;			// word queue update
 	
