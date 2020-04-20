@@ -580,8 +580,8 @@ void SearchEngine::update_loop() noexcept
 		std::unordered_set<uint32_t> new_pages(cached->add_pages.begin(), cached->add_pages.end());
 		
 		if(context) {
-			for(const auto page : context->pages) {
-				const auto iter = new_pages.find(page);
+			for(const auto page_id : context->pages) {
+				const auto iter = new_pages.find(page_id);
 				if(iter != new_pages.end()) {
 					new_pages.erase(iter);
 				}
@@ -594,19 +594,17 @@ void SearchEngine::update_loop() noexcept
 			std::shared_lock lock(index_mutex);
 			
 			if(context) {
-				for(const auto page : context->pages) {
-					auto iter = page_index.find(page);
+				for(const auto page_id : context->pages) {
+					auto iter = page_index.find(page_id);
 					if(iter != page_index.end()) {
-						list.emplace_back(std::min(iter->second.reverse_links.size(),
-													size_t(std::numeric_limits<uint32_t>::max())), page);
+						list.emplace_back(iter->second.reverse_links.size(), page_id);
 					}
 				}
 			}
-			for(const auto page : new_pages) {
-				auto iter = page_index.find(page);
+			for(const auto page_id : new_pages) {
+				auto iter = page_index.find(page_id);
 				if(iter != page_index.end()) {
-					list.emplace_back(std::min(iter->second.reverse_links.size(),
-												size_t(std::numeric_limits<uint32_t>::max())), page);
+					list.emplace_back(iter->second.reverse_links.size(), page_id);
 				}
 			}
 		}
