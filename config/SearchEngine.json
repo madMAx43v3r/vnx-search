@@ -1,3 +1,5 @@
 {
-	"num_iterations": 1
+	"max_depth": 5,
+	"max_query_pages": 10000,
+	"commit_interval": 10
 }
