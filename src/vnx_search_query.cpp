@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	options["l"] = "limit";
 	options["p"] = "page";
 	options["o"] = "options";
-	options["server"] = "engine server url";
+	options["server"] = "backend server url";
 	options["words"] = "search words";
 	options["limit"] = "max results";
 	options["page"] = "page index";
@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 	
 	vnx::init("vnx_search_query", argc, argv, options);
 	
-	std::string server = ".vnx_search_engine.sock";
+	std::string server = ".vnx_search_backend.sock";
 	std::vector<std::string> words;
 	int limit = 10;
 	int page = 0;

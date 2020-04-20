@@ -272,7 +272,9 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 							} else {
 								child.reverse_links.push_back(page.id);
 							}
-							unique_push_back(child.reverse_domains, page.domain_id);
+							if(page.domain_id != child.domain_id) {
+								unique_push_back(child.reverse_domains, page.domain_id);
+							}
 						} else {
 							bool found = false;
 							if(page.version) {
@@ -302,7 +304,9 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				if(iter != page_index.end()) {
 					const auto& parent = iter->second;
 					page.reverse_links.push_back(parent.id);
-					unique_push_back(page.reverse_domains, parent.domain_id);
+					if(parent.domain_id != page.domain_id) {
+						unique_push_back(page.reverse_domains, parent.domain_id);
+					}
 				}
 			}
 			reverse_links.erase(page.id);
@@ -402,8 +406,14 @@ void SearchEngine::query_loop() const noexcept
 		}
 		catch(...) {
 			request->callback(result);
+			continue;
 		}
+		
 		const uint32_t num_words = context.size();
+		if(num_words == 0) {
+			request->callback(result);
+			continue;
+		}
 		
 		struct result_t {
 			const page_t* page = 0;
@@ -454,7 +464,7 @@ void SearchEngine::query_loop() const noexcept
 						if(iter != page_index.end()) {
 							auto& result = pages[entry.first];
 							result.page = &iter->second;
-							result.weight = iter->second.reverse_domains.size();
+							result.weight = 1 + iter->second.reverse_domains.size();
 						}
 					}
 				}
@@ -473,7 +483,7 @@ void SearchEngine::query_loop() const noexcept
 				if(iter != page_index.end()) {
 					auto& result = pages[page_id];
 					result.page = &iter->second;
-					result.weight = iter->second.reverse_domains.size();
+					result.weight = 1 + iter->second.reverse_domains.size();
 				}
 			}
 		}
@@ -493,7 +503,7 @@ void SearchEngine::query_loop() const noexcept
 					{
 						const auto iter = pages.find(link_id);
 						if(iter != pages.end()) {
-							iter->second.score += result.score;
+							iter->second.score += result.weight;
 						}
 					}
 				}
