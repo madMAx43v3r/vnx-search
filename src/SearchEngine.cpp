@@ -259,16 +259,53 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 					if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) != protocols.end())
 					{
 						const auto link_id = get_url_id(get_url_key(parsed));
+						if(link_id == page.id) {
+							continue;		// ignore self links
+						}
 						page.links.push_back(link_id);
 						
-						auto& child = page_index[link_id];
-						unique_push_back(child.reverse_links, page.id);
-						unique_push_back(child.reverse_domains, page.domain_id);
+						auto iter = page_index.find(link_id);
+						if(iter != page_index.end()) {
+							auto& child = iter->second;
+							if(page.version) {
+								unique_push_back(child.reverse_links, page.id);
+							} else {
+								child.reverse_links.push_back(page.id);
+							}
+							unique_push_back(child.reverse_domains, page.domain_id);
+						} else {
+							bool found = false;
+							if(page.version) {
+								auto range = reverse_links.equal_range(link_id);
+								for(auto entry = range.first; entry != range.second; ++entry) {
+									if(entry->second == page.id) {
+										found = true;
+										break;
+									}
+								}
+							}
+							if(!found) {
+								reverse_links.emplace(link_id, page.id);
+							}
+						}
 					}
 				} catch(...) {
 					// ignore bad links
 				}
 			}
+		}
+		{
+			auto range = reverse_links.equal_range(page.id);
+			for(auto entry = range.first; entry != range.second; ++entry)
+			{
+				auto iter = page_index.find(entry->second);
+				if(iter != page_index.end()) {
+					const auto& parent = iter->second;
+					page.reverse_links.push_back(parent.id);
+					unique_push_back(page.reverse_domains, parent.domain_id);
+				}
+			}
+			reverse_links.erase(page.id);
 		}
 		
 		if(version > page.version)
@@ -284,10 +321,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			}
 			page.num_pending += page_index_->words.size();
 			page.version = version;
-		}
-		
-		for(const auto& word : page_index_->words) {
-			word_set.insert(word);
 		}
 	}
 }
@@ -315,7 +348,9 @@ void SearchEngine::print_stats()
 	log(INFO).out << (60000 * word_update_counter) / stats_interval_ms << " words/min, "
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
-			<< word_cache.size() << " words cached";
+			<< page_index.size() << " pages, "
+			<< word_cache.size() << " words cached, "
+			<< reverse_links.size() << " open links";
 	
 	word_update_counter = 0;
 	page_update_counter = 0;

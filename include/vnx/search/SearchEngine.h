@@ -122,6 +122,7 @@ private:
 	std::map<std::string, uint32_t> domain_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
+	std::unordered_multimap<uint32_t, uint32_t> reverse_links;
 	
 	std::set<std::string> word_set;
 	std::unordered_map<std::string, std::shared_ptr<word_t>> word_cache;
