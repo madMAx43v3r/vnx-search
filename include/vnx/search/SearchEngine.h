@@ -45,6 +45,7 @@ protected:
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
 		int depth = -1;
+		bool is_loaded = false;
 		uint64_t version = 0;
 		std::string scheme;
 		std::string url_key;

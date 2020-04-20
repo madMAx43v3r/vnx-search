@@ -271,7 +271,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 						auto iter = page_index.find(link_id);
 						if(iter != page_index.end()) {
 							auto& child = iter->second;
-							if(page.version) {
+							if(page.is_loaded) {
 								unique_push_back(child.reverse_links, page.id);
 							} else {
 								child.reverse_links.push_back(page.id);
@@ -281,7 +281,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 							}
 						} else {
 							bool found = false;
-							if(page.version) {
+							if(page.is_loaded) {
 								auto range = reverse_links.equal_range(link_id);
 								for(auto entry = range.first; entry != range.second; ++entry) {
 									if(entry->second == page.id) {
@@ -330,6 +330,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			page.num_pending += page_index_->words.size();
 			page.version = version;
 		}
+		page.is_loaded = true;
 	}
 }
 
@@ -465,7 +466,8 @@ void SearchEngine::query_loop() const noexcept
 				for(const auto& entry : page_hits) {
 					if(entry.second >= num_words) {
 						auto iter = page_index.find(entry.first);
-						if(iter != page_index.end()) {
+						if(iter != page_index.end() && iter->second.is_loaded)
+						{
 							auto& result = pages[entry.first];
 							result.page = &iter->second;
 							result.weight = 1 + iter->second.reverse_domains.size();
@@ -484,7 +486,8 @@ void SearchEngine::query_loop() const noexcept
 					break;
 				}
 				auto iter = page_index.find(page_id);
-				if(iter != page_index.end()) {
+				if(iter != page_index.end() && iter->second.is_loaded)
+				{
 					auto& result = pages[page_id];
 					result.page = &iter->second;
 					result.weight = 1 + iter->second.reverse_domains.size();
