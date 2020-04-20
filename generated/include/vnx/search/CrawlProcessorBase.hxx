@@ -27,7 +27,7 @@ public:
 	::std::string page_content_server = "PageContent";
 	::std::string crawl_frontend_server = "CrawlFrontend";
 	::int32_t jump_cost = 3;
-	::int32_t max_depth = 6;
+	::int32_t max_depth = 5;
 	::int32_t reload_interval = 10800;
 	::int32_t error_reload_interval = 86400;
 	::int32_t sync_interval = 3600;
