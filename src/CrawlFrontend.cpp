@@ -395,6 +395,8 @@ void CrawlFrontend::fetch_loop() const noexcept
 				connection_fail_counter++;
 				break;
 			}
+			case CURLE_WRITE_ERROR:
+				break;
 			default:
 				general_fail_counter++;
 		}
