@@ -263,7 +263,6 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 				return 0;
 			}
 		}
-		data->out->content_type = content_type;
 		
 		bool valid_type = false;
 		for(const auto& mime_type : data->request->accept_content) {
@@ -279,6 +278,7 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 				return 0;
 			}
 		}
+		data->out->content_type = content_type;
 		data->is_begin = false;
 	}
 	
