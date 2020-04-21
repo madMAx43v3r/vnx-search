@@ -416,6 +416,7 @@ void CrawlFrontend::fetch_loop() const noexcept
 		
 		index->fetch_duration_us = fetch_time;
 		index->http_status = status;
+		index->num_bytes = out->payload.size();
 		index->content_type = out->content_type;
 		index->last_modified = out->last_modified;
 		index->curl_status = res;

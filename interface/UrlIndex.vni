@@ -16,6 +16,8 @@ class UrlIndex {
 	
 	long fetch_duration_us;			// [usec]
 	
+	long num_bytes = -1;			// payload
+	
 	int http_status = -1;
 	
 	int curl_status = -1;
