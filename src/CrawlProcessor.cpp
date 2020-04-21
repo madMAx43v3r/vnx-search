@@ -679,11 +679,10 @@ void CrawlProcessor::publish_stats()
 void CrawlProcessor::print_stats()
 {
 	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
-			<< pending_urls.size() << " pending, " << queue_block_count << " blocked, "
-			<< fetch_counter << " fetched, "
-			<< error_counter << " failed, " << reload_counter << " reload, "
-			<< domain_map.size() << " (-" << blacklisted_domains << ") domains, "
-			<< average_depth << " avg. depth";
+			<< pending_urls.size() << " pending, " << queue_block_count << " blocking, "
+			<< fetch_counter << " fetched, " << error_counter << " failed, "
+			<< reload_counter << " reload, " << domain_map.size()
+			<< " (-" << blacklisted_domains << ") domains, " << average_depth << " depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
 			<< found_robots_txt << " found";
