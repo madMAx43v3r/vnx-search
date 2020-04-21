@@ -259,7 +259,6 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 					content_type = content_type.substr(0, pos);
 				}
 			}
-			data->out->content_type = content_type;
 		} else {
 			if(is_robots_txt(Url::Url(data->request->url))) {
 				content_type = "text/plain";
@@ -268,6 +267,7 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 				return 0;
 			}
 		}
+		data->out->content_type = content_type;
 		
 		bool valid_type = false;
 		for(const auto& mime_type : data->request->accept_content) {
