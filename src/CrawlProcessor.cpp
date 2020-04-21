@@ -224,13 +224,13 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed)
 	return true;
 }
 
-bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
+int CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
 {
 	if(depth > max_depth) {
-		return false;
+		return 0;
 	}
 	if(url.size() > max_url_length) {
-		return false;
+		return 0;
 	}
 	const Url::Url parsed(url);
 	const auto url_key = get_url_key(parsed);
@@ -238,36 +238,38 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 		auto iter = url_map.find(url_key);
 		if(iter != url_map.end()) {
 			if(depth >= iter->second.depth) {
-				return false;
+				return 0;
 			}
 		}
 	}
 	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
-		return false;
+		return 0;
 	}
 	const auto host = parsed.host();
 	if(host.empty()) {
-		return false;
+		return 0;
 	}
 	domain_t& domain = get_domain(host);
 	if(domain.is_blacklisted) {
-		return false;
+		return 0;
 	}
 	
+	bool is_waiting = false;
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
 		domain.queue.emplace(depth, url);
 	} else if(delta < 2 * sync_interval) {
 		waiting.emplace(load_time, url);
+		is_waiting = true;
 	} else {
-		return false;
+		return 0;
 	}
 	
 	url_t& entry = url_map[url_key];
 	entry.domain = host;
 	entry.depth = depth;
 	entry.is_reload = load_time > 0;
-	return true;
+	return is_waiting ? 2 : 1;
 }
 
 void CrawlProcessor::check_queue()
@@ -415,10 +417,10 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 				} else {
 					load_time = index->last_fetched + 2678400;
 				}
-				const bool is_queued = enqueue(url, depth, index->last_fetched + 2678400);
+				const int is_queued = enqueue(url, depth, index->last_fetched + 2678400);
 				
+				auto& domain = get_domain(parsed.host());
 				if(!is_queued) {
-					auto& domain = get_domain(parsed.host());
 					if(index->is_fail) {
 						if(domain.robots_state != ROBOTS_TXT_MISSING) {
 							missing_robots_txt++;
@@ -431,6 +433,8 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 									std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
 						}
 					}
+				} else if(is_queued == 1) {
+					domain.robots_state = ROBOTS_TXT_PENDING;
 				}
 			} else {
 				enqueue(url, depth);

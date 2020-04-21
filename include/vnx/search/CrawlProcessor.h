@@ -78,7 +78,7 @@ private:
 	
 	bool filter_url(const Url::Url& parsed);
 	
-	bool enqueue(const std::string& url, int depth, int64_t load_time = 0);
+	int enqueue(const std::string& url, int depth, int64_t load_time = 0);
 	
 	void check_queue();
 	
