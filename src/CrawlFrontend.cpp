@@ -67,6 +67,8 @@ void CrawlFrontend::init()
 
 void CrawlFrontend::main()
 {
+	::usleep(2 * 1000 * 1000);			// wait for parsers
+	
 	subscribe(output_http, 1000);		// need to block here due to potential processing bottleneck
 	
 	work_threads.resize(num_threads);
