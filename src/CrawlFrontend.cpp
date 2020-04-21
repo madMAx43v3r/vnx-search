@@ -232,10 +232,6 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 	
 	if(data->is_begin)
 	{
-		long status = 0;
-		curl_easy_getinfo(data->client, CURLINFO_RESPONSE_CODE, &status);
-		data->out->status = status;
-		
 		char* content_type_ = 0;
 		std::string content_type;
 		curl_easy_getinfo(data->client, CURLINFO_CONTENT_TYPE, &content_type_);
@@ -360,9 +356,13 @@ void CrawlFrontend::fetch_loop() const noexcept
 		
 		const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
 		
+		long status = -1;
+		curl_easy_getinfo(client, CURLINFO_RESPONSE_CODE, &status);
+		out->status = status;
+		
 		switch(res) {
 			case CURLE_OK:
-				if(out->status == 200)
+				if(status == 200)
 				{
 					out->fetch_duration_us = fetch_time;
 					if(!out->date) {
@@ -412,7 +412,7 @@ void CrawlFrontend::fetch_loop() const noexcept
 		}
 		
 		index->fetch_duration_us = fetch_time;
-		index->http_status = out->status;
+		index->http_status = status;
 		index->content_type = out->content_type;
 		index->last_modified = out->last_modified;
 		index->curl_status = res;
