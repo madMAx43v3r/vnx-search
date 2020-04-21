@@ -411,13 +411,13 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 	if(index) {
 		if(is_robots) {
 			if(index->last_fetched > 0) {
-				int64_t load_time = 0;
+				int64_t load_delay = 0;
 				if(index->http_status < 0) {
-					load_time = index->last_fetched + int64_t(pow(index->fetch_count, 2) * 300);
+					load_delay = std::min(int64_t(pow(index->fetch_count, 4) * 300), int64_t(2678400));
 				} else {
-					load_time = index->last_fetched + 2678400;
+					load_delay = 2678400;
 				}
-				const int is_queued = enqueue(url, depth, index->last_fetched + 2678400);
+				const int is_queued = enqueue(url, depth, index->last_fetched + load_delay);
 				
 				auto& domain = get_domain(parsed.host());
 				if(!is_queued) {
