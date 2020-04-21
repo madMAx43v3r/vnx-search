@@ -68,6 +68,8 @@ void HtmlParser::main()
 	
 	set_timer_millis(1000, std::bind(&HtmlParser::update, this));
 	
+	update();
+	
 	Super::main();
 }
 

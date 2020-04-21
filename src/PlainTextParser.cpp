@@ -24,6 +24,8 @@ void PlainTextParser::main()
 	
 	set_timer_millis(1000, std::bind(&PlainTextParser::update, this));
 	
+	update();
+	
 	Super::main();
 }
 
