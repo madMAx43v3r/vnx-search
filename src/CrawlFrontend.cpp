@@ -354,28 +354,20 @@ void CrawlFrontend::fetch_loop() const noexcept
 		
 		const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
 		
-		index->fetch_duration_us = fetch_time;
-		index->http_status = out->status;
-		index->content_type = out->content_type;
-		index->curl_status = res;
-		
 		switch(res) {
 			case CURLE_OK:
 				if(out->status == 200)
 				{
 					out->fetch_duration_us = fetch_time;
-					
 					if(!out->date) {
 						out->date = index->last_fetched;
 					}
 					if(!out->last_modified) {
 						out->last_modified = out->date;
 					}
-					
 					publisher.publish(out, output_http, Message::BLOCKING);
 					
 					index->is_fail = false;
-					index->last_modified = out->last_modified;
 					fetch_counter++;
 				}
 				else {
@@ -387,10 +379,13 @@ void CrawlFrontend::fetch_loop() const noexcept
 				invalid_url_counter++;
 				break;
 			case CURLE_COULDNT_RESOLVE_HOST:
-			case CURLE_COULDNT_CONNECT: {
-				const auto diff = 1000 * 1000 - fetch_time;
+			case CURLE_COULDNT_CONNECT:
+			case CURLE_OPERATION_TIMEDOUT:
+			case CURLE_RECV_ERROR:
+			{
+				const auto diff = 1000000 - fetch_time;
 				if(diff > 0) {
-					::usleep(diff);
+					::usleep(diff);		// limit errors
 				}
 				connection_fail_counter++;
 				break;
@@ -400,6 +395,12 @@ void CrawlFrontend::fetch_loop() const noexcept
 			default:
 				general_fail_counter++;
 		}
+		
+		index->fetch_duration_us = fetch_time;
+		index->http_status = out->status;
+		index->content_type = out->content_type;
+		index->last_modified = out->last_modified;
+		index->curl_status = res;
 		
 		curl_easy_cleanup(client);
 		
