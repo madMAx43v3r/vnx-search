@@ -6,6 +6,7 @@
  */
 
 #include <vnx/search/CrawlFrontend.h>
+#include <vnx/search/Util.h>
 #include <vnx/search/HttpResponse.hxx>
 #include <vnx/search/CrawlProcessorClient.hxx>
 
@@ -260,8 +261,12 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 			}
 			data->out->content_type = content_type;
 		} else {
-			data->frontend->invalid_content_type_counter++;
-			return 0;
+			if(is_robots_txt(Url::Url(data->request->url))) {
+				content_type = "text/plain";
+			} else {
+				data->frontend->invalid_content_type_counter++;
+				return 0;
+			}
 		}
 		
 		bool valid_type = false;
