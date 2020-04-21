@@ -272,6 +272,7 @@ bool CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_tim
 
 void CrawlProcessor::check_queue()
 {
+	queue_block_count = 0;
 	pending_robots_txt = 0;
 	const int64_t now_posix = std::time(0);
 	const int64_t now_wall = vnx::get_wall_time_micros();
@@ -281,6 +282,8 @@ void CrawlProcessor::check_queue()
 		if(pending_urls.size() >= max_num_pending) {
 			break;
 		}
+		queue_block_count++;
+		
 		domain_t& domain = *entry.second;
 		const int64_t fetch_delta_ms = (now_wall - domain.last_fetch_us) / 1000;
 		
@@ -315,6 +318,8 @@ void CrawlProcessor::check_queue()
 		
 		if(fetch_delta_ms > int64_t(60 * 1000) / max_per_minute)
 		{
+			queue_block_count--;
+			
 			auto iter = domain.queue.begin();
 			while(domain.robots_txt && iter != domain.queue.end()) {
 				if(matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, iter->second)) {
@@ -674,7 +679,8 @@ void CrawlProcessor::publish_stats()
 void CrawlProcessor::print_stats()
 {
 	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
-			<< pending_urls.size() << " pending, " << fetch_counter << " fetched, "
+			<< pending_urls.size() << " pending, " << queue_block_count << " blocked, "
+			<< fetch_counter << " fetched, "
 			<< error_counter << " failed, " << reload_counter << " reload, "
 			<< domain_map.size() << " (-" << blacklisted_domains << ") domains, "
 			<< average_depth << " avg. depth";
