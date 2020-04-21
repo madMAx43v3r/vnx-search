@@ -390,6 +390,9 @@ void CrawlFrontend::fetch_loop() const noexcept
 				connection_fail_counter++;
 				break;
 			}
+			case CURLE_FILESIZE_EXCEEDED:
+				invalid_response_size_counter++;
+				break;
 			case CURLE_WRITE_ERROR:
 				break;
 			default:
