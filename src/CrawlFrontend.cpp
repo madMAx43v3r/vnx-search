@@ -356,8 +356,11 @@ void CrawlFrontend::fetch_loop() const noexcept
 		
 		const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
 		
-		long status = -1;
+		long status = 0;
 		curl_easy_getinfo(client, CURLINFO_RESPONSE_CODE, &status);
+		if(status == 0) {
+			status = -1;
+		}
 		out->status = status;
 		
 		switch(res) {
