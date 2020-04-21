@@ -361,12 +361,16 @@ void CrawlFrontend::fetch_loop() const noexcept
 		if(status == 0) {
 			status = -1;
 		}
-		out->status = status;
+		
+		if(out->content_type.empty() && out->payload.size() == 0) {
+			out->content_type = "text/plain";
+		}
 		
 		switch(res) {
 			case CURLE_OK:
 				if(status == 200)
 				{
+					out->status = status;
 					out->fetch_duration_us = fetch_time;
 					if(!out->date) {
 						out->date = index->last_fetched;
