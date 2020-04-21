@@ -188,6 +188,7 @@ void CrawlFrontend::print_stats()
 			<< invalid_url_counter << " url, "
 			<< invalid_content_type_counter << " content, "
 			<< invalid_response_size_counter << " size, "
+			<< empty_response_counter << " empty, "
 			<< parse_failed_counter << " parse, "
 			<< general_fail_counter << " other";
 	
@@ -380,7 +381,10 @@ void CrawlFrontend::fetch_loop() const noexcept
 				break;
 			case CURLE_COULDNT_RESOLVE_HOST:
 			case CURLE_COULDNT_CONNECT:
+			case CURLE_SSL_CONNECT_ERROR:
+			case CURLE_SSL_CIPHER:
 			case CURLE_OPERATION_TIMEDOUT:
+			case CURLE_SEND_ERROR:
 			case CURLE_RECV_ERROR:
 			{
 				const auto diff = 1000000 - fetch_time;
@@ -390,6 +394,9 @@ void CrawlFrontend::fetch_loop() const noexcept
 				connection_fail_counter++;
 				break;
 			}
+			case CURLE_GOT_NOTHING:
+				empty_response_counter++;
+				break;
 			case CURLE_FILESIZE_EXCEEDED:
 				invalid_response_size_counter++;
 				break;
