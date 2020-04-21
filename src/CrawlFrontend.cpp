@@ -257,7 +257,7 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 			}
 		} else {
 			if(is_robots_txt(Url::Url(data->request->url))) {
-				content_type = "text/plain";
+				content_type = "text/plain";		// assume it's text
 			} else {
 				data->frontend->invalid_content_type_counter++;
 				return 0;
@@ -272,8 +272,12 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 			}
 		}
 		if(!valid_type) {
-			data->frontend->invalid_content_type_counter++;
-			return 0;
+			if(is_robots_txt(Url::Url(data->request->url))) {
+				content_type = "text/plain";		// assume it's really text
+			} else {
+				data->frontend->invalid_content_type_counter++;
+				return 0;
+			}
 		}
 		data->is_begin = false;
 	}
