@@ -355,6 +355,8 @@ void CrawlFrontend::fetch_loop() const noexcept
 		const auto fetch_time = vnx::get_wall_time_micros() - fetch_start;
 		
 		index->fetch_duration_us = fetch_time;
+		index->http_status = out->status;
+		index->content_type = out->content_type;
 		index->curl_status = res;
 		
 		switch(res) {
@@ -379,8 +381,6 @@ void CrawlFrontend::fetch_loop() const noexcept
 				else {
 					server_fail_counter++;
 				}
-				index->http_status = out->status;
-				index->content_type = out->content_type;
 				break;
 			case CURLE_UNSUPPORTED_PROTOCOL:
 			case CURLE_URL_MALFORMAT:
