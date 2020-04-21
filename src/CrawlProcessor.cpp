@@ -404,19 +404,27 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 	if(index) {
 		if(is_robots) {
 			if(index->last_fetched > 0) {
+				int64_t load_time = 0;
+				if(index->http_status < 0) {
+					load_time = index->last_fetched + int64_t(pow(index->fetch_count, 2) * 300);
+				} else {
+					load_time = index->last_fetched + 2678400;
+				}
 				const bool is_queued = enqueue(url, depth, index->last_fetched + 2678400);
 				
-				auto& domain = get_domain(parsed.host());
-				if(index->is_fail) {
-					if(domain.robots_state != ROBOTS_TXT_MISSING) {
-						missing_robots_txt++;
-					}
-					domain.robots_state = ROBOTS_TXT_MISSING;
-					domain.robots_txt = 0;
-				} else {
-					if(!is_queued && domain.robots_state != ROBOTS_TXT_PENDING) {
-						page_content_async->get_value(url_key,
-								std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
+				if(!is_queued) {
+					auto& domain = get_domain(parsed.host());
+					if(index->is_fail) {
+						if(domain.robots_state != ROBOTS_TXT_MISSING) {
+							missing_robots_txt++;
+						}
+						domain.robots_state = ROBOTS_TXT_MISSING;
+						domain.robots_txt = 0;
+					} else {
+						if(domain.robots_state != ROBOTS_TXT_PENDING) {
+							page_content_async->get_value(url_key,
+									std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
+						}
 					}
 				}
 			} else {
@@ -426,7 +434,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 			depth = std::min(depth, index->depth);
 			if(index->last_fetched > 0) {
 				int64_t load_time = 0;
-				if(index->curl_status == 6 || index->curl_status == 7) {
+				if(index->http_status < 0) {
 					load_time = index->last_fetched + int64_t(pow(index->fetch_count, 2) * error_reload_interval);
 				} else {
 					load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);

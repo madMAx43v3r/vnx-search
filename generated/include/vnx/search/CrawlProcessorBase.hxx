@@ -38,7 +38,7 @@ public:
 	::int32_t max_word_length = 64;
 	::int32_t check_interval_ms = 500;
 	::int32_t update_interval_ms = 5000;
-	::int32_t robots_txt_timeout = 60;
+	::int32_t robots_txt_timeout = 900;
 	::vnx::float32_t reload_power = 4;
 	::std::string user_agent = "Googlebot";
 	::std::string profile = "default";
