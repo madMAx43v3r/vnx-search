@@ -411,11 +411,9 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 	if(index) {
 		if(is_robots) {
 			if(index->last_fetched > 0) {
-				int64_t load_delay = 0;
+				int64_t load_delay = 2678400;
 				if(index->http_status < 0) {
-					load_delay = std::min(int64_t(pow(index->fetch_count, 4) * 300), int64_t(2678400));
-				} else {
-					load_delay = 2678400;
+					load_delay = std::min(int64_t(pow(index->fetch_count, reload_power) * error_reload_interval), load_delay);
 				}
 				const int is_queued = enqueue(url, depth, index->last_fetched + load_delay);
 				
@@ -442,13 +440,11 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 		} else {
 			depth = std::min(depth, index->depth);
 			if(index->last_fetched > 0) {
-				int64_t load_time = 0;
+				int64_t load_delay = pow(depth + 1, reload_power) * reload_interval;
 				if(index->http_status < 0) {
-					load_time = index->last_fetched + int64_t(pow(index->fetch_count, 2) * error_reload_interval);
-				} else {
-					load_time = index->last_fetched + int64_t(pow(depth + 1, reload_power) * reload_interval);
+					load_delay = std::min(int64_t(pow(index->fetch_count, reload_power) * error_reload_interval), load_delay);
 				}
-				enqueue(url, depth, load_time);
+				enqueue(url, depth, index->last_fetched + load_delay);
 			} else {
 				enqueue(url, depth);
 			}
