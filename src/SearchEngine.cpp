@@ -460,7 +460,7 @@ void SearchEngine::query_loop() const noexcept
 								if(++entry.first == num_words) {
 									const auto index = num_found++;
 									if(index < max_query_pages) {
-										found[index] = entry;
+										found[index] = std::make_pair(page_id, entry.second);
 									}
 									page_hits.erase(page_id);
 								}
@@ -480,7 +480,8 @@ void SearchEngine::query_loop() const noexcept
 			{
 				std::shared_lock lock(index_mutex);
 				
-				for(const auto& entry : found) {
+				for(uint32_t i = 0; i < num_found; ++i) {
+					const auto& entry = found[i];
 					auto iter = page_index.find(entry.first);
 					if(iter != page_index.end() && iter->second.is_loaded)
 					{
