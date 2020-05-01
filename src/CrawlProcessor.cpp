@@ -65,11 +65,13 @@ void CrawlProcessor::main()
 	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::update_queue, this));
 	set_timer_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
-	for(const auto& url : root_urls)
-	{
-		const auto parsed = process_url(Url::Url(url));
-		url_index_async->get_value(get_url_key(parsed),
-				std::bind(&CrawlProcessor::check_url, this, parsed.str(), 0, std::placeholders::_1));
+	if(!do_reprocess) {
+		for(const auto& url : root_urls)
+		{
+			const auto parsed = process_url(Url::Url(url));
+			url_index_async->get_value(get_url_key(parsed),
+					std::bind(&CrawlProcessor::check_url, this, parsed.str(), 0, std::placeholders::_1));
+		}
 	}
 	
 	check_all_urls();
