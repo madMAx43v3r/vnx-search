@@ -32,7 +32,7 @@ public:
 protected:
 	struct word_t {
 		int64_t queue_time_us = 0;
-		std::vector<uint32_t> add_pages;
+		std::vector<std::pair<uint32_t, float>> add_pages;
 	};
 	
 	struct domain_t {
@@ -44,6 +44,7 @@ protected:
 	struct page_t {
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
+		uint32_t index_version = 0;
 		int depth = -1;
 		bool is_loaded = false;
 		uint64_t version = 0;
@@ -123,7 +124,7 @@ private:
 	std::map<std::string, uint32_t> domain_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
-	std::unordered_multimap<uint32_t, uint32_t> reverse_links;
+	std::unordered_multimap<uint32_t, uint32_t> open_links;
 	
 	std::set<std::string> word_set;
 	std::unordered_map<std::string, std::shared_ptr<word_t>> word_cache;

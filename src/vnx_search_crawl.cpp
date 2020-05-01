@@ -47,9 +47,9 @@ int main(int argc, char** argv)
 	proxy->forward_list.push_back(module->url_index_server);
 	proxy->forward_list.push_back(module->page_index_server);
 	proxy->forward_list.push_back(module->page_content_server);
-	proxy->import_list.push_back(module->input_page_index->get_name());
 	proxy->import_list.push_back(module->input_url_index->get_name());
 	proxy->import_list.push_back(module->input_url_index_sync->get_name());
+	proxy->import_list.push_back(module->input_page_index_sync->get_name());
 	
 	{
 		vnx::Handle<vnx::Server> server = new vnx::Server("Server", 

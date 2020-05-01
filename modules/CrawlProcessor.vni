@@ -6,8 +6,6 @@ module CrawlProcessor {
 	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
 	
-	vnx.TopicPtr input_page_index = "backend.page_index.updates";
-	
 	vnx.TopicPtr output_crawl_stats = "backend.crawl_stats";
 	
 	string url_index_server = "UrlIndex";
@@ -22,11 +20,11 @@ module CrawlProcessor {
 	
 	int max_depth = 5;
 	
-	int reload_interval = 10800;			// [seconds / (depth + 1) ^ reload_power]
+	int reload_interval = 10000;			// [seconds / (depth + 1) ^ reload_power]
 	
-	int error_reload_interval = 86400;		// in case of network failure [seconds]
+	int error_reload_interval = 100000;		// in case of network failure [seconds]
 	
-	int sync_interval = 3600;				// checking all urls [sec]
+	int sync_interval = 10000;				// checking all urls [sec]
 	
 	int max_per_minute = 12;				// max pages/min for a single domain
 	
@@ -42,9 +40,13 @@ module CrawlProcessor {
 	
 	int update_interval_ms = 5000;			// queue update
 	
-	int robots_txt_timeout = 900;			// max time to wait for robots.txt [sec]
+	int robots_txt_timeout = 1000;			// max time to wait for robots.txt [sec]
 	
 	float reload_power = 4;
+	
+	uint index_version = 0;					// increase to re-process all content
+	
+	bool do_reprocess = false;				// if to reprocess all pages
 	
 	string user_agent = "Googlebot";		// for robots.txt matching
 	

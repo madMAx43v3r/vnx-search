@@ -32,6 +32,7 @@ namespace search {
 class CrawlProcessor : public CrawlProcessorBase {
 public:
 	TopicPtr input_url_index_sync;
+	TopicPtr input_page_index_sync;
 	
 	CrawlProcessor(const std::string& _vnx_name);
 	
@@ -74,6 +75,12 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::KeyValuePair> value) override;
 	
 private:
+	void process_page(	const std::string& url,
+						std::shared_ptr<PageIndex> index,
+						const std::string& content,
+						const std::vector<std::string>& links,
+						const std::vector<std::string>& images);
+	
 	domain_t& get_domain(const std::string& host);
 	
 	bool filter_url(const Url::Url& parsed);
@@ -88,9 +95,19 @@ private:
 	
 	void check_all_urls();
 	
-	void check_page_callback(const std::string& url_key, std::shared_ptr<const Value> url_index, std::shared_ptr<const PageIndex> page_index);
+	void check_page_callback(	const std::string& url_key,
+								std::shared_ptr<const Value> url_index,
+								std::shared_ptr<const PageIndex> page_index);
+	
+	void reproc_page_callback(	const std::string& url_key,
+								std::shared_ptr<const Value> page_content_,
+								std::shared_ptr<const PageIndex> page_index_);
 	
 	void check_page(const std::string& url_key, int depth, std::shared_ptr<const PageIndex> index);
+	
+	void reproc_page(	const std::string& url_key,
+						std::shared_ptr<const PageIndex> index,
+						std::shared_ptr<const PageContent> content);
 	
 	url_t url_fetch_done(const std::string& url_key);
 	
@@ -130,6 +147,8 @@ private:
 	int64_t fetch_counter = 0;
 	int64_t error_counter = 0;
 	int64_t reload_counter = 0;
+	int64_t reproc_counter = 0;
+	int64_t delete_counter = 0;
 	int64_t pending_robots_txt = 0;
 	int64_t missing_robots_txt = 0;
 	int64_t timed_out_robots_txt = 0;

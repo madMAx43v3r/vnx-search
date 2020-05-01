@@ -2,10 +2,12 @@ package vnx.search;
 
 class PageInfo {
 	
-	ulong version;
+	ulong version;					// database version
 	
 	string url_key;
 	
 	int depth = -1;
+	
+	uint index_version = 0;			// corresponds to PageIndex.index_version
 	
 }

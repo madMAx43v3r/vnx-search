@@ -27,6 +27,7 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
 	input_url_index_sync = vnx_name + ".url_index.sync";
+	input_page_index_sync = vnx_name + ".page_index.sync";
 	
 	protocols.push_back("http");
 	protocols.push_back("https");
@@ -38,8 +39,8 @@ void CrawlProcessor::main()
 {
 	subscribe(input_text, 1000);				// need to block here since we are a bottleneck
 	subscribe(input_url_index, 1000);			// publisher runs in a separate thread so we can block here
-	subscribe(input_page_index, 1000);			// publisher runs in a separate thread so we can block here
-	subscribe(input_url_index_sync, 100);				// sync runs in a separate thread so we can block here
+	subscribe(input_url_index_sync, 100);		// sync runs in a separate thread so we can block here
+	subscribe(input_page_index_sync, 100);		// sync runs in a separate thread so we can block here
 	
 	protocols = get_unique(protocols);
 	
@@ -73,6 +74,10 @@ void CrawlProcessor::main()
 	
 	check_all_urls();
 	
+	if(do_reprocess) {
+		page_index_async->sync_all(input_page_index_sync);
+	}
+	
 	Super::main();
 }
 
@@ -82,9 +87,38 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 		return;
 	}
 	
-	std::set<std::string> word_set;
+	const Url::Url parent(value->url);
+	const auto url_key = get_url_key(parent);
+	
+	auto index = PageIndex::create();
+	index->title = value->title;
+	index->last_modified = value->last_modified;
+	
+	process_page(value->url, index, value->text, value->links, value->images);
+	
+	page_index_async->store_value(url_key, index);
+	
+	url_index_async->get_value(url_key,
+					std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
+	
+	auto content = PageContent::create();
+	content->text = value->text;
+	
+	page_content_async->store_value(url_key, content);
+	
+	log(INFO).out << "Processed '" << url_key << "': " << index->words.size() << " index words, "
+			<< index->links.size() << " links, " << index->images.size() << " images";
+}
+
+void CrawlProcessor::process_page(	const std::string& url,
+									std::shared_ptr<PageIndex> index,
+									const std::string& content,
+									const std::vector<std::string>& links,
+									const std::vector<std::string>& images)
+{
+	std::map<std::string, size_t> word_set;
 	{
-		const UnicodeString text = UnicodeString::fromUTF8(value->text);
+		const UnicodeString text = UnicodeString::fromUTF8(content);
 		
 		UErrorCode status = U_ZERO_ERROR;
 		BreakIterator* bi = BreakIterator::createWordInstance(Locale::getUS(), status);
@@ -102,28 +136,25 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 					word.toLower();
 					std::string tmp;
 					word.toUTF8String(tmp);
-					word_set.insert(tmp);
+					word_set[tmp]++;
 				}
 			}
 		}
 		delete bi;
     }
 	
-	const Url::Url parent(value->url);
-	const auto parent_key = get_url_key(parent);
+	const Url::Url parent(url);
 	
-	auto index = PageIndex::create();
-	index->title = value->title;
-	index->last_modified = value->last_modified;
-	
+	size_t word_count = 0;
 	for(const auto& word : word_set)
 	{
-		if(word.size() <= max_word_length) {
-			index->words.push_back(word);
+		if(word.first.size() <= max_word_length) {
+			index->words.emplace_back(word.first, std::min(word.second, size_t(0xFFFF)));
+			word_count += word.second;
 		}
 	}
 	
-	for(const auto& link : value->links)
+	for(const auto& link : links)
 	{
 		try {
 			const auto parsed = process_link(Url::Url(link), parent);
@@ -138,7 +169,7 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 		}
 	}
 	
-	for(const auto& link : value->images)
+	for(const auto& link : images)
 	{
 		try {
 			const auto parsed = process_link(Url::Url(link), parent);
@@ -156,15 +187,8 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	index->links = get_unique(index->links);
 	index->images = get_unique(index->images);
 	
-	page_index_async->store_value(parent_key, index);
-	
-	auto content = PageContent::create();
-	content->text = value->text;
-	
-	page_content_async->store_value(parent_key, content);
-	
-	log(INFO).out << "Processed '" << parent_key << "': " << index->words.size() << " index words, "
-			<< index->links.size() << " links, " << index->images.size() << " images";
+	index->word_count = std::min(word_count, size_t(0xFFFFFFFF));
+	index->version = index_version;
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> pair)
@@ -182,8 +206,16 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	{
 		auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 		if(index) {
-			url_index_async->get_value(pair->key,
-					std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
+			if(do_reprocess && index->version < index_version) {
+				if(filter_url(Url::Url(url_key))) {
+					page_content_async->get_value(url_key,
+							std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
+				} else {
+					page_index_async->delete_value(url_key);
+					page_content_async->delete_value(url_key);
+					delete_counter++;
+				}
+			}
 			return;
 		}
 	}
@@ -208,8 +240,13 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 
 bool CrawlProcessor::filter_url(const Url::Url& parsed)
 {
-	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
-		return true;	// just keep unknown protocols
+	if(!parsed.scheme().empty()) {
+		if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
+			return true;	// just keep unknown protocols
+		}
+	}
+	if(parsed.host().empty()) {
+		return true;		// just keep unknown hosts
 	}
 	auto& domain = get_domain(parsed.host());
 	if(domain.is_blacklisted) {
@@ -478,6 +515,16 @@ void CrawlProcessor::check_page_callback(	const std::string& url_key,
 	}
 }
 
+void CrawlProcessor::reproc_page_callback(	const std::string& url_key,
+											std::shared_ptr<const Value> page_content_,
+											std::shared_ptr<const PageIndex> page_index_)
+{
+	auto content = std::dynamic_pointer_cast<const PageContent>(page_content_);
+	if(content) {
+		reproc_page(url_key, page_index_, content);
+	}
+}
+
 void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shared_ptr<const PageIndex> index)
 {
 	if(depth < 0) {
@@ -499,6 +546,21 @@ void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shar
 					std::bind(&CrawlProcessor::check_url, this, link, link_depth, std::placeholders::_1));
 		}
 	}
+}
+
+void CrawlProcessor::reproc_page(	const std::string& url_key,
+									std::shared_ptr<const PageIndex> index,
+									std::shared_ptr<const PageContent> content)
+{
+	auto new_index = vnx::clone(index);
+	new_index->words.clear();
+	new_index->links.clear();
+	new_index->images.clear();
+	
+	process_page(url_key, new_index, content->text, index->links, index->images);
+	
+	page_index_async->store_value(url_key, new_index);
+	reproc_counter++;
 }
 
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key)
@@ -686,6 +748,9 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
 			<< found_robots_txt << " found";
+	if(do_reprocess) {
+		log(INFO).out << reproc_counter << " re-processed, " << delete_counter << " deleted";
+	}
 }
 
 
