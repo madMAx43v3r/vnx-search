@@ -4,8 +4,9 @@
 	"check_interval_ms": 500,
 	"update_interval_ms": 5000,
 	"reload_interval": 20000,
-	"sync_interval": 10000,
+	"sync_interval": 100000,
 	"reload_power": 4,
 	"max_num_pending": 100,
-	"max_url_length": 256
+	"max_url_length": 256,
+	"index_version": 1
 }
