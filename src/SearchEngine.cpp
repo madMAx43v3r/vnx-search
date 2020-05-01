@@ -538,7 +538,7 @@ void SearchEngine::query_loop() const noexcept
 			for(const auto& entry : pages) {
 				const auto& result = entry.second;
 				auto& current = best_of[result.page->domain_id];
-				if(result.score > current.first) {
+				if(!current.second || result.score > current.first) {
 					current.first = result.score;
 					current.second = result.page;
 				}
