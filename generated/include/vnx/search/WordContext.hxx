@@ -15,7 +15,7 @@ class WordContext : public ::vnx::Value {
 public:
 	
 	::int64_t last_update = 0;
-	::std::vector<::uint32_t> pages;
+	::std::vector<::std::pair<::uint32_t, ::uint16_t>> pages;
 	
 	typedef ::vnx::Value Super;
 	

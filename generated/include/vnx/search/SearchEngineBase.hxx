@@ -31,6 +31,7 @@ public:
 	::int32_t commit_interval = 3600;
 	::int32_t update_interval_ms = 10000;
 	::int32_t stats_interval_ms = 10000;
+	::vnx::float32_t word_power = 1;
 	::std::vector<::std::string> protocols;
 	
 	typedef ::vnx::Module Super;

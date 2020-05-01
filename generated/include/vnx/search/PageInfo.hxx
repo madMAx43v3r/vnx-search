@@ -17,6 +17,7 @@ public:
 	::uint64_t version = 0;
 	::std::string url_key;
 	::int32_t depth = -1;
+	::uint32_t index_version = 0;
 	
 	typedef ::vnx::Value Super;
 	

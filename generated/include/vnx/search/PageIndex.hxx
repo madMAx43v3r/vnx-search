@@ -16,9 +16,11 @@ public:
 	
 	::std::string title;
 	::int64_t last_modified = 0;
+	::uint32_t word_count = 0;
+	::uint32_t version = 0;
 	::std::vector<::std::string> links;
 	::std::vector<::std::string> images;
-	::std::vector<::std::string> words;
+	::std::vector<::std::pair<::std::string, ::uint16_t>> words;
 	
 	typedef ::vnx::Value Super;
 	

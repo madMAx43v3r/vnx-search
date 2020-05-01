@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 WordContext::VNX_TYPE_HASH(0xdaa75d84f367905bull);
-const vnx::Hash64 WordContext::VNX_CODE_HASH(0xbcb1d668d659d19bull);
+const vnx::Hash64 WordContext::VNX_CODE_HASH(0xa599c21c16f1afbfull);
 
 vnx::Hash64 WordContext::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -112,7 +112,7 @@ std::shared_ptr<vnx::TypeCode> WordContext::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.WordContext";
 	type_code->type_hash = vnx::Hash64(0xdaa75d84f367905bull);
-	type_code->code_hash = vnx::Hash64(0xbcb1d668d659d19bull);
+	type_code->code_hash = vnx::Hash64(0xa599c21c16f1afbfull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<WordContext>(); };
 	type_code->methods.resize(0);
@@ -126,7 +126,7 @@ std::shared_ptr<vnx::TypeCode> WordContext::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "pages";
-		field.code = {12, 3};
+		field.code = {12, 23, 2, 4, 5, 3, 2};
 	}
 	type_code->build();
 	return type_code;

@@ -20,7 +20,6 @@ public:
 	
 	::vnx::TopicPtr input_text = "frontend.text_responses";
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
-	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
 	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
 	::std::string url_index_server = "UrlIndex";
 	::std::string page_index_server = "PageIndex";
@@ -28,9 +27,9 @@ public:
 	::std::string crawl_frontend_server = "CrawlFrontend";
 	::int32_t jump_cost = 3;
 	::int32_t max_depth = 5;
-	::int32_t reload_interval = 10800;
-	::int32_t error_reload_interval = 86400;
-	::int32_t sync_interval = 3600;
+	::int32_t reload_interval = 10000;
+	::int32_t error_reload_interval = 100000;
+	::int32_t sync_interval = 10000;
 	::int32_t max_per_minute = 12;
 	::int32_t max_num_pending = 100;
 	::int32_t max_queue_size = 1000;
@@ -38,8 +37,10 @@ public:
 	::int32_t max_word_length = 64;
 	::int32_t check_interval_ms = 500;
 	::int32_t update_interval_ms = 5000;
-	::int32_t robots_txt_timeout = 900;
+	::int32_t robots_txt_timeout = 1000;
 	::vnx::float32_t reload_power = 4;
+	::uint32_t index_version = 0;
+	::vnx::bool_t do_reprocess = false;
 	::std::string user_agent = "Googlebot";
 	::std::string profile = "default";
 	::std::vector<::std::string> protocols;
