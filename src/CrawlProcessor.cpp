@@ -435,7 +435,9 @@ void CrawlProcessor::update_queue()
 
 void CrawlProcessor::check_all_urls()
 {
-	url_index_async->sync_all(input_url_index_sync);
+	if(!do_reprocess) {
+		url_index_async->sync_all(input_url_index_sync);
+	}
 }
 
 void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
