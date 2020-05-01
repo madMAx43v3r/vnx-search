@@ -398,14 +398,15 @@ void SearchEngine::query_loop() const noexcept
 		
 		std::vector<std::shared_ptr<const WordContext>> context;
 		try {
-			const std::vector<Variant> keys(request->words.begin(), request->words.end());
+			const std::vector<std::string> words = get_unique(request->words);
+			const std::vector<Variant> keys(words.begin(), words.end());
 			const auto values = word_context_sync.get_values(keys);
 			int i = 0;
 			for(auto value : values) {
 				auto word_context = std::dynamic_pointer_cast<const WordContext>(value);
 				if(word_context) {
 					context.push_back(word_context);
-					result->words.push_back(request->words[i]);
+					result->words.push_back(words[i]);
 				}
 				i++;
 			}
