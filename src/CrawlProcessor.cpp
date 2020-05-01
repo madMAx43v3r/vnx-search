@@ -43,6 +43,7 @@ void CrawlProcessor::main()
 	subscribe(input_page_index_sync, 100);		// sync runs in a separate thread so we can block here
 	
 	protocols = get_unique(protocols);
+	domain_blacklist = get_unique(domain_blacklist);
 	
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
