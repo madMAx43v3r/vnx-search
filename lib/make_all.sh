@@ -11,7 +11,7 @@ cd ..
 cd robotstxt
 rm -rf build
 mkdir -p build && cd build
-cmake ..
+cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo ..
 make -j8
 cd ..
 
