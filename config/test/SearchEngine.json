@@ -1,7 +1,5 @@
 {
-	"max_depth": 5,
-	"max_query_pages": 50000,
-	"num_update_threads": 4,
-	"num_query_threads": 4,
-	"commit_interval": 3600
+	"max_depth": 9,
+	"max_query_pages": 100000,
+	"commit_interval": 10
 }
