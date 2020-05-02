@@ -231,7 +231,6 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 			if(host.size() >= entry.size() && host.substr(host.size() - entry.size()) == entry) {
 				if(host.size() == entry.size() || host[host.size() - entry.size() - 1] == '.') {
 					domain.is_blacklisted = true;
-					blacklisted_domains++;
 				}
 			}
 		}
@@ -433,9 +432,6 @@ void CrawlProcessor::update_queue()
 			limited_emplace(queue, key, &domain, max_queue_size);
 			iter++;
 		} else {
-			if(domain.is_blacklisted) {
-				blacklisted_domains--;
-			}
 			iter = domain_map.erase(iter);
 		}
 	}
@@ -752,7 +748,7 @@ void CrawlProcessor::print_stats()
 			<< pending_urls.size() << " pending, " << queue_block_count << " blocking, "
 			<< fetch_counter << " fetched, " << error_counter << " failed, "
 			<< reload_counter << " reload, " << domain_map.size()
-			<< " (-" << blacklisted_domains << ") domains, " << average_depth << " depth";
+			<< " domains, " << average_depth << " depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
 			<< found_robots_txt << " found";
