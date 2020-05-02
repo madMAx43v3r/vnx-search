@@ -433,6 +433,9 @@ void CrawlProcessor::update_queue()
 			limited_emplace(queue, key, &domain, max_queue_size);
 			iter++;
 		} else {
+			if(domain.is_blacklisted) {
+				blacklisted_domains--;
+			}
 			iter = domain_map.erase(iter);
 		}
 	}
