@@ -25,7 +25,9 @@ namespace search {
 
 class SearchEngine : public SearchEngineBase {
 public:
+	TopicPtr input_page_info_sync;
 	TopicPtr input_page_index_sync;
+	TopicPtr input_word_context_sync;
 	
 	SearchEngine(const std::string& _vnx_name);
 	
@@ -104,8 +106,6 @@ private:
 	void update_loop() noexcept;
 	
 private:
-	TopicPtr input_page_info_sync;
-	
 	Handle<keyvalue::Server> module_page_info;
 	Handle<keyvalue::Server> module_word_context;
 	

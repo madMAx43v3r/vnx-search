@@ -24,6 +24,7 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 {
 	input_page_info_sync = vnx_name + ".page_info.sync";
 	input_page_index_sync = vnx_name + ".page_index.sync";
+	input_word_context_sync = vnx_name + ".word_context.sync";
 	
 	protocols.push_back("http");
 	protocols.push_back("https");
@@ -37,8 +38,9 @@ void SearchEngine::init()
 void SearchEngine::main()
 {
 	subscribe(input_page_index, 1000);
-	subscribe(input_page_info_sync, 1000);
-	subscribe(input_page_index_sync, 1000);
+	subscribe(input_page_info_sync, 100);
+	subscribe(input_page_index_sync, 100);
+	subscribe(input_word_context_sync, 100);
 	
 	protocols = get_unique(protocols);
 	
@@ -64,6 +66,7 @@ void SearchEngine::main()
 	set_timer_millis(update_interval_ms, std::bind(&SearchEngine::update_queue_timer, this));
 	
 	page_info_async->sync_all(input_page_info_sync);
+	word_context_async->sync_all_keys(input_word_context_sync);
 	
 	query_threads.resize(num_query_threads);
 	for(int i = 0; i < num_query_threads; ++i) {
@@ -187,6 +190,13 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		return;
 	}
 	
+	if(pair->collection == "word_context")
+	{
+		const auto word = pair->key.to_string_value();
+		word_set.insert(word);
+		return;
+	}
+	
 	auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 	if(index) {
 		const auto url_key = pair->key.to_string_value();
@@ -202,12 +212,12 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 	if(value->code == keyvalue::SyncInfo::END)
 	{
 		init_sync_count++;
-		if(init_sync_count == 1)
+		if(value->collection == "page_info")
 		{
 			page_index_sync->sync_all(input_page_index_sync);
 			log(INFO).out << "Starting PageIndex sync ...";
 		}
-		if(init_sync_count == 2)
+		if(init_sync_count == 3)
 		{
 			is_initialized = true;
 			uint64_t num_links = 0;
