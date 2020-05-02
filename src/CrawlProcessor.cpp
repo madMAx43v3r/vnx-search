@@ -425,11 +425,15 @@ void CrawlProcessor::update_queue()
 		}
 	}
 	queue.clear();
-	for(auto& entry : domain_map) {
-		auto& domain = entry.second;
+	for(auto iter = domain_map.begin(); iter != domain_map.end();)
+	{
+		auto& domain = iter->second;
 		if(!domain.queue.empty()) {
 			const auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
 			limited_emplace(queue, key, &domain, max_queue_size);
+			iter++;
+		} else {
+			iter = domain_map.erase(iter);
 		}
 	}
 }
