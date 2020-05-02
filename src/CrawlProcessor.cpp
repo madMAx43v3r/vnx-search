@@ -750,7 +750,7 @@ void CrawlProcessor::print_stats()
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
 			<< found_robots_txt << " found";
 	if(do_reprocess) {
-		log(INFO).out << reproc_counter << " re-processed, " << delete_counter << " deleted";
+		log(INFO).out << reproc_counter << " reprocessed, " << delete_counter << " deleted";
 	}
 }
 
