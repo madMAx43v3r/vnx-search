@@ -482,10 +482,10 @@ void SearchEngine::query_loop() const noexcept
 					auto iter = page_index.find(entry.first);
 					if(iter != page_index.end() && iter->second.is_loaded)
 					{
+						const auto& page = iter->second;
 						auto& result = pages[entry.first];
-						result.page = &iter->second;
-						result.weight = uint64_t(entry.second) * (1 + iter->second.reverse_domains.size());
-						result.score = result.weight;
+						result.page = &page;
+						result.weight = uint64_t(entry.second) * (1 + page.reverse_domains.size());
 					}
 				}
 			}
@@ -500,10 +500,10 @@ void SearchEngine::query_loop() const noexcept
 				auto iter = page_index.find(entry.first);
 				if(iter != page_index.end() && iter->second.is_loaded)
 				{
+					const auto& page = iter->second;
 					auto& result = pages[entry.first];
-					result.page = &iter->second;
-					result.weight = uint64_t(entry.second) * (1 + iter->second.reverse_domains.size());
-					result.score = result.weight;
+					result.page = &page;
+					result.weight = uint64_t(entry.second) * (1 + page.reverse_domains.size());
 				}
 			}
 		}
@@ -526,6 +526,10 @@ void SearchEngine::query_loop() const noexcept
 					}
 				}
 			}
+		}
+		for(auto& entry : pages) {
+			auto& result = entry.second;
+			result.score = result.weight * (1 + result.score);
 		}
 		
 		std::multimap<int64_t, const page_t*, std::greater<int64_t>> sorted;
