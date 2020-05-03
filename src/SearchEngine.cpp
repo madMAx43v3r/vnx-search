@@ -356,7 +356,7 @@ void SearchEngine::print_stats()
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
 			<< page_index.size() << " pages, "
-			<< word_cache.size() << " words cached, "
+			<< word_cache.size() << " / " << word_set.size() << " words, "
 			<< open_links.size() << " open links";
 	
 	word_update_counter = 0;
