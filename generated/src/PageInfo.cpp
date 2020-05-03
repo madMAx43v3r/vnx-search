@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 PageInfo::VNX_TYPE_HASH(0x547cfd9b2bb19c80ull);
-const vnx::Hash64 PageInfo::VNX_CODE_HASH(0xe0d20f2a9d2e0f9aull);
+const vnx::Hash64 PageInfo::VNX_CODE_HASH(0xbd7cc77ddc38d3f5ull);
 
 vnx::Hash64 PageInfo::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -50,7 +50,6 @@ void PageInfo::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, version);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, url_key);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, depth);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, index_version);
 	_visitor.type_end(*_type_code);
 }
 
@@ -59,7 +58,6 @@ void PageInfo::write(std::ostream& _out) const {
 	_out << "\"version\": "; vnx::write(_out, version);
 	_out << ", \"url_key\": "; vnx::write(_out, url_key);
 	_out << ", \"depth\": "; vnx::write(_out, depth);
-	_out << ", \"index_version\": "; vnx::write(_out, index_version);
 	_out << "}";
 }
 
@@ -69,8 +67,6 @@ void PageInfo::read(std::istream& _in) {
 	for(const auto& _entry : _object) {
 		if(_entry.first == "depth") {
 			vnx::from_string(_entry.second, depth);
-		} else if(_entry.first == "index_version") {
-			vnx::from_string(_entry.second, index_version);
 		} else if(_entry.first == "url_key") {
 			vnx::from_string(_entry.second, url_key);
 		} else if(_entry.first == "version") {
@@ -84,7 +80,6 @@ vnx::Object PageInfo::to_object() const {
 	_object["version"] = version;
 	_object["url_key"] = url_key;
 	_object["depth"] = depth;
-	_object["index_version"] = index_version;
 	return _object;
 }
 
@@ -92,8 +87,6 @@ void PageInfo::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
 		if(_entry.first == "depth") {
 			_entry.second.to(depth);
-		} else if(_entry.first == "index_version") {
-			_entry.second.to(index_version);
 		} else if(_entry.first == "url_key") {
 			_entry.second.to(url_key);
 		} else if(_entry.first == "version") {
@@ -126,11 +119,11 @@ std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.PageInfo";
 	type_code->type_hash = vnx::Hash64(0x547cfd9b2bb19c80ull);
-	type_code->code_hash = vnx::Hash64(0xe0d20f2a9d2e0f9aull);
+	type_code->code_hash = vnx::Hash64(0xbd7cc77ddc38d3f5ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageInfo>(); };
 	type_code->methods.resize(0);
-	type_code->fields.resize(4);
+	type_code->fields.resize(3);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.name = "version";
@@ -147,12 +140,6 @@ std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
 		field.name = "depth";
 		field.value = vnx::to_string(-1);
 		field.code = {7};
-	}
-	{
-		vnx::TypeField& field = type_code->fields[3];
-		field.name = "index_version";
-		field.value = vnx::to_string(0);
-		field.code = {3};
 	}
 	type_code->build();
 	return type_code;
@@ -190,12 +177,6 @@ void read(TypeInput& in, ::vnx::search::PageInfo& value, const TypeCode* type_co
 				vnx::read_value(_buf + _field->offset, value.depth, _field->code.data());
 			}
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[3];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.index_version, _field->code.data());
-			}
-		}
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
@@ -214,10 +195,9 @@ void write(TypeOutput& out, const ::vnx::search::PageInfo& value, const TypeCode
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(16);
+	char* const _buf = out.write(12);
 	vnx::write_value(_buf + 0, value.version);
 	vnx::write_value(_buf + 8, value.depth);
-	vnx::write_value(_buf + 12, value.index_version);
 	vnx::write(out, value.url_key, type_code, type_code->fields[1].code.data());
 }
 
