@@ -183,7 +183,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			auto& page = page_index[page_id];
 			page.id = page_id;
 			page.version = info->version;
-			page.index_version = info->index_version;
 			page.url_key = info->url_key;
 			page.depth = info->depth;
 		}
@@ -324,7 +323,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			open_links.erase(page.id);
 		}
 		
-		if(version > page.version || index->version > page.index_version)
+		if(version > page.version)
 		{
 			const float inv_word_count = 1.f / index->word_count;
 			
@@ -344,7 +343,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			}
 			page.num_pending += index->words.size();
 			page.version = version;
-			page.index_version = index->version;
 		}
 		page.is_loaded = true;
 	}
@@ -702,7 +700,6 @@ void SearchEngine::update_loop() noexcept
 						{
 							auto info = PageInfo::create();
 							info->version = page.version;
-							info->index_version = page.index_version;
 							info->url_key = page.url_key;
 							info->depth = page.depth;
 							page_updates.emplace_back(entry.first, info);

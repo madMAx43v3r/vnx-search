@@ -8,6 +8,4 @@ class PageInfo {
 	
 	int depth = -1;
 	
-	uint index_version = 0;			// corresponds to PageIndex.index_version
-	
 }
