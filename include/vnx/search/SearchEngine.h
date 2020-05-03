@@ -97,8 +97,6 @@ private:
 								std::shared_ptr<const PageIndex> page_index_,
 								std::shared_ptr<const Value> url_index_);
 	
-	void update_queue_timer();
-	
 	void print_stats();
 	
 	void query_loop() const noexcept;
@@ -135,7 +133,7 @@ private:
 	
 	mutable std::mutex update_mutex;
 	mutable std::condition_variable update_condition;
-	mutable std::multimap<int64_t, std::string> update_queue;
+	mutable std::queue<std::pair<int64_t, std::string>> update_queue;
 	
 	bool is_initialized = false;
 	int init_sync_count = 0;

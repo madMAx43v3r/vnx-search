@@ -22,8 +22,6 @@ module SearchEngine {
 	
 	int commit_interval = 3600;				// [sec]
 	
-	int update_interval_ms = 10000;			// word queue update
-	
 	int stats_interval_ms = 10000;
 	
 	float word_power = 1;					// word frequency non-linearity

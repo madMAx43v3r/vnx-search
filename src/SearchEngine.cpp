@@ -13,6 +13,7 @@
 #include <url.h>
 #include <omp.h>
 #include <cmath>
+#include <chrono>
 #include <algorithm>
 
 
@@ -63,7 +64,6 @@ void SearchEngine::main()
 	add_async_client(url_index_async);
 	
 	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
-	set_timer_millis(update_interval_ms, std::bind(&SearchEngine::update_queue_timer, this));
 	
 	page_info_async->sync_all(input_page_info_sync);
 	word_context_async->sync_all_keys(input_word_context_sync);
@@ -334,6 +334,11 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				if(!cached) {
 					cached = std::make_shared<word_t>();
 					cached->queue_time_us = now_wall_us;
+					{
+						std::lock_guard lock(update_mutex);
+						update_queue.emplace(cached->queue_time_us, entry.first);
+					}
+					update_condition.notify_all();
 				}
 				cached->add_pages.emplace_back(page_id, entry.second * inv_word_count);
 			}
@@ -343,22 +348,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		}
 		page.is_loaded = true;
 	}
-}
-
-void SearchEngine::update_queue_timer()
-{
-	std::multimap<int64_t, std::string> new_queue;
-	{
-		std::shared_lock lock(index_mutex);
-		for(const auto& entry : word_cache) {
-			limited_emplace(new_queue, entry.second->queue_time_us, entry.first, 10000);
-		}
-	}
-	{
-		std::lock_guard lock(update_mutex);
-		update_queue = std::move(new_queue);
-	}
-	update_condition.notify_all();
 }
 
 void SearchEngine::print_stats()
@@ -605,7 +594,7 @@ void SearchEngine::update_loop() noexcept
 		{
 			std::unique_lock<std::mutex> lock(update_mutex);
 			if(vnx_do_run() && do_wait) {
-				update_condition.wait(lock);
+				update_condition.wait_for(lock, std::chrono::milliseconds(1000));
 			}
 			do_wait = true;
 			
@@ -613,10 +602,10 @@ void SearchEngine::update_loop() noexcept
 				if(update_queue.empty()) {
 					continue;
 				}
-				const auto iter = update_queue.begin();
-				if((vnx::get_wall_time_micros() - iter->first) / 1000000 > commit_interval) {
-					word = iter->second;
-					update_queue.erase(iter);
+				const auto& entry = update_queue.front();
+				if((vnx::get_wall_time_micros() - entry.first) / 1000000 > commit_interval) {
+					word = entry.second;
+					update_queue.pop();
 				} else {
 					continue;
 				}
