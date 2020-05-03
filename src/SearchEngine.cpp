@@ -485,6 +485,7 @@ void SearchEngine::query_loop() const noexcept
 						auto& result = pages[entry.first];
 						result.page = &iter->second;
 						result.weight = uint64_t(entry.second) * (1 + iter->second.reverse_domains.size());
+						result.score = result.weight;
 					}
 				}
 			}
@@ -502,6 +503,7 @@ void SearchEngine::query_loop() const noexcept
 					auto& result = pages[entry.first];
 					result.page = &iter->second;
 					result.weight = uint64_t(entry.second) * (1 + iter->second.reverse_domains.size());
+					result.score = result.weight;
 				}
 			}
 		}
