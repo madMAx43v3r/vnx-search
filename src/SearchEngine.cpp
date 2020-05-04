@@ -329,15 +329,16 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			
 			for(const auto& entry : index->words)
 			{
-				auto& cached = word_cache[entry.first];
+				const auto& word = entry.first;
+				auto& cached = word_cache[word];
 				if(!cached) {
 					cached = std::make_shared<word_t>();
 					cached->queue_time_us = now_wall_us;
 					{
 						std::lock_guard lock(update_mutex);
-						update_queue.emplace(cached->queue_time_us, entry.first);
+						update_queue.emplace(cached->queue_time_us, word);
 					}
-					update_condition.notify_all();
+					word_set.insert(word);
 				}
 				cached->add_pages.emplace_back(page_id, entry.second * inv_word_count);
 			}
