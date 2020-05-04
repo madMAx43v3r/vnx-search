@@ -477,7 +477,7 @@ void SearchEngine::query_loop() const noexcept
 			{
 				std::shared_lock lock(index_mutex);
 				
-				for(uint32_t i = 0; i < num_found; ++i) {
+				for(uint32_t i = 0; i < std::min(size_t(num_found), found.size()); ++i) {
 					const auto& entry = found[i];
 					auto iter = page_index.find(entry.first);
 					if(iter != page_index.end() && iter->second.is_loaded)
