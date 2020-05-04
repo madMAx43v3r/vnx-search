@@ -449,7 +449,8 @@ void SearchEngine::query_loop() const noexcept
 					
 					while(num_iter > 0 && num_found < max_query_pages)
 					{
-						if(iter[k] != end[k]) {
+						for(int i = 0; iter[k] != end[k] && i < 100; ++iter[k], ++i)
+						{
 							const auto page_id = iter[k]->first;
 							if(page_id % N == t) {
 								auto& entry = page_hits[page_id];
@@ -459,16 +460,17 @@ void SearchEngine::query_loop() const noexcept
 									if(index < max_query_pages) {
 										found[index] = std::make_pair(page_id, entry.second);
 									}
-									page_hits.erase(page_id);
 								}
 							}
-							iter[k]++;
-						} else {
+						}
+						if(iter[k] == end[k]) {
 							iter.erase(iter.begin() + k);
 							end.erase(end.begin() + k);
 							num_iter--;
+						} else {
+							k++;
 						}
-						if(++k >= num_iter) {
+						if(k >= num_iter) {
 							k = 0;
 						}
 					}
