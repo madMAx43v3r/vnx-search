@@ -221,7 +221,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 			is_initialized = true;
 			uint64_t num_links = 0;
 			for(const auto& entry : page_index) {
-				num_links += entry.second.links.size();
+				num_links += entry.second.reverse_links.size();
 			}
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages, " << num_links << " links and " << word_set.size() << " words.";
@@ -261,8 +261,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			domain.num_pages++;
 		}
 		
-		page.links.clear();
-		
 		for(const auto& link : index->links) {
 			try {
 				const Url::Url parsed_link(link);
@@ -286,7 +284,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 					if(page.domain_id != child.domain_id) {
 						unique_push_back(child.reverse_domains, page.domain_id);
 					}
-					page.links.push_back(link_id);
 				} else {
 					bool found = false;
 					if(page.is_loaded) {
@@ -313,7 +310,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				auto iter = page_index.find(entry->second);
 				if(iter != page_index.end()) {
 					auto& parent = iter->second;
-					parent.links.push_back(page.id);
 					page.reverse_links.push_back(parent.id);
 					if(parent.domain_id != page.domain_id) {
 						unique_push_back(page.reverse_domains, parent.domain_id);
@@ -396,7 +392,7 @@ void SearchEngine::query_loop() const noexcept
 		
 		std::vector<std::shared_ptr<const WordContext>> context;
 		try {
-			const std::vector<std::string> words = get_unique(request->words);
+			const auto words = get_unique(request->words);
 			const std::vector<Variant> keys(words.begin(), words.end());
 			const auto values = word_context_sync.get_values(keys);
 			int i = 0;
@@ -422,11 +418,10 @@ void SearchEngine::query_loop() const noexcept
 		
 		struct result_t {
 			const page_t* page = 0;
-			uint64_t weight = 1;
-			std::atomic<uint64_t> score {0};
+			uint64_t score = 1;
 		};
 		
-		std::unordered_map<uint32_t, result_t> pages;
+		std::vector<result_t> pages;
 		pages.reserve(max_query_pages);
 		
 		if(num_words > 1)
@@ -434,7 +429,7 @@ void SearchEngine::query_loop() const noexcept
 			std::atomic<uint32_t> num_found(0);
 			std::vector<std::pair<uint32_t, uint32_t>> found(max_query_pages);
 			{
-				const uint32_t N = 8;
+				const uint32_t N = 4;
 #pragma omp parallel for
 				for(uint32_t t = 0; t < N; ++t)
 				{
@@ -450,12 +445,16 @@ void SearchEngine::query_loop() const noexcept
 					
 					while(num_iter > 0 && num_found < max_query_pages)
 					{
-						for(int i = 0; iter[k] != end[k] && i < 100; ++iter[k], ++i)
+						for(int i = 0; iter[k] != end[k] && i < 256; ++iter[k], ++i)
 						{
 							const auto page_id = iter[k]->first;
 							if(page_id % N == t) {
 								auto& entry = page_hits[page_id];
-								entry.second += iter[k]->second;
+								if(entry.first == 0) {
+									entry.second = iter[k]->second;
+								} else {
+									entry.second = std::min(uint32_t(iter[k]->second), entry.second);
+								}
 								if(++entry.first == num_words) {
 									const auto index = num_found++;
 									if(index < max_query_pages) {
@@ -486,9 +485,10 @@ void SearchEngine::query_loop() const noexcept
 					if(iter != page_index.end() && iter->second.is_loaded)
 					{
 						const auto& page = iter->second;
-						auto& result = pages[entry.first];
+						result_t result;
 						result.page = &page;
-						result.weight = uint64_t(entry.second) * (1 + page.reverse_domains.size());
+						result.score = entry.second;
+						pages.push_back(result);
 					}
 				}
 			}
@@ -504,35 +504,16 @@ void SearchEngine::query_loop() const noexcept
 				if(iter != page_index.end() && iter->second.is_loaded)
 				{
 					const auto& page = iter->second;
-					auto& result = pages[entry.first];
+					result_t result;
 					result.page = &page;
-					result.weight = uint64_t(entry.second) * (1 + page.reverse_domains.size());
+					result.score = entry.second;
+					pages.push_back(result);
 				}
 			}
 		}
 		
-		{
-			const int N = omp_get_max_threads();
-#pragma omp parallel for
-			for(int t = 0; t < N; ++t)
-			{
-				for(auto entry = advance_until(pages.begin(), pages.end(), t); entry != pages.end();
-						 entry = advance_until(entry, pages.end(), N))
-				{
-					const auto& result = entry->second;
-					for(const auto link_id : result.page->links)
-					{
-						const auto iter = pages.find(link_id);
-						if(iter != pages.end()) {
-							iter->second.score += result.weight;
-						}
-					}
-				}
-			}
-		}
-		for(auto& entry : pages) {
-			auto& result = entry.second;
-			result.score = result.weight * (1 + result.score);
+		for(auto& result : pages) {
+			result.score = result.score * (1 + result.page->reverse_domains.size()) * std::max(result.page->reverse_links.size(), size_t(1));
 		}
 		
 		std::multimap<int64_t, const page_t*, std::greater<int64_t>> sorted;
@@ -541,8 +522,7 @@ void SearchEngine::query_loop() const noexcept
 		{
 			std::unordered_map<uint32_t, std::pair<int64_t, const page_t*>> best_of;
 			
-			for(const auto& entry : pages) {
-				const auto& result = entry.second;
+			for(const auto& result : pages) {
 				auto& current = best_of[result.page->domain_id];
 				if(!current.second || result.score > current.first) {
 					current.first = result.score;
@@ -554,8 +534,8 @@ void SearchEngine::query_loop() const noexcept
 			}
 		}
 		else {
-			for(const auto& entry : pages) {
-				limited_emplace(sorted, entry.second.score, entry.second.page, request->offset + request->limit);
+			for(const auto& result : pages) {
+				limited_emplace(sorted, result.score, result.page, request->offset + request->limit);
 			}
 		}
 		
