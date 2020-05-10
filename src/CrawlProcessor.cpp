@@ -435,6 +435,7 @@ void CrawlProcessor::update_queue()
 			iter = domain_map.erase(iter);
 		}
 	}
+	active_domains = domain_map.size();
 }
 
 void CrawlProcessor::check_all_urls()
@@ -747,7 +748,7 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
 			<< pending_urls.size() << " pending, " << queue_block_count << " blocking, "
 			<< fetch_counter << " fetched, " << error_counter << " failed, "
-			<< reload_counter << " reload, " << domain_map.size()
+			<< reload_counter << " reload, " << active_domains
 			<< " domains, " << average_depth << " depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "

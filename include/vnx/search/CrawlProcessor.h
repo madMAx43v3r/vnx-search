@@ -154,6 +154,7 @@ private:
 	int64_t timed_out_robots_txt = 0;
 	int64_t found_robots_txt = 0;
 	int64_t queue_block_count = 0;
+	int64_t active_domains = 0;
 	double average_depth = 0;
 	
 };
