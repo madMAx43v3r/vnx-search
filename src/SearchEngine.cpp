@@ -219,12 +219,8 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		if(init_sync_count == 3)
 		{
 			is_initialized = true;
-			uint64_t num_links = 0;
-			for(const auto& entry : page_index) {
-				num_links += entry.second.reverse_links.size();
-			}
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
-					<< page_index.size() << " pages, " << num_links << " links and " << word_set.size() << " words.";
+					<< page_index.size() << " pages and " << word_set.size() << " words.";
 		}
 	}
 }
@@ -276,11 +272,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				auto iter = page_index.find(link_id);
 				if(iter != page_index.end()) {
 					auto& child = iter->second;
-					if(page.is_loaded) {
-						unique_push_back(child.reverse_links, page.id);
-					} else {
-						child.reverse_links.push_back(page.id);
-					}
 					if(page.domain_id != child.domain_id) {
 						unique_push_back(child.reverse_domains, page.domain_id);
 					}
@@ -310,7 +301,6 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				auto iter = page_index.find(entry->second);
 				if(iter != page_index.end()) {
 					auto& parent = iter->second;
-					page.reverse_links.push_back(parent.id);
 					if(parent.domain_id != page.domain_id) {
 						unique_push_back(page.reverse_domains, parent.domain_id);
 					}
@@ -513,7 +503,7 @@ void SearchEngine::query_loop() const noexcept
 		}
 		
 		for(auto& result : pages) {
-			result.score = result.score * (1 + result.page->reverse_domains.size()) * std::max(result.page->reverse_links.size(), size_t(1));
+			result.score = result.score * (1 + result.page->reverse_domains.size());
 		}
 		
 		std::multimap<int64_t, const page_t*, std::greater<int64_t>> sorted;
@@ -650,8 +640,7 @@ void SearchEngine::update_loop() noexcept
 							new_pages.erase(iter2);
 						}
 						const auto& page = iter->second;
-						list.emplace_back(uint64_t(weight) * (1 + page.reverse_domains.size()) *
-											std::max(page.reverse_links.size(), size_t(1)),
+						list.emplace_back(uint64_t(weight) * (1 + page.reverse_domains.size()),
 											std::make_pair(entry.first, weight));
 					}
 				}
@@ -661,8 +650,7 @@ void SearchEngine::update_loop() noexcept
 				if(iter != page_index.end()) {
 					const auto& page = iter->second;
 					const auto weight = entry.second;
-					list.emplace_back(uint64_t(weight) * (1 + page.reverse_domains.size()) *
-										std::max(page.reverse_links.size(), size_t(1)), entry);
+					list.emplace_back(uint64_t(weight) * (1 + page.reverse_domains.size()), entry);
 				}
 			}
 		}

@@ -54,7 +54,6 @@ protected:
 		std::string title;
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
-		std::vector<uint32_t> reverse_links;
 		std::vector<uint32_t> reverse_domains;
 		std::atomic<size_t> num_pending {0};
 	};
