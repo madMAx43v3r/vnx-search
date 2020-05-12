@@ -419,7 +419,7 @@ void SearchEngine::query_loop() const noexcept
 			std::atomic<uint32_t> num_found(0);
 			std::vector<std::pair<uint32_t, uint32_t>> found(max_query_pages);
 			{
-				const uint32_t N = 4;
+				const uint32_t N = 8;
 #pragma omp parallel for
 				for(uint32_t t = 0; t < N; ++t)
 				{
