@@ -18,7 +18,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchEngineBase::VNX_TYPE_HASH(0x4e0f26d3496896a1ull);
-const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0xcf02c2ab9a232cafull);
+const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0x6fc9eda154835ed3ull);
 
 SearchEngineBase::SearchEngineBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -194,7 +194,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.SearchEngine";
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
-	type_code->code_hash = vnx::Hash64(0xcf02c2ab9a232cafull);
+	type_code->code_hash = vnx::Hash64(0x6fc9eda154835ed3ull);
 	type_code->methods.resize(5);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
@@ -414,7 +414,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.name = "max_query_pages";
-		field.value = vnx::to_string(10000);
+		field.value = vnx::to_string(1000);
 		field.code = {7};
 	}
 	{
