@@ -207,10 +207,12 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	{
 		auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 		if(index) {
-			if(do_reprocess && index->version < index_version) {
+			if(do_reprocess) {
 				if(filter_url(Url::Url(url_key))) {
-					page_content_async->get_value(url_key,
-							std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
+					if(index->version < index_version) {
+						page_content_async->get_value(url_key,
+								std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
+					}
 				} else {
 					page_index_async->delete_value(url_key);
 					page_content_async->delete_value(url_key);
