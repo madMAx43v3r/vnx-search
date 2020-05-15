@@ -1,6 +1,6 @@
 {
 	"max_depth": 5,
-	"max_per_minute": 6,
+	"max_per_minute": 12,
 	"check_interval_ms": 500,
 	"update_interval_ms": 5000,
 	"reload_interval": 20000,
