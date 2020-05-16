@@ -58,6 +58,8 @@ module CrawlProcessor {
 	
 	vector<string> domain_blacklist;
 	
+	vector<string> path_blacklist;
+	
 	
 	CrawlStats* get_stats(int limit) const;
 	

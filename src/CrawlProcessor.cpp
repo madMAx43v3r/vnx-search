@@ -44,6 +44,7 @@ void CrawlProcessor::main()
 	
 	protocols = get_unique(protocols);
 	domain_blacklist = get_unique(domain_blacklist);
+	path_blacklist = get_unique(path_blacklist);
 	
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
@@ -253,6 +254,12 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed)
 	auto& domain = get_domain(parsed.host());
 	if(domain.is_blacklisted) {
 		return false;
+	}
+	const auto url_key = get_url_key(parsed);
+	for(const auto& entry : path_blacklist) {
+		if(url_key.compare(0, entry.size(), entry) == 0) {
+			return false;
+		}
 	}
 	if(domain.robots_txt &&
 		!matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, parsed.str()))
