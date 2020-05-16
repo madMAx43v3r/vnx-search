@@ -220,6 +220,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 								std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
 					}
 				} else {
+					url_index_async->delete_value(url_key);
 					page_index_async->delete_value(url_key);
 					page_content_async->delete_value(url_key);
 					delete_counter++;
