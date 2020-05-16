@@ -313,7 +313,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			}
 		}
 		{
-			auto range = open_links.equal_range(page.id);
+			const auto range = open_links.equal_range(page.id);
 			for(auto entry = range.first; entry != range.second; ++entry)
 			{
 				auto iter = page_index.find(entry->second);
