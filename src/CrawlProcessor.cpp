@@ -200,7 +200,12 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 		auto index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
 		if(index) {
 			if(index->profile == profile) {
-				check_url(index->scheme + ":" + url_key, index->depth, index);
+				const auto url = index->scheme + ":" + url_key;
+				if(filter_url(Url::Url(url))) {
+					check_url(url, index->depth, index);
+				} else {
+					url_index_async->delete_value(url_key);
+				}
 			}
 			return;
 		}
