@@ -239,6 +239,7 @@ void CrawlProcessor::delete_url(const std::string& url_key)
 	page_index_async->delete_value(url_key);
 	page_content_async->delete_value(url_key);
 	delete_counter++;
+	log(INFO).out << "Deleted '" << url_key << "'";
 }
 
 CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
