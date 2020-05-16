@@ -81,6 +81,8 @@ private:
 						const std::vector<std::string>& links,
 						const std::vector<std::string>& images);
 	
+	void delete_url(const std::string& url_key);
+	
 	domain_t& get_domain(const std::string& host);
 	
 	bool filter_url(const Url::Url& parsed);

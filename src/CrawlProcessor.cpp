@@ -204,7 +204,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 				if(filter_url(Url::Url(url))) {
 					check_url(url, index->depth, index);
 				} else {
-					url_index_async->delete_value(url_key);
+					delete_url(url_key);
 				}
 			}
 			return;
@@ -220,15 +220,20 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 								std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
 					}
 				} else {
-					url_index_async->delete_value(url_key);
-					page_index_async->delete_value(url_key);
-					page_content_async->delete_value(url_key);
-					delete_counter++;
+					delete_url(url_key);
 				}
 			}
 			return;
 		}
 	}
+}
+
+void CrawlProcessor::delete_url(const std::string& url_key)
+{
+	url_index_async->delete_value(url_key);
+	page_index_async->delete_value(url_key);
+	page_content_async->delete_value(url_key);
+	delete_counter++;
 }
 
 CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
@@ -379,16 +384,7 @@ void CrawlProcessor::check_queue()
 				if(matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, iter->second)) {
 					break;
 				}
-				{
-					auto index = UrlIndex::create();
-					index->depth = iter->first;
-					index->last_fetched = std::time(0);
-					index->profile = profile;
-					index->http_status = 403;	// fake HTTP Forbidden
-					index->is_fail = true;
-					url_index_async->get_value(get_url_key(iter->second),
-							std::bind(&CrawlProcessor::url_update_callback, this, iter->second, index, std::placeholders::_1));
-				}
+				delete_url(get_url_key(iter->second));
 				iter = domain.queue.erase(iter);
 				domain.num_disallowed++;
 			}
@@ -763,8 +759,8 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
 			<< pending_urls.size() << " pending, " << queue_block_count << " blocking, "
 			<< fetch_counter << " fetched, " << error_counter << " failed, "
-			<< reload_counter << " reload, " << active_domains
-			<< " domains, " << average_depth << " depth";
+			<< delete_counter << " deleted, " << reload_counter << " reload, "
+			<< active_domains << " domains, " << average_depth << " depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
 			<< found_robots_txt << " found";
