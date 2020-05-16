@@ -199,6 +199,12 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 	auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 	if(index) {
 		const auto url_key = pair->key.to_string_value();
+		const auto page_id = get_url_id(url_key);
+		
+		const auto iter = page_index.find(page_id);
+		if(iter != page_index.end()) {
+			iter->second.is_deleted = false;
+		}
 		url_index_async->get_value(url_key,
 					std::bind(&SearchEngine::url_index_callback, this, url_key, pair->version, index, std::placeholders::_1));
 	}
@@ -218,7 +224,19 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		}
 		if(init_sync_count == 3)
 		{
+			const auto size_before = page_index.size();
+			for(auto iter = page_index.begin(); iter != page_index.end();) {
+				if(iter->second.is_deleted) {
+					page_info_async->delete_value(iter->first);
+					iter = page_index.erase(iter);
+				} else {
+					iter++;
+				}
+			}
+			log(INFO).out << "Purged " << (size_before - page_index.size()) << " deleted pages.";
+			
 			is_initialized = true;
+			
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages and " << word_set.size() << " words.";
 		}
@@ -332,6 +350,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			page.version = version;
 		}
 		page.is_loaded = true;
+		page.is_deleted = false;
 	}
 }
 
