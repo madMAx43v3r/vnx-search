@@ -17,6 +17,8 @@
 #include <vnx/keyvalue/ServerClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
 
+#include <regex>
+
 namespace Url {
 	class Url;
 }
@@ -145,6 +147,7 @@ private:
 	std::shared_ptr<CrawlFrontendAsyncClient> crawl_frontend_async;
 	
 	std::shared_ptr<googlebot::RobotsMatcher> matcher;
+	std::vector<std::regex> regex_blacklist_;
 	
 	int64_t fetch_counter = 0;
 	int64_t error_counter = 0;

@@ -47,6 +47,7 @@ public:
 	::std::vector<::std::string> root_urls;
 	::std::vector<::std::string> domain_blacklist;
 	::std::vector<::std::string> path_blacklist;
+	::std::vector<::std::string> regex_blacklist;
 	
 	typedef ::vnx::Module Super;
 	

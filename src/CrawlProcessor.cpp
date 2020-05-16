@@ -45,6 +45,11 @@ void CrawlProcessor::main()
 	protocols = get_unique(protocols);
 	domain_blacklist = get_unique(domain_blacklist);
 	path_blacklist = get_unique(path_blacklist);
+	regex_blacklist = get_unique(regex_blacklist);
+	
+	for(const auto& entry : regex_blacklist) {
+		regex_blacklist_.emplace_back(entry);
+	}
 	
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
@@ -269,6 +274,11 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed)
 	const auto url_key = get_url_key(parsed);
 	for(const auto& entry : path_blacklist) {
 		if(url_key.compare(0, entry.size(), entry) == 0) {
+			return false;
+		}
+	}
+	for(const auto& entry : regex_blacklist_) {
+		if(std::regex_match(url_key, entry)) {
 			return false;
 		}
 	}
