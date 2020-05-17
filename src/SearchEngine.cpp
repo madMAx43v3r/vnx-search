@@ -336,8 +336,8 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 						unique_push_back(page.reverse_domains, parent.domain_id);
 					}
 				}
-				open_links.erase(iter);
 			}
+			open_links.erase(page.id);
 		}
 		
 		if(version > page.version)
