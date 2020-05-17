@@ -191,22 +191,35 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 	
 	if(pair->collection == "word_context")
 	{
+		std::unique_lock lock(index_mutex);
+		
 		const auto word = pair->key.to_string_value();
 		word_set.insert(word);
 		return;
 	}
 	
-	auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
-	if(index) {
+	if(pair->collection == "page_index")
+	{
+		std::unique_lock lock(index_mutex);
+		
 		const auto url_key = pair->key.to_string_value();
 		const auto page_id = get_url_id(url_key);
-		
 		const auto iter = page_index.find(page_id);
-		if(iter != page_index.end()) {
-			iter->second.is_deleted = false;
+		
+		auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
+		if(index) {
+			if(iter != page_index.end()) {
+				iter->second.is_deleted = false;
+			}
+			url_index_async->get_value(url_key,
+						std::bind(&SearchEngine::url_index_callback, this, url_key, pair->version, index, std::placeholders::_1));
+		} else {
+			if(iter != page_index.end()) {
+				page_index.erase(iter);
+				page_info_async->delete_value(page_id);
+			}
 		}
-		url_index_async->get_value(url_key,
-					std::bind(&SearchEngine::url_index_callback, this, url_key, pair->version, index, std::placeholders::_1));
+		return;
 	}
 }
 
