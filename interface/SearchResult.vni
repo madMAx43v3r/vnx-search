@@ -4,7 +4,11 @@ class SearchResult {
 	
 	bool is_fail;
 	
-	long num_results_total;
+	int num_results_total;
+	
+	int load_time;							// [usec]
+	
+	int compute_time;						// [usec]
 	
 	vector<string> words;
 	

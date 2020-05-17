@@ -414,6 +414,7 @@ void SearchEngine::query_loop() const noexcept
 		
 		std::vector<std::shared_ptr<const WordContext>> context;
 		try {
+			const auto time_begin = vnx::get_wall_time_micros();
 			const auto words = get_unique(request->words);
 			const std::vector<Variant> keys(words.begin(), words.end());
 			const auto values = word_context_sync.get_values(keys);
@@ -426,11 +427,13 @@ void SearchEngine::query_loop() const noexcept
 				}
 				i++;
 			}
+			result->load_time = vnx::get_wall_time_micros() - time_begin;
 		}
 		catch(...) {
 			request->callback(result);
 			continue;
 		}
+		const auto time_begin = vnx::get_wall_time_micros();
 		
 		const uint32_t num_words = context.size();
 		if(num_words == 0) {
@@ -584,6 +587,7 @@ void SearchEngine::query_loop() const noexcept
 		}
 		
 		result->is_fail = false;
+		result->compute_time = vnx::get_wall_time_micros() - time_begin;
 		request->callback(result);
 		
 		query_counter++;
