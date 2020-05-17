@@ -134,25 +134,23 @@ void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_duration_us/1000
 			<< " ms (" << float(value->payload.size() / (value->fetch_duration_us * 1e-6f) / 1024.) << " KB/s)";
 	
-	bool parse_ok = false;
 	uint64_t parse_id = 0;
+	std::vector<parser_t*> parser_list;
 	
-	// TODO: proper load balancing
-	for(auto iter = parser_map.begin(); iter != parser_map.end();)
-	{
-		const auto& parser = iter->second;
+	for(auto& entry : parser_map) {
+		auto& parser = entry.second;
 		if(parser.content_types.count(value->content_type)) {
-			parse_id = parser.client->parse(value,
-					std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
-			parse_ok = true;
-			break;
-		} else {
-			iter++;
+			parser_list.push_back(&parser);
 		}
 	}
-	if(!parse_ok) {
+	if(!parser_list.empty()) {
+		auto parser = parser_list[parse_counter % parser_list.size()];
+		parse_id = parser->client->parse(value,
+					std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
+	} else {
 		log(WARN).out << "Cannot parse content type: '" << value->content_type << "'";
 	}
+	parse_counter++;
 	num_bytes_fetched += value->payload.size();
 }
 

@@ -19,8 +19,13 @@
 int main(int argc, char** argv)
 {
 	std::map<std::string, std::string> options;
+	options["n"] = "num-parsers";
+	options["num-parsers"] = "number of parsers";
 	
 	vnx::init("vnx_search_frontend", argc, argv, options);
+	
+	int num_parsers = 1;
+	vnx::read_config("num-parsers", num_parsers);
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
@@ -34,7 +39,7 @@ int main(int argc, char** argv)
 		vnx::Handle<vnx::search::CrawlFrontend> module = new vnx::search::CrawlFrontend("CrawlFrontend");
 		module.start_detached();
 	}
-	{
+	for(int i = 0; i < num_parsers; ++i) {
 		vnx::Handle<vnx::search::HtmlParser> module = new vnx::search::HtmlParser("HtmlParser");
 		module->frontend_server = "CrawlFrontend";
 		module.start_detached();

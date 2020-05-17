@@ -93,6 +93,8 @@ private:
 	uint64_t last_num_bytes_fetched = 0;
 	uint64_t last_num_bytes_parsed = 0;
 	
+	size_t parse_counter = 0;
+	
 };
 
 
