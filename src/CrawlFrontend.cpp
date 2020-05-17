@@ -135,18 +135,17 @@ void CrawlFrontend::handle(std::shared_ptr<const HttpResponse> value)
 			<< " ms (" << float(value->payload.size() / (value->fetch_duration_us * 1e-6f) / 1024.) << " KB/s)";
 	
 	uint64_t parse_id = 0;
-	std::vector<parser_t*> parser_list;
+	std::multimap<size_t, parser_t*> parser_list;
 	
 	for(auto& entry : parser_map) {
 		auto& parser = entry.second;
 		if(parser.content_types.count(value->content_type)) {
-			parser_list.push_back(&parser);
+			parser_list.emplace(parser.client->vnx_get_num_pending(), &parser);
 		}
 	}
 	if(!parser_list.empty()) {
-		auto parser = parser_list[parse_counter % parser_list.size()];
-		parse_id = parser->client->parse(value,
-					std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
+		auto parser = parser_list.begin()->second;
+		parse_id = parser->client->parse(value, std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1));
 	} else {
 		log(WARN).out << "Cannot parse content type: '" << value->content_type << "'";
 	}
