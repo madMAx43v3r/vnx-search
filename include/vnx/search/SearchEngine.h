@@ -113,7 +113,6 @@ private:
 	std::shared_ptr<keyvalue::ServerAsyncClient> word_context_async;
 	std::shared_ptr<keyvalue::ServerClient> page_index_sync;
 	
-	mutable std::mutex parallel_mutex;
 	mutable std::shared_mutex index_mutex;
 	
 	std::unordered_map<std::string, uint32_t> url_map;
