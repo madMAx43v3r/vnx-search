@@ -38,7 +38,6 @@ void SearchEngine::init()
 
 void SearchEngine::main()
 {
-	subscribe(input_page_index, 1000);
 	subscribe(input_page_info_sync, 100);
 	subscribe(input_page_index_sync, 100);
 	subscribe(input_word_context_sync, 100);
@@ -232,6 +231,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		init_sync_count++;
 		if(value->collection == "page_info")
 		{
+			subscribe(input_page_index, 1000);
 			page_index_sync->sync_all(input_page_index_sync);
 			log(INFO).out << "Starting PageIndex sync ...";
 		}
