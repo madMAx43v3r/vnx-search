@@ -165,9 +165,9 @@ void CrawlProcessor::process_page(	const std::string& url,
 	{
 		try {
 			const auto parsed = process_link(Url::Url(link), parent);
-			if(filter_url(parsed)) {
-				const auto full_link = parsed.str();
-				if(full_link.size() <= max_url_length) {
+			const auto full_link = parsed.str();
+			if(full_link.size() <= max_url_length) {
+				if(filter_url(parsed)) {
 					index->links.push_back(full_link);
 				}
 			}
@@ -180,9 +180,9 @@ void CrawlProcessor::process_page(	const std::string& url,
 	{
 		try {
 			const auto parsed = process_link(Url::Url(link), parent);
-			if(filter_url(parsed)) {
-				const auto full_link = parsed.str();
-				if(full_link.size() <= max_url_length) {
+			const auto full_link = parsed.str();
+			if(full_link.size() <= max_url_length) {
+				if(filter_url(parsed)) {
 					index->images.push_back(full_link);
 				}
 			}
