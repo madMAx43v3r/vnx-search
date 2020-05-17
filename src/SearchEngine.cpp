@@ -337,7 +337,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 					}
 				}
 			}
-			open_links.erase(page.id);
+			open_links.erase(range.first, range.second);
 		}
 		
 		if(version > page.version)
