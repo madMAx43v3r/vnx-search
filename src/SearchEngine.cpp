@@ -489,7 +489,7 @@ void SearchEngine::query_loop() const noexcept
 			{
 				std::shared_lock lock(index_mutex);
 				
-				for(uint32_t i = 0; i < std::min(size_t(num_found), found.size()); ++i) {
+				for(size_t i = 0; i < std::min(size_t(num_found), found.size()); ++i) {
 					const auto& entry = found[i];
 					auto iter = page_index.find(entry.first);
 					if(iter != page_index.end() && iter->second.is_loaded)
@@ -562,11 +562,13 @@ void SearchEngine::query_loop() const noexcept
 				if(result->items.size() >= size_t(request->limit)) {
 					break;
 				}
+				const auto* page = entry.second;
+				
 				result_item_t item;
-				item.title = entry.second->title;
-				item.url = entry.second->scheme + ":" + entry.second->url_key;
+				item.title = page->title;
+				item.url = page->scheme + ":" + page->url_key;
 				item.score = entry.first;
-				item.last_modified = entry.second->last_modified;
+				item.last_modified = page->last_modified;
 				result->items.push_back(item);
 			}
 		}
