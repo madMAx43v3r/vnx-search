@@ -279,7 +279,7 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed)
 		}
 	}
 	for(const auto& entry : regex_blacklist_) {
-		if(std::regex_match(url_key, entry)) {
+		if(std::regex_search(url_key, entry)) {
 			return false;
 		}
 	}
