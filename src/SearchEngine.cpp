@@ -307,33 +307,18 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 						unique_push_back(child.reverse_domains, page.domain_id);
 					}
 				} else {
-					bool found = false;
-					if(page.is_loaded) {
-						auto range = open_links.equal_range(link_id);
-						for(auto entry = range.first; entry != range.second; ++entry) {
-							if(entry->second == page.id) {
-								found = true;
-								break;
-							}
-						}
-					}
-					if(!found) {
-						open_links.emplace(link_id, page.id);
-					}
+					open_links[link_id].insert(page.domain_id);
 				}
 			} catch(...) {
 				// ignore bad links
 			}
 		}
 		{
-			const auto range = open_links.equal_range(page.id);
-			for(auto entry = range.first; entry != range.second; ++entry)
-			{
-				auto iter = page_index.find(entry->second);
-				if(iter != page_index.end()) {
-					auto& parent = iter->second;
-					if(parent.domain_id != page.domain_id) {
-						unique_push_back(page.reverse_domains, parent.domain_id);
+			const auto iter = open_links.find(page.id);
+			if(iter != open_links.end()) {
+				for(auto parent_domain_id : iter->second) {
+					if(parent_domain_id != page.domain_id) {
+						unique_push_back(page.reverse_domains, parent_domain_id);
 					}
 				}
 			}
