@@ -132,7 +132,7 @@ private:
 	mutable std::condition_variable update_condition;
 	mutable std::queue<std::pair<int64_t, std::string>> update_queue;
 	
-	bool is_initialized = false;
+	volatile bool is_initialized = false;
 	int init_sync_count = 0;
 	uint32_t next_url_id = 1;
 	uint32_t next_domain_id = 1;

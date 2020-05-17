@@ -614,7 +614,7 @@ void SearchEngine::update_loop() noexcept
 			do_wait = true;
 			
 			if(vnx_do_run()) {
-				if(update_queue.empty()) {
+				if(!is_initialized || update_queue.empty()) {
 					continue;
 				}
 				const auto& entry = update_queue.front();
