@@ -695,17 +695,13 @@ void SearchEngine::update_loop() noexcept
 		std::sort(list.begin(), list.end(), std::greater<std::pair<uint64_t, std::pair<uint32_t, uint16_t>>>());
 		
 		try {
-			if(list.size()) {
-				auto value = WordContext::create();
-				value->last_update = std::time(0);
-				value->pages.reserve(list.size());
-				for(const auto& entry : list) {
-					value->pages.emplace_back(entry.second);
-				}
-				word_context_sync.store_value(word, value);
-			} else {
-				word_context_sync.delete_value(word);
+			auto value = WordContext::create();
+			value->last_update = std::time(0);
+			value->pages.reserve(list.size());
+			for(const auto& entry : list) {
+				value->pages.emplace_back(entry.second);
 			}
+			word_context_sync.store_value(word, value);
 			
 			std::vector<std::pair<uint32_t, std::shared_ptr<PageInfo>>> page_updates;
 			{
