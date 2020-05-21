@@ -622,13 +622,17 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			
 			const Url::Url parsed(index->redirect);
 			const auto url_key = get_url_key(parsed);
-			auto copy = vnx::clone(index);
-			copy->scheme = parsed.scheme();
-			copy->depth = entry.depth;
-			copy->redirect.clear();
 			
-			url_index_async->get_value(url_key,
-				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
+			if(entry.depth >= 0)
+			{
+				auto copy = vnx::clone(index);
+				copy->scheme = parsed.scheme();
+				copy->depth = entry.depth;
+				copy->redirect.clear();
+				
+				url_index_async->get_value(url_key,
+					std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
+			}
 		}
 		
 		domain_t& domain = get_domain(entry.domain);
@@ -648,6 +652,7 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 	if(previous) {
 		fetched->first_seen = previous->first_seen ? previous->first_seen : fetched->last_fetched;
 		fetched->fetch_count = previous->fetch_count + 1;
+		fetched->depth = std::min(previous->depth, fetched->depth);
 	}
 	url_index_async->store_value(url_key, fetched);
 	
