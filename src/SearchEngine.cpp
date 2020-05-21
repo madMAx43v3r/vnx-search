@@ -281,6 +281,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		page.depth = url_index->depth;
 		page.first_seen = url_index->first_seen;
 		page.last_modified = url_index->last_modified;
+		page.links.clear();
 		
 		if(!page.domain_id) {
 			auto& domain = get_domain(parsed_url_key.host());
@@ -303,9 +304,15 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				auto iter = page_index.find(link_id);
 				if(iter != page_index.end()) {
 					auto& child = iter->second;
+					if(page.is_loaded) {
+						unique_push_back(child.reverse_links, page.id);
+					} else {
+						child.reverse_links.push_back(page.id);
+					}
 					if(page.domain_id != child.domain_id) {
 						unique_push_back(child.reverse_domains, page.domain_id);
 					}
+					page.links.push_back(link_id);
 				} else {
 					bool found = false;
 					if(page.is_loaded) {
@@ -332,6 +339,8 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				auto iter = page_index.find(entry->second);
 				if(iter != page_index.end()) {
 					auto& parent = iter->second;
+					parent.links.push_back(page.id);
+					page.reverse_links.push_back(parent.id);
 					if(parent.domain_id != page.domain_id) {
 						unique_push_back(page.reverse_domains, parent.domain_id);
 					}
