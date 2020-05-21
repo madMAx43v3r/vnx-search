@@ -129,10 +129,8 @@ std::shared_ptr<const DomainIndex> SearchEngine::get_domain_info(	const std::str
 				auto iter3 = page_index.find(domain.pages[offset + i]);
 				if(iter3 != page_index.end()) {
 					result->pages.push_back(iter3->second.url_key);
-					i++;
 				}
 			}
-			std::sort(result->pages.begin(), result->pages.end());
 			return result;
 		}
 	}
