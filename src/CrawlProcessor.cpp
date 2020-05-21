@@ -210,9 +210,10 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 		if(index) {
 			if(index->profile == profile) {
 				const auto url = index->scheme + ":" + url_key;
-				if(filter_url(Url::Url(url))) {
+				const Url::Url parsed(url);
+				if(filter_url(parsed)) {
 					check_url(url, index->depth, index);
-				} else {
+				} else if(!is_robots_txt(parsed)) {
 					delete_url(url_key);
 				}
 			}
@@ -223,7 +224,10 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 		auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
 		if(index) {
 			if(do_reprocess) {
-				if(filter_url(Url::Url(url_key))) {
+				const Url::Url parsed(url_key);
+				if(is_robots_txt(parsed)) {
+					page_index_async->delete_value(url_key);
+				} else if(filter_url(parsed)) {
 					if(index->version < index_version) {
 						page_content_async->get_value(url_key,
 								std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
