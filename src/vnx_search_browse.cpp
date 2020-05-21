@@ -1,7 +1,7 @@
 /*
- * vnx_search_query.cpp
+ * vnx_search_browse.cpp
  *
- *  Created on: Apr 10, 2020
+ *  Created on: May 21, 2020
  *      Author: mad
  */
 
@@ -17,32 +17,31 @@ int main(int argc, char** argv)
 {
 	std::map<std::string, std::string> options;
 	options["s"] = "server";
-	options["w"] = "words";
+	options["k"] = "key";
 	options["l"] = "limit";
 	options["p"] = "page";
-	options["o"] = "options";
 	options["server"] = "backend server url";
-	options["words"] = "search words";
+	options["key"] = "search key";
 	options["limit"] = "max results";
 	options["page"] = "page index";
-	options["options"] = "search flags";
-	options["complete"] = "complete word";
+	options["get-domain-info"] = "get_domain_info(key, limit, offset)";
+	options["reverse-lookup"] = "reverse_lookup(key)";
 	
-	vnx::init("vnx_search_query", argc, argv, options);
+	vnx::init("vnx_search_browse", argc, argv, options);
 	
 	std::string server = ".vnx_search_backend.sock";
-	std::vector<std::string> words;
-	int32_t limit = 10;
+	std::string key;
+	int32_t limit = 100;
 	uint32_t page = 0;
-	std::vector<vnx::search::search_flags_e> flags;
-	bool complete = false;
+	bool get_domain_info = false;
+	bool reverse_lookup = false;
 	
 	vnx::read_config("server", server);
-	vnx::read_config("words", words);
+	vnx::read_config("key", key);
 	vnx::read_config("limit", limit);
 	vnx::read_config("page", page);
-	vnx::read_config("options", flags);
-	vnx::read_config("complete", complete);
+	vnx::read_config("get-domain-info", get_domain_info);
+	vnx::read_config("reverse-lookup", reverse_lookup);
 	
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
@@ -51,13 +50,14 @@ int main(int argc, char** argv)
 	}
 	
 	vnx::search::SearchEngineClient client("SearchEngine");
-	if(complete) {
-		if(!words.empty()) {
-			auto result = client.suggest_words(words[0], limit);
-			std::cout << vnx::to_string(result) << std::endl;
-		}
-	} else {
-		auto result = client.query(words, limit, limit >= 0 ? page * limit : 0, flags);
+	if(get_domain_info) {
+		auto result = client.get_domain_info(key, limit, limit >= 0 ? page * limit : 0);
+		vnx::PrettyPrinter print(std::cout);
+		vnx::accept(print, result);
+		std::cout << std::endl;
+	}
+	if(reverse_lookup) {
+		auto result = client.reverse_lookup(key);
 		vnx::PrettyPrinter print(std::cout);
 		vnx::accept(print, result);
 		std::cout << std::endl;
@@ -65,4 +65,3 @@ int main(int argc, char** argv)
 	
 	vnx::close();
 }
-

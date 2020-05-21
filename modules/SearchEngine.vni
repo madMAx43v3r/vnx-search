@@ -29,7 +29,11 @@ module SearchEngine {
 	vector<string> protocols;				// protocols to allow as links
 	
 	
-	SearchResult* query(vector<string> words, int limit, long offset, vector<search_flags_e> flags) const async;
+	SearchResult* query(vector<string> words, int limit, uint offset, vector<search_flags_e> flags) const async;
+	
+	DomainIndex* get_domain_info(string host, int limit, uint offset) const;
+	
+	vector<string> reverse_lookup(string url_key) const;
 	
 	vector<string> suggest_words(string prefix, int limit) const;
 	

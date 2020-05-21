@@ -1,0 +1,11 @@
+package vnx.search;
+
+class DomainIndex {
+	
+	string host;
+	
+	long num_pages;
+	
+	vector<string> pages;
+	
+}

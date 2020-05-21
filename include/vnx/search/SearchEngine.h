@@ -39,8 +39,8 @@ protected:
 	
 	struct domain_t {
 		uint32_t id = 0;
-		uint32_t num_pages = 0;
 		std::string host;
+		std::vector<uint32_t> pages;
 	};
 	
 	struct page_t {
@@ -64,7 +64,7 @@ protected:
 	struct query_t {
 		std::vector<std::string> words;
 		int32_t limit = 0;
-		int64_t offset = 0;
+		uint32_t offset = 0;
 		std::vector<search_flags_e> flags;
 		std::function<void(const std::shared_ptr<const SearchResult>&)> callback;
 	};
@@ -74,10 +74,14 @@ protected:
 	void main() override;
 	
 	void query_async(	const std::vector<std::string>& words,
-						const int32_t& limit, const int64_t& offset,
+						const int32_t& limit, const uint32_t& offset,
 						const std::vector<search_flags_e>& flags,
 						const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 						const vnx::request_id_t& _request_id) const override;
+	
+	std::shared_ptr<const DomainIndex> get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const;
+	
+	std::vector<std::string> reverse_lookup(const std::string& url_key) const;
 	
 	std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit) const;
 	
@@ -88,6 +92,8 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::SyncInfo> value) override;
 	
 private:
+	uint32_t find_url_id(const std::string& url_key) const;
+	
 	uint32_t get_url_id(const std::string& url_key);
 	
 	SearchEngine::domain_t& get_domain(const std::string& host);

@@ -95,7 +95,7 @@ void SearchEngine::main()
 }
 
 void SearchEngine::query_async(	const std::vector<std::string>& words,
-								const int32_t& limit, const int64_t& offset,
+								const int32_t& limit, const uint32_t& offset,
 								const std::vector<search_flags_e>& flags,
 								const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 								const vnx::request_id_t& _request_id) const
@@ -111,6 +111,52 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 		query_queue.push(request);
 	}
 	query_condition.notify_one();
+}
+
+std::shared_ptr<const DomainIndex> SearchEngine::get_domain_info(	const std::string& host,
+																	const int32_t& limit,
+																	const uint32_t& offset) const
+{
+	auto iter = domain_map.find(host);
+	if(iter != domain_map.end()) {
+		auto iter2 = domain_index.find(iter->second);
+		if(iter2 != domain_index.end()) {
+			const auto& domain = iter2->second;
+			auto result = DomainIndex::create();
+			result->host = host;
+			result->num_pages = domain.pages.size();
+			for(uint32_t i = 0; i < uint32_t(limit) && offset + i < domain.pages.size(); ++i) {
+				auto iter3 = page_index.find(domain.pages[offset + i]);
+				if(iter3 != page_index.end()) {
+					result->pages.push_back(iter3->second.url_key);
+					i++;
+				}
+			}
+			std::sort(result->pages.begin(), result->pages.end());
+			return result;
+		}
+	}
+	return 0;
+}
+
+std::vector<std::string> SearchEngine::reverse_lookup(const std::string& url_key) const
+{
+	std::shared_lock lock(index_mutex);
+	
+	std::vector<std::string> result;
+	const auto page_id = find_url_id(url_key);
+	if(page_id) {
+		auto iter = page_index.find(page_id);
+		if(iter != page_index.end()) {
+			for(auto link_id : iter->second.reverse_links) {
+				auto iter2 = page_index.find(link_id);
+				if(iter2 != page_index.end()) {
+					result.push_back(iter2->second.url_key);
+				}
+			}
+		}
+	}
+	return result;
 }
 
 std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
@@ -135,17 +181,21 @@ std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix
 	return result;
 }
 
+uint32_t SearchEngine::find_url_id(const std::string& url_key) const
+{
+	auto iter = url_map.find(url_key);
+	if(iter != url_map.end()) {
+		return iter->second;
+	}
+	return 0;
+}
+
 uint32_t SearchEngine::get_url_id(const std::string& url_key)
 {
-	uint32_t id = 0;
-	{
-		auto iter = url_map.find(url_key);
-		if(iter != url_map.end()) {
-			id = iter->second;
-		} else {
-			id = next_url_id++;
-			url_map[url_key] = id;
-		}
+	uint32_t id = find_url_id(url_key);
+	if(id == 0) {
+		id = next_url_id++;
+		url_map[url_key] = id;
 	}
 	return id;
 }
@@ -286,7 +336,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		if(!page.domain_id) {
 			auto& domain = get_domain(parsed_url_key.host());
 			page.domain_id = domain.id;
-			domain.num_pages++;
+			domain.pages.push_back(page.id);
 		}
 		
 		for(const auto& link : index->links) {
@@ -577,7 +627,7 @@ void SearchEngine::query_loop() const noexcept
 		{
 			std::shared_lock lock(index_mutex);
 			
-			int64_t offset = 0;
+			uint32_t offset = 0;
 			for(const auto& entry : sorted)
 			{
 				if(offset++ < request->offset) {
