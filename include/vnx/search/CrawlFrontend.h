@@ -75,6 +75,7 @@ private:
 	std::map<Hash64, parser_t> parser_map;
 	
 	mutable std::atomic<uint64_t> fetch_counter {0};
+	mutable std::atomic<uint64_t> redirect_counter {0};
 	mutable std::atomic<uint64_t> server_fail_counter {0};
 	mutable std::atomic<uint64_t> general_fail_counter {0};
 	mutable std::atomic<uint64_t> connection_fail_counter {0};

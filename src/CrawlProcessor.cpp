@@ -613,6 +613,19 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		url_index_async->get_value(url_key,
 				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
 		
+		if(!index->redirect.empty())
+		{
+			const Url::Url parsed(index->redirect);
+			const auto url_key = get_url_key(parsed);
+			auto copy = vnx::clone(index);
+			copy->scheme = parsed.scheme();
+			copy->depth = entry.depth;
+			copy->redirect.clear();
+			
+			url_index_async->get_value(url_key,
+				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
+		}
+		
 		domain_t& domain = get_domain(entry.domain);
 		if(index->is_fail) {
 			domain.num_errors++;

@@ -6,6 +6,8 @@ class UrlIndex {
 	
 	string content_type;			// mime type
 	
+	string redirect;				// final url (including scheme)
+	
 	long first_seen;				// posix timestamp [sec]
 	
 	long last_fetched;				// posix timestamp [sec]

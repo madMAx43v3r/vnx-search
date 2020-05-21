@@ -179,6 +179,7 @@ void CrawlFrontend::print_stats()
 	log(INFO).out << (60000 * (fetch_count - last_fetch_count)) / stats_interval_ms << " pages/min, "
 			<< (1000 * (num_bytes_fetched - last_num_bytes_fetched) / 1024) / stats_interval_ms << " KB/s http, "
 			<< (1000 * (num_bytes_parsed - last_num_bytes_parsed) / 1024) / stats_interval_ms << " KB/s text, "
+			<< redirect_counter << " redirect, "
 			<< connection_fail_counter << " network, "
 			<< server_fail_counter << " server, "
 			<< invalid_url_counter << " url, "
@@ -357,6 +358,19 @@ void CrawlFrontend::fetch_loop() const noexcept
 		curl_easy_getinfo(client, CURLINFO_RESPONSE_CODE, &status);
 		if(status == 0) {
 			status = -1;
+		}
+		
+		{
+			char* final_url = 0;
+			curl_easy_getinfo(client, CURLINFO_EFFECTIVE_URL, &final_url);
+			if(final_url) {
+				const std::string tmp(final_url);
+				if(tmp != request->url) {
+					out->url = tmp;
+					index->redirect = tmp;
+					redirect_counter++;
+				}
+			}
 		}
 		
 		if(out->content_type.empty() && out->payload.size() == 0) {
