@@ -489,7 +489,7 @@ void SearchEngine::query_loop() const noexcept
 				}
 				i++;
 			}
-			result->load_time = vnx::get_wall_time_micros() - time_begin;
+			result->load_time_us = vnx::get_wall_time_micros() - time_begin;
 		}
 		catch(...) {
 			request->callback(result);
@@ -651,7 +651,7 @@ void SearchEngine::query_loop() const noexcept
 		}
 		
 		result->is_fail = false;
-		result->compute_time = vnx::get_wall_time_micros() - time_begin;
+		result->compute_time_us = vnx::get_wall_time_micros() - time_begin;
 		request->callback(result);
 		
 		query_counter++;

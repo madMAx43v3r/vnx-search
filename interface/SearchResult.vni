@@ -6,9 +6,9 @@ class SearchResult {
 	
 	int num_results_total;
 	
-	int load_time;							// [usec]
+	int load_time_us;							// [usec]
 	
-	int compute_time;						// [usec]
+	int compute_time_us;						// [usec]
 	
 	vector<string> words;
 	
