@@ -475,6 +475,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 	
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
 	if(index) {
+		depth = std::min(depth, index->depth);
 		if(is_robots) {
 			if(index->last_fetched > 0) {
 				int64_t load_delay = 2678400;
@@ -503,8 +504,7 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 			} else {
 				enqueue(url, depth);
 			}
-		} else {
-			depth = std::min(depth, index->depth);
+		} else if(depth >= 0) {
 			if(index->last_fetched > 0) {
 				int64_t load_delay = pow(depth + 1, reload_power) * reload_interval;
 				if(index->http_status < 0) {
@@ -520,6 +520,8 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 				copy->depth = depth;
 				url_index_async->store_value(url_key, copy);
 			}
+		} else {
+			delete_url(url_key);
 		}
 	} else {
 		auto index = UrlIndex::create();
