@@ -50,8 +50,6 @@ module CrawlProcessor {
 	
 	string user_agent = "Googlebot";		// for robots.txt matching
 	
-	string profile = "default";				// crawler config name
-	
 	vector<string> protocols;
 	
 	vector<string> root_urls;

@@ -27,7 +27,6 @@ protected:
 	void main() override;
 	
 	void fetch_async(	const std::string& url,
-						const std::string& profile,
 						const std::function<void(const std::shared_ptr<const UrlIndex>&)>& _callback,
 						const vnx::request_id_t& _request_id) const override;
 	
@@ -40,7 +39,6 @@ protected:
 public:
 	struct request_t {
 		std::string url;
-		std::string profile;
 		std::vector<std::string> accept_content;
 		vnx::request_id_t request_id;
 		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;

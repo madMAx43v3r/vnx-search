@@ -90,10 +90,6 @@ void CrawlProcessor::main()
 
 void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 {
-	if(value->profile != profile) {
-		return;
-	}
-	
 	const Url::Url parent(value->url);
 	const auto url_key = get_url_key(parent);
 	
@@ -208,14 +204,12 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	{
 		auto index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
 		if(index) {
-			if(index->profile == profile) {
-				const auto url = index->scheme + ":" + url_key;
-				const Url::Url parsed(url);
-				if(filter_url(parsed)) {
-					check_url(url, index->depth, index);
-				} else if(!is_robots_txt(parsed)) {
-					delete_url(url_key);
-				}
+			const auto url = index->scheme + ":" + url_key;
+			const Url::Url parsed(url);
+			if(filter_url(parsed)) {
+				check_url(url, index->depth, index);
+			} else if(!is_robots_txt(parsed)) {
+				delete_url(url_key);
 			}
 			return;
 		}
@@ -420,7 +414,7 @@ void CrawlProcessor::check_queue()
 			}
 			url_t& url = url_iter->second;
 			
-			url.request_id = crawl_frontend_async->fetch(url_str, profile,
+			url.request_id = crawl_frontend_async->fetch(url_str,
 					std::bind(&CrawlProcessor::url_fetch_callback, this, url_str, std::placeholders::_1));
 			
 			pending_urls.emplace(url.request_id, url_str);
@@ -532,7 +526,6 @@ void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_pt
 		index->scheme = parsed.scheme();
 		index->depth = depth;
 		index->first_seen = std::time(0);
-		index->profile = profile;
 		url_index_async->store_value(url_key, index);
 		enqueue(url, depth);
 	}
@@ -544,9 +537,7 @@ void CrawlProcessor::check_page_callback(	const std::string& url_key,
 {
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(url_index_);
 	if(index) {
-		if(index->profile == profile) {
-			check_page(url_key, index->depth, page_index_);
-		}
+		check_page(url_key, index->depth, page_index_);
 	}
 }
 
@@ -669,7 +660,6 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 				auto index = UrlIndex::create();
 				index->scheme = parsed.scheme();
 				index->depth = entry.depth;
-				index->profile = profile;
 				index->last_fetched = std::time(0);
 				index->is_fail = true;
 				url_index_async->get_value(url_key,

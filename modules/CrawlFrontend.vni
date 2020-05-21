@@ -21,7 +21,7 @@ module CrawlFrontend {
 	string user_agent = "Mozilla/5.0";
 	
 	
-	UrlIndex* fetch(string url, string profile) const async;
+	UrlIndex* fetch(string url) const async;
 	
 	void register_parser(vnx.Hash64 address, vector<string> mime_types, int num_threads);
 	

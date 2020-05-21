@@ -52,8 +52,7 @@ int main(int argc, char** argv)
 	proxy->import_list.push_back(module->input_page_index_sync->get_name());
 	
 	{
-		vnx::Handle<vnx::Server> server = new vnx::Server("Server", 
-				vnx::Endpoint::from_url(".vnx_search_crawl." + module->profile + ".sock"));
+		vnx::Handle<vnx::Server> server = new vnx::Server("Server", vnx::Endpoint::from_url(".vnx_search_crawl.sock"));
 		server.start_detached();
 	}
 	
