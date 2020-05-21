@@ -339,47 +339,52 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			domain.pages.push_back(page.id);
 		}
 		
-		for(const auto& link : index->links) {
+		std::set<uint32_t> links;
+		
+		for(const auto& link_url : index->links) {
 			try {
-				const Url::Url parsed_link(link);
+				const Url::Url parsed_link(link_url);
 				
 				if(std::find(protocols.begin(), protocols.end(), parsed_link.scheme()) == protocols.end()) {
 					continue;
 				}
 				const auto link_id = get_url_id(get_url_key(parsed_link));
-				if(link_id == page.id) {
-					continue;		// ignore self links
-				}
-				
-				auto iter = page_index.find(link_id);
-				if(iter != page_index.end()) {
-					auto& child = iter->second;
-					if(page.is_loaded) {
-						unique_push_back(child.reverse_links, page.id);
-					} else {
-						child.reverse_links.push_back(page.id);
-					}
-					if(page.domain_id != child.domain_id) {
-						unique_push_back(child.reverse_domains, page.domain_id);
-					}
-					page.links.push_back(link_id);
-				} else {
-					bool found = false;
-					if(page.is_loaded) {
-						auto range = open_links.equal_range(link_id);
-						for(auto entry = range.first; entry != range.second; ++entry) {
-							if(entry->second == page.id) {
-								found = true;
-								break;
-							}
-						}
-					}
-					if(!found) {
-						open_links.emplace(link_id, page.id);
-					}
+				if(link_id != page.id) {
+					links.insert(link_id);
 				}
 			} catch(...) {
 				// ignore bad links
+			}
+		}
+		
+		for(const auto link_id : links)
+		{
+			auto iter = page_index.find(link_id);
+			if(iter != page_index.end()) {
+				auto& child = iter->second;
+				if(page.is_loaded) {
+					unique_push_back(child.reverse_links, page.id);
+				} else {
+					child.reverse_links.push_back(page.id);
+				}
+				if(page.domain_id != child.domain_id) {
+					unique_push_back(child.reverse_domains, page.domain_id);
+				}
+				page.links.push_back(link_id);
+			} else {
+				bool found = false;
+				if(page.is_loaded) {
+					auto range = open_links.equal_range(link_id);
+					for(auto entry = range.first; entry != range.second; ++entry) {
+						if(entry->second == page.id) {
+							found = true;
+							break;
+						}
+					}
+				}
+				if(!found) {
+					open_links.emplace(link_id, page.id);
+				}
 			}
 		}
 		{
