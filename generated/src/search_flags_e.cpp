@@ -104,10 +104,11 @@ const vnx::TypeCode* search_flags_e::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> search_flags_e::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.search_flags_e";
 	type_code->type_hash = vnx::Hash64(0xe55b90a8ffab58ffull);
 	type_code->code_hash = vnx::Hash64(0x2950544b0fdbcb69ull);
+	type_code->is_native = true;
 	type_code->is_enum = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<search_flags_e>>(); };
 	type_code->methods.resize(0);

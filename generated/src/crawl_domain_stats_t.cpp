@@ -57,8 +57,8 @@ void crawl_domain_stats_t::accept(vnx::Visitor& _visitor) const {
 }
 
 void crawl_domain_stats_t::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"host\": "; vnx::write(_out, host);
+	_out << "{\"__type\": \"vnx.search.crawl_domain_stats_t\"";
+	_out << ", \"host\": "; vnx::write(_out, host);
 	_out << ", \"num_fetched\": "; vnx::write(_out, num_fetched);
 	_out << ", \"num_errors\": "; vnx::write(_out, num_errors);
 	_out << ", \"num_disallowed\": "; vnx::write(_out, num_disallowed);
@@ -137,10 +137,11 @@ const vnx::TypeCode* crawl_domain_stats_t::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> crawl_domain_stats_t::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.crawl_domain_stats_t";
 	type_code->type_hash = vnx::Hash64(0xf57ddd168a5985ddull);
 	type_code->code_hash = vnx::Hash64(0x7363396e7c63f73bull);
+	type_code->is_native = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<crawl_domain_stats_t>>(); };
 	type_code->methods.resize(0);
 	type_code->fields.resize(6);

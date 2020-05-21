@@ -69,8 +69,8 @@ void SearchEngineBase::accept(vnx::Visitor& _visitor) const {
 }
 
 void SearchEngineBase::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"input_page_index\": "; vnx::write(_out, input_page_index);
+	_out << "{\"__type\": \"vnx.search.SearchEngine\"";
+	_out << ", \"input_page_index\": "; vnx::write(_out, input_page_index);
 	_out << ", \"url_index_server\": "; vnx::write(_out, url_index_server);
 	_out << ", \"page_index_server\": "; vnx::write(_out, page_index_server);
 	_out << ", \"page_content_server\": "; vnx::write(_out, page_content_server);
@@ -191,22 +191,25 @@ const vnx::TypeCode* SearchEngineBase::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchEngine";
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
 	type_code->code_hash = vnx::Hash64(0x6fc9eda154835ed3ull);
+	type_code->is_native = true;
 	type_code->methods.resize(7);
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.get_domain_info";
 		call_type->type_hash = vnx::Hash64(0xc775a7413dab0511ull);
 		call_type->code_hash = vnx::Hash64(0xe9963befdbd05cd9ull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.get_domain_info.return";
 			return_type->type_hash = vnx::Hash64(0xdd84ef2259be7eull);
 			return_type->code_hash = vnx::Hash64(0xfc6d8d20c1c22d5aull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->fields.resize(1);
 			{
@@ -239,16 +242,18 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		type_code->methods[0] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_KeyValuePair";
 		call_type->type_hash = vnx::Hash64(0xd31e7941dec9d83aull);
 		call_type->code_hash = vnx::Hash64(0x7b64d9ce23fb7bbbull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_KeyValuePair.return";
 			return_type->type_hash = vnx::Hash64(0x65dba7428d26148bull);
 			return_type->code_hash = vnx::Hash64(0x357d3ffaa9c5d422ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
@@ -264,16 +269,18 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		type_code->methods[1] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_SyncInfo";
 		call_type->type_hash = vnx::Hash64(0x358a7aca8a9f1e94ull);
 		call_type->code_hash = vnx::Hash64(0x1ca0a4a37d7c94b5ull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_SyncInfo.return";
 			return_type->type_hash = vnx::Hash64(0xac7ffe12b596e74ull);
 			return_type->code_hash = vnx::Hash64(0x629ac618b3b14668ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
@@ -289,18 +296,20 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		type_code->methods[2] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.query";
 		call_type->type_hash = vnx::Hash64(0x14a6c3ff80018ce8ull);
 		call_type->code_hash = vnx::Hash64(0x2b2f92fb22bdefa5ull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		call_type->depends.resize(1);
 		call_type->depends[0] = ::vnx::search::search_flags_e::static_get_type_code();
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.query.return";
 			return_type->type_hash = vnx::Hash64(0xc4adbd01e9504960ull);
 			return_type->code_hash = vnx::Hash64(0xf6398e0c698422aaull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->fields.resize(1);
 			{
@@ -339,16 +348,18 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		type_code->methods[3] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.reverse_lookup";
 		call_type->type_hash = vnx::Hash64(0x4e3b1cbd5cbd42afull);
 		call_type->code_hash = vnx::Hash64(0x6ed0d85be579ded7ull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.reverse_lookup.return";
 			return_type->type_hash = vnx::Hash64(0x12b287ac93bf5253ull);
 			return_type->code_hash = vnx::Hash64(0xd006c2696de1ec86ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->fields.resize(1);
 			{
@@ -371,16 +382,18 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		type_code->methods[4] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.suggest_domains";
 		call_type->type_hash = vnx::Hash64(0x1abdd70e75f411b3ull);
 		call_type->code_hash = vnx::Hash64(0x95c1d8013664b51cull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.suggest_domains.return";
 			return_type->type_hash = vnx::Hash64(0x385aae88fe3df753ull);
 			return_type->code_hash = vnx::Hash64(0x8a0fbe919ddca0d8ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->fields.resize(1);
 			{
@@ -408,16 +421,18 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		type_code->methods[5] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.suggest_words";
 		call_type->type_hash = vnx::Hash64(0x7124d7bfda1b31f2ull);
 		call_type->code_hash = vnx::Hash64(0xd1e53a9be6fe4469ull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.suggest_words.return";
 			return_type->type_hash = vnx::Hash64(0xcf74c35d3594cc90ull);
 			return_type->code_hash = vnx::Hash64(0x212693bdbecedcd1ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->fields.resize(1);
 			{

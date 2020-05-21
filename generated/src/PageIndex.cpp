@@ -58,8 +58,8 @@ void PageIndex::accept(vnx::Visitor& _visitor) const {
 }
 
 void PageIndex::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"title\": "; vnx::write(_out, title);
+	_out << "{\"__type\": \"vnx.search.PageIndex\"";
+	_out << ", \"title\": "; vnx::write(_out, title);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
 	_out << ", \"word_count\": "; vnx::write(_out, word_count);
 	_out << ", \"version\": "; vnx::write(_out, version);
@@ -144,10 +144,11 @@ const vnx::TypeCode* PageIndex::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> PageIndex::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.PageIndex";
 	type_code->type_hash = vnx::Hash64(0x4c9c9cf43a382f0ull);
 	type_code->code_hash = vnx::Hash64(0x53bb24645df77025ull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageIndex>(); };
 	type_code->methods.resize(0);

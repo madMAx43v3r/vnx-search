@@ -53,8 +53,8 @@ void WordContext::accept(vnx::Visitor& _visitor) const {
 }
 
 void WordContext::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"last_update\": "; vnx::write(_out, last_update);
+	_out << "{\"__type\": \"vnx.search.WordContext\"";
+	_out << ", \"last_update\": "; vnx::write(_out, last_update);
 	_out << ", \"pages\": "; vnx::write(_out, pages);
 	_out << "}";
 }
@@ -109,10 +109,11 @@ const vnx::TypeCode* WordContext::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> WordContext::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.WordContext";
 	type_code->type_hash = vnx::Hash64(0xdaa75d84f367905bull);
 	type_code->code_hash = vnx::Hash64(0xa599c21c16f1afbfull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<WordContext>(); };
 	type_code->methods.resize(0);

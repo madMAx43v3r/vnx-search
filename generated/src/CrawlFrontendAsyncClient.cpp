@@ -71,7 +71,7 @@ uint64_t CrawlFrontendAsyncClient::register_parser(const ::vnx::Hash64& address,
 	return _request_id;
 }
 
-std::vector<uint64_t>CrawlFrontendAsyncClient::vnx_get_pending_ids() const {
+std::vector<uint64_t> CrawlFrontendAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
 	for(const auto& entry : vnx_queue_fetch) {
 		_list.push_back(entry.first);

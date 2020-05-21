@@ -54,8 +54,8 @@ void DomainIndex::accept(vnx::Visitor& _visitor) const {
 }
 
 void DomainIndex::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"host\": "; vnx::write(_out, host);
+	_out << "{\"__type\": \"vnx.search.DomainIndex\"";
+	_out << ", \"host\": "; vnx::write(_out, host);
 	_out << ", \"num_pages\": "; vnx::write(_out, num_pages);
 	_out << ", \"pages\": "; vnx::write(_out, pages);
 	_out << "}";
@@ -116,10 +116,11 @@ const vnx::TypeCode* DomainIndex::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> DomainIndex::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.DomainIndex";
 	type_code->type_hash = vnx::Hash64(0x297a84ac5dee81f9ull);
 	type_code->code_hash = vnx::Hash64(0x52c2b27b026680e9ull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<DomainIndex>(); };
 	type_code->methods.resize(0);

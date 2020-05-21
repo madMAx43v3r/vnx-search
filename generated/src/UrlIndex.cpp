@@ -64,8 +64,8 @@ void UrlIndex::accept(vnx::Visitor& _visitor) const {
 }
 
 void UrlIndex::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"scheme\": "; vnx::write(_out, scheme);
+	_out << "{\"__type\": \"vnx.search.UrlIndex\"";
+	_out << ", \"scheme\": "; vnx::write(_out, scheme);
 	_out << ", \"content_type\": "; vnx::write(_out, content_type);
 	_out << ", \"redirect\": "; vnx::write(_out, redirect);
 	_out << ", \"first_seen\": "; vnx::write(_out, first_seen);
@@ -186,10 +186,11 @@ const vnx::TypeCode* UrlIndex::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.UrlIndex";
 	type_code->type_hash = vnx::Hash64(0xab26319d1802d1b6ull);
 	type_code->code_hash = vnx::Hash64(0xf64e62fbc14a8000ull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<UrlIndex>(); };
 	type_code->methods.resize(0);

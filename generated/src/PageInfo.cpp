@@ -54,8 +54,8 @@ void PageInfo::accept(vnx::Visitor& _visitor) const {
 }
 
 void PageInfo::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"version\": "; vnx::write(_out, version);
+	_out << "{\"__type\": \"vnx.search.PageInfo\"";
+	_out << ", \"version\": "; vnx::write(_out, version);
 	_out << ", \"url_key\": "; vnx::write(_out, url_key);
 	_out << ", \"depth\": "; vnx::write(_out, depth);
 	_out << "}";
@@ -116,10 +116,11 @@ const vnx::TypeCode* PageInfo::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.PageInfo";
 	type_code->type_hash = vnx::Hash64(0x547cfd9b2bb19c80ull);
 	type_code->code_hash = vnx::Hash64(0xbd7cc77ddc38d3f5ull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageInfo>(); };
 	type_code->methods.resize(0);

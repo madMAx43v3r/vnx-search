@@ -57,8 +57,8 @@ void SearchResult::accept(vnx::Visitor& _visitor) const {
 }
 
 void SearchResult::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"is_fail\": "; vnx::write(_out, is_fail);
+	_out << "{\"__type\": \"vnx.search.SearchResult\"";
+	_out << ", \"is_fail\": "; vnx::write(_out, is_fail);
 	_out << ", \"num_results_total\": "; vnx::write(_out, num_results_total);
 	_out << ", \"load_time_us\": "; vnx::write(_out, load_time_us);
 	_out << ", \"compute_time_us\": "; vnx::write(_out, compute_time_us);
@@ -137,10 +137,11 @@ const vnx::TypeCode* SearchResult::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> SearchResult::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchResult";
 	type_code->type_hash = vnx::Hash64(0x659ce58d97581ddull);
 	type_code->code_hash = vnx::Hash64(0xdc6fb6c2c199f037ull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchResult>(); };
 	type_code->depends.resize(1);

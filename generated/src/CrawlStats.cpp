@@ -59,8 +59,8 @@ void CrawlStats::accept(vnx::Visitor& _visitor) const {
 }
 
 void CrawlStats::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"num_fetched\": "; vnx::write(_out, num_fetched);
+	_out << "{\"__type\": \"vnx.search.CrawlStats\"";
+	_out << ", \"num_fetched\": "; vnx::write(_out, num_fetched);
 	_out << ", \"num_errors\": "; vnx::write(_out, num_errors);
 	_out << ", \"num_reload\": "; vnx::write(_out, num_reload);
 	_out << ", \"num_domains\": "; vnx::write(_out, num_domains);
@@ -151,10 +151,11 @@ const vnx::TypeCode* CrawlStats::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> CrawlStats::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.CrawlStats";
 	type_code->type_hash = vnx::Hash64(0x1c9c8e69ae389c30ull);
 	type_code->code_hash = vnx::Hash64(0x262a3dd1d94ca3fbull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<CrawlStats>(); };
 	type_code->depends.resize(1);

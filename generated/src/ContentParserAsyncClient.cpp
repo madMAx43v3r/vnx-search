@@ -36,7 +36,7 @@ uint64_t ContentParserAsyncClient::parse(const ::std::shared_ptr<const ::vnx::se
 	return _request_id;
 }
 
-std::vector<uint64_t>ContentParserAsyncClient::vnx_get_pending_ids() const {
+std::vector<uint64_t> ContentParserAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
 	for(const auto& entry : vnx_queue_parse) {
 		_list.push_back(entry.first);

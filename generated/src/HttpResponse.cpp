@@ -60,8 +60,8 @@ void HttpResponse::accept(vnx::Visitor& _visitor) const {
 }
 
 void HttpResponse::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"url\": "; vnx::write(_out, url);
+	_out << "{\"__type\": \"vnx.search.HttpResponse\"";
+	_out << ", \"url\": "; vnx::write(_out, url);
 	_out << ", \"profile\": "; vnx::write(_out, profile);
 	_out << ", \"date\": "; vnx::write(_out, date);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
@@ -158,10 +158,11 @@ const vnx::TypeCode* HttpResponse::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> HttpResponse::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.HttpResponse";
 	type_code->type_hash = vnx::Hash64(0xd6552db423d70e21ull);
 	type_code->code_hash = vnx::Hash64(0x997bd20a8badd4c4ull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->parents.resize(1);
 	type_code->parents[0] = ::vnx::search::Response::static_get_type_code();

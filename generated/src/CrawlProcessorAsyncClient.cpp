@@ -69,7 +69,7 @@ uint64_t CrawlProcessorAsyncClient::handle(const ::std::shared_ptr<const ::vnx::
 	return _request_id;
 }
 
-std::vector<uint64_t>CrawlProcessorAsyncClient::vnx_get_pending_ids() const {
+std::vector<uint64_t> CrawlProcessorAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
 	for(const auto& entry : vnx_queue_get_stats) {
 		_list.push_back(entry.first);

@@ -101,8 +101,8 @@ void CrawlProcessorBase::accept(vnx::Visitor& _visitor) const {
 }
 
 void CrawlProcessorBase::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"input_text\": "; vnx::write(_out, input_text);
+	_out << "{\"__type\": \"vnx.search.CrawlProcessor\"";
+	_out << ", \"input_text\": "; vnx::write(_out, input_text);
 	_out << ", \"input_url_index\": "; vnx::write(_out, input_url_index);
 	_out << ", \"output_crawl_stats\": "; vnx::write(_out, output_crawl_stats);
 	_out << ", \"url_index_server\": "; vnx::write(_out, url_index_server);
@@ -319,22 +319,25 @@ const vnx::TypeCode* CrawlProcessorBase::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.CrawlProcessor";
 	type_code->type_hash = vnx::Hash64(0x508848d1f9d97d9full);
 	type_code->code_hash = vnx::Hash64(0x8e1c503079870feull);
+	type_code->is_native = true;
 	type_code->methods.resize(3);
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.CrawlProcessor.get_stats";
 		call_type->type_hash = vnx::Hash64(0x7b8fefbbb0397a0dull);
 		call_type->code_hash = vnx::Hash64(0x9266e969242280fbull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.CrawlProcessor.get_stats.return";
 			return_type->type_hash = vnx::Hash64(0xb8530c2e4e418c47ull);
 			return_type->code_hash = vnx::Hash64(0x56626941964fc0a3ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->fields.resize(1);
 			{
@@ -356,16 +359,18 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 		type_code->methods[0] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.CrawlProcessor.handle_vnx_keyvalue_KeyValuePair";
 		call_type->type_hash = vnx::Hash64(0x197f24cf8e40d6aull);
 		call_type->code_hash = vnx::Hash64(0x864568088e8836f2ull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.CrawlProcessor.handle_vnx_keyvalue_KeyValuePair.return";
 			return_type->type_hash = vnx::Hash64(0x5468ec5275268163ull);
 			return_type->code_hash = vnx::Hash64(0x68ec355b007c7516ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
@@ -381,16 +386,18 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 		type_code->methods[1] = vnx::register_type_code(call_type);
 	}
 	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>(true);
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.CrawlProcessor.handle_vnx_search_TextResponse";
 		call_type->type_hash = vnx::Hash64(0x66fa9b4bba5a0164ull);
 		call_type->code_hash = vnx::Hash64(0x2ae2806afc82f53eull);
+		call_type->is_native = true;
 		call_type->is_method = true;
 		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>(true);
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.CrawlProcessor.handle_vnx_search_TextResponse.return";
 			return_type->type_hash = vnx::Hash64(0x479b82f813561a66ull);
 			return_type->code_hash = vnx::Hash64(0x87a0a73ee1394453ull);
+			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);

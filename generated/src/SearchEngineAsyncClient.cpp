@@ -143,7 +143,7 @@ uint64_t SearchEngineAsyncClient::suggest_words(const ::std::string& prefix, con
 	return _request_id;
 }
 
-std::vector<uint64_t>SearchEngineAsyncClient::vnx_get_pending_ids() const {
+std::vector<uint64_t> SearchEngineAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
 	for(const auto& entry : vnx_queue_get_domain_info) {
 		_list.push_back(entry.first);

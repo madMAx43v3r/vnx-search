@@ -55,8 +55,8 @@ void result_item_t::accept(vnx::Visitor& _visitor) const {
 }
 
 void result_item_t::write(std::ostream& _out) const {
-	_out << "{";
-	_out << "\"title\": "; vnx::write(_out, title);
+	_out << "{\"__type\": \"vnx.search.result_item_t\"";
+	_out << ", \"title\": "; vnx::write(_out, title);
 	_out << ", \"url\": "; vnx::write(_out, url);
 	_out << ", \"score\": "; vnx::write(_out, score);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
@@ -123,10 +123,11 @@ const vnx::TypeCode* result_item_t::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> result_item_t::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
+	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.result_item_t";
 	type_code->type_hash = vnx::Hash64(0x25b1d557d37a1bdfull);
 	type_code->code_hash = vnx::Hash64(0xe5458ebfe6bd84d5ull);
+	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<result_item_t>(); };
 	type_code->methods.resize(0);
