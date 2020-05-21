@@ -617,6 +617,9 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		
 		if(!index->redirect.empty())
 		{
+			page_index_async->delete_value(url_key);
+			page_content_async->delete_value(url_key);
+			
 			const Url::Url parsed(index->redirect);
 			const auto url_key = get_url_key(parsed);
 			auto copy = vnx::clone(index);
