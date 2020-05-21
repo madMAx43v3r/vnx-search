@@ -9,6 +9,7 @@
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/search/DomainIndex.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/search_flags_e.hxx>
 
@@ -59,11 +60,13 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	virtual ::std::shared_ptr<const ::vnx::search::DomainIndex> get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset) const = 0;
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value) {}
-	virtual void query_async(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(const ::std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual void query_async(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::uint32_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(const ::std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual ::std::vector<::std::string> reverse_lookup(const ::std::string& url_key) const = 0;
 	virtual ::std::vector<::std::string> suggest_domains(const ::std::string& prefix, const ::int32_t& limit) const = 0;
 	virtual ::std::vector<::std::string> suggest_words(const ::std::string& prefix, const ::int32_t& limit) const = 0;
 	

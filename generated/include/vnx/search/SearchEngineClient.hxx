@@ -9,6 +9,7 @@
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/search/DomainIndex.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/search_flags_e.hxx>
 
@@ -22,6 +23,8 @@ public:
 	
 	SearchEngineClient(vnx::Hash64 service_addr);
 	
+	::std::shared_ptr<const ::vnx::search::DomainIndex> get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset);
+	
 	void handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
 	
 	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
@@ -30,7 +33,9 @@ public:
 	
 	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample);
 	
-	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags);
+	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::uint32_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags);
+	
+	::std::vector<::std::string> reverse_lookup(const ::std::string& url_key);
 	
 	::std::vector<::std::string> suggest_domains(const ::std::string& prefix, const ::int32_t& limit);
 	

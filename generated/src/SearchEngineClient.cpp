@@ -20,6 +20,39 @@ SearchEngineClient::SearchEngineClient(vnx::Hash64 service_addr)
 {
 }
 
+::std::shared_ptr<const ::vnx::search::DomainIndex> SearchEngineClient::get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset) {
+	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
+	vnx::BinaryOutputStream _stream_out(_argument_data.get());
+	vnx::TypeOutput _out(&_stream_out);
+	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_domain_info;
+	{
+		char* const _buf = _out.write(8);
+		vnx::write_value(_buf + 0, limit);
+		vnx::write_value(_buf + 4, offset);
+		vnx::write(_out, host, _type_code, _type_code->fields[0].code.data());
+	}
+	_out.flush();
+	_argument_data->type_code = _type_code;
+	vnx_request(_argument_data);
+	
+	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
+	vnx::TypeInput _in(&_stream_in);
+	const vnx::TypeCode* _return_type = _type_code->return_type;
+	::std::shared_ptr<const ::vnx::search::DomainIndex> _ret_0;
+	{
+		const char* const _buf = _in.read(_return_type->total_field_size);
+		if(_return_type->is_matched) {
+		}
+		for(const vnx::TypeField* _field : _return_type->ext_fields) {
+			switch(_field->native_index) {
+				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
+				default: vnx::skip(_in, _return_type, _field->code.data());
+			}
+		}
+	}
+	return _ret_0;
+}
+
 void SearchEngineClient::handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample) {
 	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
 	vnx::BinaryOutputStream _stream_out(_argument_data.get());
@@ -56,13 +89,13 @@ void SearchEngineClient::handle_async(const ::std::shared_ptr<const ::vnx::keyva
 	handle(sample);
 }
 
-::std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::int64_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags) {
+::std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::uint32_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags) {
 	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
 	vnx::BinaryOutputStream _stream_out(_argument_data.get());
 	vnx::TypeOutput _out(&_stream_out);
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_query;
 	{
-		char* const _buf = _out.write(12);
+		char* const _buf = _out.write(8);
 		vnx::write_value(_buf + 0, limit);
 		vnx::write_value(_buf + 4, offset);
 		vnx::write(_out, words, _type_code, _type_code->fields[0].code.data());
@@ -76,6 +109,36 @@ void SearchEngineClient::handle_async(const ::std::shared_ptr<const ::vnx::keyva
 	vnx::TypeInput _in(&_stream_in);
 	const vnx::TypeCode* _return_type = _type_code->return_type;
 	::std::shared_ptr<const ::vnx::search::SearchResult> _ret_0;
+	{
+		const char* const _buf = _in.read(_return_type->total_field_size);
+		if(_return_type->is_matched) {
+		}
+		for(const vnx::TypeField* _field : _return_type->ext_fields) {
+			switch(_field->native_index) {
+				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
+				default: vnx::skip(_in, _return_type, _field->code.data());
+			}
+		}
+	}
+	return _ret_0;
+}
+
+::std::vector<::std::string> SearchEngineClient::reverse_lookup(const ::std::string& url_key) {
+	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
+	vnx::BinaryOutputStream _stream_out(_argument_data.get());
+	vnx::TypeOutput _out(&_stream_out);
+	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_reverse_lookup;
+	{
+		vnx::write(_out, url_key, _type_code, _type_code->fields[0].code.data());
+	}
+	_out.flush();
+	_argument_data->type_code = _type_code;
+	vnx_request(_argument_data);
+	
+	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
+	vnx::TypeInput _in(&_stream_in);
+	const vnx::TypeCode* _return_type = _type_code->return_type;
+	::std::vector<::std::string> _ret_0;
 	{
 		const char* const _buf = _in.read(_return_type->total_field_size);
 		if(_return_type->is_matched) {
