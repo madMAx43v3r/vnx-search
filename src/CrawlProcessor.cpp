@@ -97,6 +97,15 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	const Url::Url parent(value->url);
 	const auto url_key = get_url_key(parent);
 	
+	auto content = PageContent::create();
+	content->text = value->text;
+	
+	page_content_async->store_value(url_key, content);
+	
+	if(is_robots_txt(parent)) {
+		return;
+	}
+	
 	auto index = PageIndex::create();
 	index->title = value->title;
 	index->last_modified = value->last_modified;
@@ -107,11 +116,6 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	
 	url_index_async->get_value(url_key,
 					std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
-	
-	auto content = PageContent::create();
-	content->text = value->text;
-	
-	page_content_async->store_value(url_key, content);
 	
 	log(INFO).out << "Processed '" << url_key << "': " << index->words.size() << " index words, "
 			<< index->links.size() << " links, " << index->images.size() << " images";
