@@ -16,7 +16,7 @@ public:
 	
 	::std::string scheme;
 	::std::string content_type;
-	::std::string profile = "default";
+	::std::string redirect;
 	::int64_t first_seen = 0;
 	::int64_t last_fetched = 0;
 	::int64_t last_modified = 0;

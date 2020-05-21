@@ -21,7 +21,7 @@ public:
 	
 	CrawlFrontendClient(vnx::Hash64 service_addr);
 	
-	::std::shared_ptr<const ::vnx::search::UrlIndex> fetch(const ::std::string& url, const ::std::string& profile);
+	::std::shared_ptr<const ::vnx::search::UrlIndex> fetch(const ::std::string& url);
 	
 	void handle(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample);
 	

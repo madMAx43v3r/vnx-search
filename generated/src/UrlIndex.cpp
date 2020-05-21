@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 UrlIndex::VNX_TYPE_HASH(0xab26319d1802d1b6ull);
-const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0xffe9e3e2e596f620ull);
+const vnx::Hash64 UrlIndex::VNX_CODE_HASH(0xf64e62fbc14a8000ull);
 
 vnx::Hash64 UrlIndex::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -49,7 +49,7 @@ void UrlIndex::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, scheme);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, content_type);
-	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, profile);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, redirect);
 	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, first_seen);
 	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, last_fetched);
 	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, last_modified);
@@ -67,7 +67,7 @@ void UrlIndex::write(std::ostream& _out) const {
 	_out << "{";
 	_out << "\"scheme\": "; vnx::write(_out, scheme);
 	_out << ", \"content_type\": "; vnx::write(_out, content_type);
-	_out << ", \"profile\": "; vnx::write(_out, profile);
+	_out << ", \"redirect\": "; vnx::write(_out, redirect);
 	_out << ", \"first_seen\": "; vnx::write(_out, first_seen);
 	_out << ", \"last_fetched\": "; vnx::write(_out, last_fetched);
 	_out << ", \"last_modified\": "; vnx::write(_out, last_modified);
@@ -107,8 +107,8 @@ void UrlIndex::read(std::istream& _in) {
 			vnx::from_string(_entry.second, last_modified);
 		} else if(_entry.first == "num_bytes") {
 			vnx::from_string(_entry.second, num_bytes);
-		} else if(_entry.first == "profile") {
-			vnx::from_string(_entry.second, profile);
+		} else if(_entry.first == "redirect") {
+			vnx::from_string(_entry.second, redirect);
 		} else if(_entry.first == "scheme") {
 			vnx::from_string(_entry.second, scheme);
 		}
@@ -119,7 +119,7 @@ vnx::Object UrlIndex::to_object() const {
 	vnx::Object _object;
 	_object["scheme"] = scheme;
 	_object["content_type"] = content_type;
-	_object["profile"] = profile;
+	_object["redirect"] = redirect;
 	_object["first_seen"] = first_seen;
 	_object["last_fetched"] = last_fetched;
 	_object["last_modified"] = last_modified;
@@ -157,8 +157,8 @@ void UrlIndex::from_object(const vnx::Object& _object) {
 			_entry.second.to(last_modified);
 		} else if(_entry.first == "num_bytes") {
 			_entry.second.to(num_bytes);
-		} else if(_entry.first == "profile") {
-			_entry.second.to(profile);
+		} else if(_entry.first == "redirect") {
+			_entry.second.to(redirect);
 		} else if(_entry.first == "scheme") {
 			_entry.second.to(scheme);
 		}
@@ -189,7 +189,7 @@ std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>(true);
 	type_code->name = "vnx.search.UrlIndex";
 	type_code->type_hash = vnx::Hash64(0xab26319d1802d1b6ull);
-	type_code->code_hash = vnx::Hash64(0xffe9e3e2e596f620ull);
+	type_code->code_hash = vnx::Hash64(0xf64e62fbc14a8000ull);
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<UrlIndex>(); };
 	type_code->methods.resize(0);
@@ -209,8 +209,7 @@ std::shared_ptr<vnx::TypeCode> UrlIndex::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[2];
 		field.is_extended = true;
-		field.name = "profile";
-		field.value = vnx::to_string("default");
+		field.name = "redirect";
 		field.code = {12, 5};
 	}
 	{
@@ -356,7 +355,7 @@ void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_co
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.scheme, type_code, _field->code.data()); break;
 			case 1: vnx::read(in, value.content_type, type_code, _field->code.data()); break;
-			case 2: vnx::read(in, value.profile, type_code, _field->code.data()); break;
+			case 2: vnx::read(in, value.redirect, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -384,7 +383,7 @@ void write(TypeOutput& out, const ::vnx::search::UrlIndex& value, const TypeCode
 	vnx::write_value(_buf + 56, value.is_fail);
 	vnx::write(out, value.scheme, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.content_type, type_code, type_code->fields[1].code.data());
-	vnx::write(out, value.profile, type_code, type_code->fields[2].code.data());
+	vnx::write(out, value.redirect, type_code, type_code->fields[2].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::UrlIndex& value) {

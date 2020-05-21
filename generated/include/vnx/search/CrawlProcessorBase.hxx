@@ -42,7 +42,6 @@ public:
 	::uint32_t index_version = 0;
 	::vnx::bool_t do_reprocess = false;
 	::std::string user_agent = "Googlebot";
-	::std::string profile = "default";
 	::std::vector<::std::string> protocols;
 	::std::vector<::std::string> root_urls;
 	::std::vector<::std::string> domain_blacklist;
