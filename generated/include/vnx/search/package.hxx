@@ -59,12 +59,16 @@ extern const vnx::TypeCode* const vnx_native_type_code_Response; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_info; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_info_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_lookup; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_lookup_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains; ///< \private
