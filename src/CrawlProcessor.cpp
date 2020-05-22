@@ -93,6 +93,10 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	const Url::Url parent(value->url);
 	const auto url_key = get_url_key(parent);
 	
+	if(!filter_url(parent)) {
+		return;
+	}
+	
 	auto content = PageContent::create();
 	content->text = value->text;
 	
