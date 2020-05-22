@@ -621,21 +621,24 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		
 		if(!index->redirect.empty())
 		{
-			page_index_async->delete_value(url_key);
-			page_content_async->delete_value(url_key);
+			const Url::Url parsed_redir(index->redirect);
+			const auto url_key_redir = get_url_key(parsed_redir);
 			
-			const Url::Url parsed(index->redirect);
-			const auto url_key = get_url_key(parsed);
-			
-			if(entry.depth >= 0)
+			if(url_key_redir != url_key)
 			{
-				auto copy = vnx::clone(index);
-				copy->scheme = parsed.scheme();
-				copy->depth = entry.depth;
-				copy->redirect.clear();
+				page_index_async->delete_value(url_key_redir);
+				page_content_async->delete_value(url_key_redir);
 				
-				url_index_async->get_value(url_key,
-					std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
+				if(entry.depth >= 0)
+				{
+					auto copy = vnx::clone(index);
+					copy->scheme = parsed_redir.scheme();
+					copy->depth = entry.depth;
+					copy->redirect.clear();
+					
+					url_index_async->get_value(url_key_redir,
+						std::bind(&CrawlProcessor::url_update_callback, this, url_key_redir, copy, std::placeholders::_1));
+				}
 			}
 		}
 		
