@@ -391,7 +391,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			domain.pages.push_back(page.id);
 		}
 		
-		std::set<uint32_t> links;
+		std::unordered_set<uint32_t> links;
 		
 		for(const auto& link_url : index->links) {
 			try {
@@ -419,9 +419,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 				} else {
 					child.reverse_links.push_back(page.id);
 				}
-				if(page.domain_id != child.domain_id) {
-					unique_push_back(child.reverse_domains, page.domain_id);
-				}
+				unique_push_back(child.reverse_domains, page.domain_id);
 				page.links.push_back(link_id);
 			} else {
 				bool found = false;
@@ -448,9 +446,7 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 					auto& parent = iter->second;
 					parent.links.push_back(page.id);
 					page.reverse_links.push_back(parent.id);
-					if(parent.domain_id != page.domain_id) {
-						unique_push_back(page.reverse_domains, parent.domain_id);
-					}
+					unique_push_back(page.reverse_domains, parent.domain_id);
 				}
 			}
 			open_links.erase(range.first, range.second);
@@ -654,7 +650,7 @@ void SearchEngine::query_loop() const noexcept
 		}
 		
 		for(auto& result : pages) {
-			result.score = result.score * (1 + result.page->reverse_domains.size());
+			result.score = result.score * result.page->reverse_domains.size();
 		}
 		
 		std::multimap<int64_t, const page_t*, std::greater<int64_t>> sorted;
@@ -794,7 +790,7 @@ void SearchEngine::update_loop() noexcept
 							new_pages.erase(iter2);
 						}
 						const auto& page = iter->second;
-						list.emplace_back(uint64_t(weight) * (1 + page.reverse_domains.size()),
+						list.emplace_back(uint64_t(weight) * page.reverse_domains.size(),
 											std::make_pair(entry.first, weight));
 					}
 				}
@@ -804,7 +800,7 @@ void SearchEngine::update_loop() noexcept
 				if(iter != page_index.end()) {
 					const auto& page = iter->second;
 					const auto weight = entry.second;
-					list.emplace_back(uint64_t(weight) * (1 + page.reverse_domains.size()), entry);
+					list.emplace_back(uint64_t(weight) * page.reverse_domains.size(), entry);
 				}
 			}
 		}
