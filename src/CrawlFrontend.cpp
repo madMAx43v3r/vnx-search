@@ -364,10 +364,10 @@ void CrawlFrontend::fetch_loop() const noexcept
 			char* final_url = 0;
 			curl_easy_getinfo(client, CURLINFO_EFFECTIVE_URL, &final_url);
 			if(final_url) {
-				const std::string tmp(final_url);
-				if(tmp != request->url) {
-					out->url = tmp;
-					index->redirect = tmp;
+				const auto url = process_url(Url::Url(std::string(final_url))).str();
+				if(url != request->url) {
+					out->url = url;
+					index->redirect = url;
 					redirect_counter++;
 				}
 			}
