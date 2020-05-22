@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	
 	std::string server = ".vnx_search_backend.sock";
 	std::string key;
-	int32_t limit = 100;
+	int32_t limit = 10;
 	uint32_t page = 0;
 	bool get_domain_info = false;
 	bool get_domain_list = false;
