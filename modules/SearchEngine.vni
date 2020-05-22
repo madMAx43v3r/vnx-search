@@ -2,6 +2,8 @@ package vnx.search;
 
 module SearchEngine {
 	
+	vnx.TopicPtr input_url_index = "backend.url_index.updates";
+	
 	vnx.TopicPtr input_page_index = "backend.page_index.updates";
 	
 	string url_index_server = "UrlIndex";
@@ -9,10 +11,6 @@ module SearchEngine {
 	string page_index_server = "PageIndex";
 	
 	string page_content_server = "PageContent";
-	
-	int max_depth = 5;
-	
-	int jump_cost = 3;
 	
 	int max_query_pages = 1000;
 	

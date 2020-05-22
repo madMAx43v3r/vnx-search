@@ -6,6 +6,4 @@ class PageInfo {
 	
 	string url_key;
 	
-	int depth = -1;
-	
 }

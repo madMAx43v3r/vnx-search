@@ -42,9 +42,6 @@ Url::Url process_url(const Url::Url& url)
 {
 	Url::Url parsed(url);
 	parsed.defrag();
-	if(parsed.scheme().empty()) {
-		parsed.setScheme("https");
-	}
 	parsed.remove_default_port();
 	parsed.strip();
 	parsed.abspath();
@@ -55,7 +52,6 @@ inline
 Url::Url process_link(const Url::Url& link, const Url::Url& parent)
 {
 	Url::Url parsed(link);
-	parsed.defrag();
 	if(parsed.scheme().empty()) {
 		parsed.setScheme(parent.scheme());
 		if(parsed.host().empty()) {
@@ -66,10 +62,7 @@ Url::Url process_link(const Url::Url& link, const Url::Url& parent)
 			}
 		}
 	}
-	parsed.remove_default_port();
-	parsed.strip();
-	parsed.abspath();
-	return parsed;
+	return process_url(parsed);
 }
 
 template<typename T>

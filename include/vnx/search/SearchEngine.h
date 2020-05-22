@@ -25,6 +25,7 @@ namespace search {
 
 class SearchEngine : public SearchEngineBase {
 public:
+	TopicPtr input_url_index_sync;
 	TopicPtr input_page_info_sync;
 	TopicPtr input_page_index_sync;
 	TopicPtr input_word_context_sync;
@@ -46,7 +47,6 @@ protected:
 	struct page_t {
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
-		int depth = -1;
 		bool is_loaded = false;
 		bool is_deleted = true;
 		uint64_t version = 0;
@@ -58,6 +58,9 @@ protected:
 		std::vector<uint32_t> links;
 		std::vector<uint32_t> reverse_links;
 		std::vector<uint32_t> reverse_domains;
+	};
+	
+	struct page_cache_t {
 		std::atomic<size_t> num_pending {0};
 	};
 	
@@ -102,6 +105,8 @@ private:
 	
 	SearchEngine::domain_t& get_domain(const std::string& host);
 	
+	void delete_page(const page_t& page);
+	
 	void url_index_callback(	const std::string& url_key,
 								const uint64_t version,
 								std::shared_ptr<const PageIndex> page_index_,
@@ -127,13 +132,16 @@ private:
 	
 	mutable std::shared_mutex index_mutex;
 	
+	std::vector<uint32_t> free_ids;
 	std::unordered_map<std::string, uint32_t> url_map;
 	std::map<std::string, uint32_t> domain_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
 	std::unordered_multimap<uint32_t, uint32_t> open_links;
+	std::unordered_map<uint32_t, uint32_t> redirects;
 	
 	std::set<std::string> word_set;
+	std::unordered_map<uint32_t, page_cache_t> page_cache;
 	std::unordered_map<std::string, std::shared_ptr<word_t>> word_cache;
 	
 	mutable std::mutex query_mutex;
