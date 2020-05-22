@@ -600,7 +600,8 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		open_links.erase(range.first, range.second);
 	}
 	
-	if(version > page.version)
+	// update word index if version is greater and previous update has finished
+	if(version > page.version && !page_cache.count(page.id))
 	{
 		const auto now_wall_us = vnx::get_wall_time_micros();
 		const float inv_word_count = 1.f / index->word_count;
