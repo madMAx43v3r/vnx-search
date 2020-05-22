@@ -25,7 +25,9 @@ int main(int argc, char** argv)
 	options["limit"] = "max results";
 	options["page"] = "page index";
 	options["get-domain-info"] = "get_domain_info(key, limit, offset)";
+	options["get-domain-list"] = "get_domain_list(limit, offset)";
 	options["reverse-lookup"] = "reverse_lookup(key)";
+	options["reverse-domain-lookup"] = "reverse_domain_lookup(key)";
 	
 	vnx::init("vnx_search_browse", argc, argv, options);
 	
@@ -34,14 +36,18 @@ int main(int argc, char** argv)
 	int32_t limit = 100;
 	uint32_t page = 0;
 	bool get_domain_info = false;
+	bool get_domain_list = false;
 	bool reverse_lookup = false;
+	bool reverse_domain_lookup = false;
 	
 	vnx::read_config("server", server);
 	vnx::read_config("key", key);
 	vnx::read_config("limit", limit);
 	vnx::read_config("page", page);
 	vnx::read_config("get-domain-info", get_domain_info);
+	vnx::read_config("get-domain-list", get_domain_list);
 	vnx::read_config("reverse-lookup", reverse_lookup);
+	vnx::read_config("reverse-domain-lookup", reverse_domain_lookup);
 	
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
@@ -56,8 +62,20 @@ int main(int argc, char** argv)
 		vnx::accept(print, result);
 		std::cout << std::endl;
 	}
+	if(get_domain_list) {
+		auto result = client.get_domain_list(limit, limit >= 0 ? page * limit : 0);
+		vnx::PrettyPrinter print(std::cout);
+		vnx::accept(print, result);
+		std::cout << std::endl;
+	}
 	if(reverse_lookup) {
 		auto result = client.reverse_lookup(key);
+		vnx::PrettyPrinter print(std::cout);
+		vnx::accept(print, result);
+		std::cout << std::endl;
+	}
+	if(reverse_domain_lookup) {
+		auto result = client.reverse_domain_lookup(key);
 		vnx::PrettyPrinter print(std::cout);
 		vnx::accept(print, result);
 		std::cout << std::endl;

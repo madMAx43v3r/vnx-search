@@ -81,7 +81,11 @@ protected:
 	
 	std::shared_ptr<const DomainIndex> get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const;
 	
+	std::vector<DomainIndex> get_domain_list(const int32_t& limit, const uint32_t& offset) const;
+	
 	std::vector<std::string> reverse_lookup(const std::string& url_key) const;
+	
+	std::vector<std::string> reverse_domain_lookup(const std::string& url_key) const;
 	
 	std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit) const;
 	

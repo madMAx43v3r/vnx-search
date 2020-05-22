@@ -33,7 +33,11 @@ module SearchEngine {
 	
 	DomainIndex* get_domain_info(string host, int limit, uint offset) const;
 	
+	vector<DomainIndex> get_domain_list(int limit, uint offset) const;
+	
 	vector<string> reverse_lookup(string url_key) const;
+	
+	vector<string> reverse_domain_lookup(string url_key) const;
 	
 	vector<string> suggest_words(string prefix, int limit) const;
 	
