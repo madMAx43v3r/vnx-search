@@ -616,9 +616,6 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		copy->scheme = parsed.scheme();
 		copy->depth = entry.depth;
 		
-		url_index_async->get_value(url_key,
-				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
-		
 		if(!index->redirect.empty())
 		{
 			const Url::Url parsed_redir(index->redirect);
@@ -626,8 +623,9 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			
 			if(url_key_redir != url_key)
 			{
-				page_index_async->delete_value(url_key_redir);
-				page_content_async->delete_value(url_key_redir);
+				page_index_async->delete_value(url_key);
+				page_content_async->delete_value(url_key);
+				log(INFO).out << "Deleted obsolete '" << url_key << "'";
 				
 				if(entry.depth >= 0)
 				{
@@ -639,8 +637,13 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 					url_index_async->get_value(url_key_redir,
 						std::bind(&CrawlProcessor::url_update_callback, this, url_key_redir, copy, std::placeholders::_1));
 				}
+			} else {
+				copy->scheme = parsed_redir.scheme();
 			}
 		}
+		
+		url_index_async->get_value(url_key,
+				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
 		
 		domain_t& domain = get_domain(entry.domain);
 		if(index->is_fail) {
