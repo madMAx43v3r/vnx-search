@@ -46,7 +46,6 @@ void SearchEngine::main()
 	
 	module_page_info = new keyvalue::Server("PageInfo");
 	module_page_info->collection = "page_info";
-	module_page_info->num_read_threads = 1;
 	module_page_info.start();
 	
 	module_word_context = new keyvalue::Server("WordContext");
