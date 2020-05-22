@@ -20,12 +20,11 @@ namespace search {
 class SearchEngineBase : public ::vnx::Module {
 public:
 	
+	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
 	::std::string url_index_server = "UrlIndex";
 	::std::string page_index_server = "PageIndex";
 	::std::string page_content_server = "PageContent";
-	::int32_t max_depth = 5;
-	::int32_t jump_cost = 3;
 	::int32_t max_query_pages = 1000;
 	::int32_t num_query_threads = 4;
 	::int32_t num_update_threads = 4;
