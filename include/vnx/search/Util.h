@@ -22,6 +22,7 @@ std::string get_url_key(const Url::Url& url)
 {
 	Url::Url parsed(url);
 	parsed.setScheme("");
+	parsed.defrag();
 	return parsed.str();
 }
 
