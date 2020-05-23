@@ -691,7 +691,7 @@ void SearchEngine::query_loop() const noexcept
 				auto word_context = std::dynamic_pointer_cast<const WordContext>(value);
 				if(word_context) {
 					context.push_back(word_context);
-					result->words.push_back(words[i]);
+					result->words.push_back(words.at(i));
 				}
 				i++;
 			}
