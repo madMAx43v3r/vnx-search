@@ -277,7 +277,13 @@ SearchEngine::domain_t& SearchEngine::get_domain(const std::string& host)
 
 void SearchEngine::delete_page(const page_t& page)
 {
-	for(const auto parent_id : page.reverse_links) {
+	for(const auto parent_id : page.reverse_links)
+	{
+		const auto iter = page_index.find(parent_id);
+		if(iter != page_index.end()) {
+			auto& parent = iter->second;
+			std::remove(parent.links.begin(), parent.links.end(), page.id);
+		}
 		open_links.emplace(page.id, parent_id);
 	}
 }
