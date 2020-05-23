@@ -65,7 +65,6 @@ protected:
 		int64_t robot_start_time = 0;		// [sec]
 		int num_pending = 0;
 		robots_txt_state_e robots_state = ROBOTS_TXT_UNKNOWN;
-		bool is_blacklisted = false;
 	};
 	
 	void main() override;

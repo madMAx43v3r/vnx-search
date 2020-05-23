@@ -253,13 +253,6 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 	domain_t& domain = domain_map[host];
 	if(domain.host.empty()) {
 		domain.host = host;
-		for(const auto& entry : domain_blacklist) {
-			if(host.size() >= entry.size() && host.substr(host.size() - entry.size()) == entry) {
-				if(host.size() == entry.size() || host[host.size() - entry.size() - 1] == '.') {
-					domain.is_blacklisted = true;
-				}
-			}
-		}
 	}
 	return domain;
 }
@@ -271,12 +264,16 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed)
 			return true;	// just keep unknown protocols
 		}
 	}
-	if(parsed.host().empty()) {
+	const auto& host = parsed.host();
+	if(host.empty()) {
 		return true;		// just keep unknown hosts
 	}
-	auto& domain = get_domain(parsed.host());
-	if(domain.is_blacklisted) {
-		return false;
+	for(const auto& entry : domain_blacklist) {
+		if(host.size() >= entry.size() && host.substr(host.size() - entry.size()) == entry) {
+			if(host.size() == entry.size() || host[host.size() - entry.size() - 1] == '.') {
+				return false;
+			}
+		}
 	}
 	const auto url_key = get_url_key(parsed);
 	for(const auto& entry : path_blacklist) {
@@ -289,6 +286,7 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed)
 			return false;
 		}
 	}
+	domain_t& domain = get_domain(host);
 	if(domain.robots_txt &&
 		!matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, parsed.str()))
 	{
@@ -319,18 +317,15 @@ int CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time
 	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
 		return 0;
 	}
-	const auto host = parsed.host();
+	const auto& host = parsed.host();
 	if(host.empty()) {
-		return 0;
-	}
-	domain_t& domain = get_domain(host);
-	if(domain.is_blacklisted) {
 		return 0;
 	}
 	
 	bool is_waiting = false;
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
+		domain_t& domain = get_domain(host);
 		domain.queue.emplace(depth, url);
 	} else if(delta < 2 * sync_interval) {
 		waiting.emplace(load_time, url);
