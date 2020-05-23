@@ -709,155 +709,121 @@ void SearchEngine::query_loop() const noexcept
 			continue;
 		}
 		
-		struct result_t {
-			const page_t* page = 0;
-			uint64_t score = 1;
-		};
-		
-		std::vector<result_t> pages;
-		pages.reserve(max_query_pages);
+		size_t num_found = 0;
+		std::vector<std::pair<uint32_t, uint32_t>> found(max_query_pages);
 		
 		if(num_words > 1)
 		{
-			std::atomic<uint32_t> num_found(0);
-			std::vector<std::pair<uint32_t, uint32_t>> found(max_query_pages);
+			std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> page_hits;
+			std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> iter(num_words);
+			std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> end(num_words);
+			for(uint32_t i = 0; i < num_words; ++i) {
+				iter[i] = context[i]->pages.begin();
+				end[i] = context[i]->pages.end();
+			}
+			uint32_t k = 0;
+			uint32_t num_iter = num_words;
+			
+			while(num_iter > 0 && num_found < found.size())
 			{
-				const uint32_t N = 8;
-#pragma omp parallel for
-				for(uint32_t t = 0; t < N; ++t)
+				for(int i = 0; iter[k] != end[k] && i < 10; ++iter[k], ++i)
 				{
-					std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> page_hits;
-					std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> iter(num_words);
-					std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> end(num_words);
-					for(uint32_t i = 0; i < num_words; ++i) {
-						iter[i] = context[i]->pages.begin();
-						end[i] = context[i]->pages.end();
+					const auto page_id = iter[k]->first;
+					const uint32_t weight = iter[k]->second;
+					auto& entry = page_hits[page_id];
+					if(entry.first == 0) {
+						entry.second = weight;
+					} else {
+						entry.second = std::min(weight, entry.second);
 					}
-					uint32_t k = 0;
-					uint32_t num_iter = num_words;
-					
-					while(num_iter > 0 && num_found < max_query_pages)
-					{
-						for(int i = 0; iter[k] != end[k] && i < 256; ++iter[k], ++i)
-						{
-							const auto page_id = iter[k]->first;
-							if(page_id % N == t) {
-								auto& entry = page_hits[page_id];
-								if(entry.first == 0) {
-									entry.second = iter[k]->second;
-								} else {
-									entry.second = std::min(uint32_t(iter[k]->second), entry.second);
-								}
-								if(++entry.first == num_words) {
-									const auto index = num_found++;
-									if(index < max_query_pages) {
-										found[index] = std::make_pair(page_id, entry.second);
-									}
-								}
-							}
-						}
-						if(iter[k] == end[k]) {
-							iter.erase(iter.begin() + k);
-							end.erase(end.begin() + k);
-							num_iter--;
-						} else {
-							k++;
-						}
-						if(k >= num_iter) {
-							k = 0;
+					if(++entry.first == num_words) {
+						const auto index = num_found++;
+						if(index < found.size()) {
+							found[index] = std::make_pair(page_id, entry.second);
 						}
 					}
 				}
-			}
-			{
-				std::shared_lock lock(index_mutex);
-				
-				for(size_t i = 0; i < std::min(size_t(num_found), found.size()); ++i) {
-					const auto& entry = found[i];
-					auto iter = page_index.find(entry.first);
-					if(iter != page_index.end() && iter->second.is_loaded)
-					{
-						const auto& page = iter->second;
-						result_t result;
-						result.page = &page;
-						result.score = entry.second;
-						pages.push_back(result);
-					}
+				if(iter[k] == end[k]) {
+					iter.erase(iter.begin() + k);
+					end.erase(end.begin() + k);
+					num_iter--;
+				} else {
+					k++;
+				}
+				if(k >= num_iter) {
+					k = 0;
 				}
 			}
 		}
 		else {
+			const auto& list = context[0]->pages;
+			num_found = std::min(found.size(), list.size());
+			for(size_t i = 0; i < num_found; ++i) {
+				found[i] = list[i];
+			}
+		}
+		
+		struct result_t : result_item_t {
+			uint32_t domain_id = 0;
+		};
+		
+		std::vector<result_t> results;
+		results.reserve(max_query_pages);
+		{
 			std::shared_lock lock(index_mutex);
 			
-			for(const auto& entry : context[0]->pages) {
-				if(pages.size() >= max_query_pages) {
-					break;
-				}
-				auto iter = page_index.find(entry.first);
-				if(iter != page_index.end() && iter->second.is_loaded)
+			for(size_t i = 0; i < std::min(num_found, found.size()); ++i)
+			{
+				const auto& entry = found[i];
+				const auto iter = page_index.find(entry.first);
+				if(iter != page_index.end())
 				{
 					const auto& page = iter->second;
-					result_t result;
-					result.page = &page;
-					result.score = entry.second;
-					pages.push_back(result);
+					if(page.is_loaded) {
+						result_t result;
+						result.url = page.scheme + ":" + page.url_key;
+						result.title = page.title;
+						result.domain_id = page.domain_id;
+						result.last_modified = page.last_modified;
+						result.score = entry.second * page.reverse_domains.size();
+						results.emplace_back(std::move(result));
+					}
 				}
 			}
 		}
 		
-		for(auto& result : pages) {
-			result.score = result.score * result.page->reverse_domains.size();
-		}
-		
-		std::multimap<int64_t, const page_t*, std::greater<int64_t>> sorted;
+		std::vector<std::pair<int64_t, const result_t*>> sorted;
+		sorted.reserve(results.size());
 		
 		if(has_flag(request->flags, search_flags_e::GROUP_BY_DOMAIN))
 		{
-			std::unordered_map<uint32_t, std::pair<int64_t, const page_t*>> best_of;
+			std::unordered_map<uint32_t, std::pair<int64_t, const result_t*>> best_of;
 			
-			for(const auto& result : pages) {
-				auto& current = best_of[result.page->domain_id];
+			for(const auto& result : results) {
+				auto& current = best_of[result.domain_id];
 				if(!current.second || result.score > current.first) {
 					current.first = result.score;
-					current.second = result.page;
+					current.second = &result;
 				}
 			}
 			for(const auto& entry : best_of) {
-				limited_emplace(sorted, entry.second.first, entry.second.second, request->offset + request->limit);
+				sorted.emplace_back(entry.second.first, entry.second.second);
 			}
 		}
 		else {
-			for(const auto& result : pages) {
-				limited_emplace(sorted, result.score, result.page, request->offset + request->limit);
+			for(const auto& result : results) {
+				sorted.emplace_back(result.score, &result);
 			}
 		}
+		std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<int64_t, const result_t*>>());
 		
-		result->num_results_total = pages.size();
+		for(uint32_t i = 0; i < uint32_t(request->limit) && request->offset + i < sorted.size(); ++i)
 		{
-			std::shared_lock lock(index_mutex);
-			
-			uint32_t offset = 0;
-			for(const auto& entry : sorted)
-			{
-				if(offset++ < request->offset) {
-					continue;
-				}
-				if(result->items.size() >= size_t(request->limit)) {
-					break;
-				}
-				const auto* page = entry.second;
-				
-				result_item_t item;
-				item.title = page->title;
-				item.url = page->scheme + ":" + page->url_key;
-				item.score = entry.first;
-				item.last_modified = page->last_modified;
-				result->items.push_back(item);
-			}
+			result->items.push_back(*sorted[request->offset + i].second);
 		}
-		
-		result->is_fail = false;
+		result->num_results_total = sorted.size();
 		result->compute_time_us = vnx::get_wall_time_micros() - time_begin;
+		result->is_fail = false;
 		request->callback(result);
 		
 		query_counter++;
