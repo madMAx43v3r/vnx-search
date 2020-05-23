@@ -939,7 +939,7 @@ void SearchEngine::update_loop() noexcept
 			word_context_sync.store_value(word, value);
 			
 			std::vector<uint32_t> finished_pages;
-			std::vector<std::pair<uint32_t, std::shared_ptr<PageInfo>>> page_updates;
+			std::vector<std::pair<Variant, std::shared_ptr<const Value>>> page_updates;
 			{
 				std::shared_lock lock(index_mutex);
 				
@@ -970,11 +970,10 @@ void SearchEngine::update_loop() noexcept
 					page_cache.erase(page_id);
 				}
 			}
-			for(const auto& entry : page_updates) {
-				page_info_sync.store_value(entry.first, entry.second);
-				page_update_counter++;
-			}
+			page_info_sync.store_values(page_updates);
+			
 			word_update_counter++;
+			page_update_counter += page_updates.size();
 		}
 		catch(...) {
 			// ignore
