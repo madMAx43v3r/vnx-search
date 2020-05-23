@@ -697,7 +697,8 @@ void SearchEngine::query_loop() const noexcept
 			}
 			result->load_time_us = vnx::get_wall_time_micros() - time_begin;
 		}
-		catch(...) {
+		catch(const std::exception& ex) {
+			result->error_msg = ex.what();
 			request->callback(result);
 			continue;
 		}

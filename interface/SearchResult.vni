@@ -10,6 +10,8 @@ class SearchResult {
 	
 	int compute_time_us;						// [usec]
 	
+	string error_msg;
+	
 	vector<string> words;
 	
 	vector<result_item_t> items;

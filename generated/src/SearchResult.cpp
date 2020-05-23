@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchResult::VNX_TYPE_HASH(0x659ce58d97581ddull);
-const vnx::Hash64 SearchResult::VNX_CODE_HASH(0xdc6fb6c2c199f037ull);
+const vnx::Hash64 SearchResult::VNX_CODE_HASH(0xdd9c2b4d4ab49cdbull);
 
 vnx::Hash64 SearchResult::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -51,8 +51,9 @@ void SearchResult::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, num_results_total);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, load_time_us);
 	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, compute_time_us);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, words);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, items);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, error_msg);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, words);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, items);
 	_visitor.type_end(*_type_code);
 }
 
@@ -62,6 +63,7 @@ void SearchResult::write(std::ostream& _out) const {
 	_out << ", \"num_results_total\": "; vnx::write(_out, num_results_total);
 	_out << ", \"load_time_us\": "; vnx::write(_out, load_time_us);
 	_out << ", \"compute_time_us\": "; vnx::write(_out, compute_time_us);
+	_out << ", \"error_msg\": "; vnx::write(_out, error_msg);
 	_out << ", \"words\": "; vnx::write(_out, words);
 	_out << ", \"items\": "; vnx::write(_out, items);
 	_out << "}";
@@ -73,6 +75,8 @@ void SearchResult::read(std::istream& _in) {
 	for(const auto& _entry : _object) {
 		if(_entry.first == "compute_time_us") {
 			vnx::from_string(_entry.second, compute_time_us);
+		} else if(_entry.first == "error_msg") {
+			vnx::from_string(_entry.second, error_msg);
 		} else if(_entry.first == "is_fail") {
 			vnx::from_string(_entry.second, is_fail);
 		} else if(_entry.first == "items") {
@@ -93,6 +97,7 @@ vnx::Object SearchResult::to_object() const {
 	_object["num_results_total"] = num_results_total;
 	_object["load_time_us"] = load_time_us;
 	_object["compute_time_us"] = compute_time_us;
+	_object["error_msg"] = error_msg;
 	_object["words"] = words;
 	_object["items"] = items;
 	return _object;
@@ -102,6 +107,8 @@ void SearchResult::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
 		if(_entry.first == "compute_time_us") {
 			_entry.second.to(compute_time_us);
+		} else if(_entry.first == "error_msg") {
+			_entry.second.to(error_msg);
 		} else if(_entry.first == "is_fail") {
 			_entry.second.to(is_fail);
 		} else if(_entry.first == "items") {
@@ -140,14 +147,14 @@ std::shared_ptr<vnx::TypeCode> SearchResult::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchResult";
 	type_code->type_hash = vnx::Hash64(0x659ce58d97581ddull);
-	type_code->code_hash = vnx::Hash64(0xdc6fb6c2c199f037ull);
+	type_code->code_hash = vnx::Hash64(0xdd9c2b4d4ab49cdbull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchResult>(); };
 	type_code->depends.resize(1);
 	type_code->depends[0] = ::vnx::search::result_item_t::static_get_type_code();
 	type_code->methods.resize(0);
-	type_code->fields.resize(6);
+	type_code->fields.resize(7);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.name = "is_fail";
@@ -171,11 +178,17 @@ std::shared_ptr<vnx::TypeCode> SearchResult::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[4];
 		field.is_extended = true;
+		field.name = "error_msg";
+		field.code = {12, 5};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[5];
+		field.is_extended = true;
 		field.name = "words";
 		field.code = {12, 12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		vnx::TypeField& field = type_code->fields[6];
 		field.is_extended = true;
 		field.name = "items";
 		field.code = {12, 19, 0};
@@ -231,8 +244,9 @@ void read(TypeInput& in, ::vnx::search::SearchResult& value, const TypeCode* typ
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 4: vnx::read(in, value.words, type_code, _field->code.data()); break;
-			case 5: vnx::read(in, value.items, type_code, _field->code.data()); break;
+			case 4: vnx::read(in, value.error_msg, type_code, _field->code.data()); break;
+			case 5: vnx::read(in, value.words, type_code, _field->code.data()); break;
+			case 6: vnx::read(in, value.items, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -252,8 +266,9 @@ void write(TypeOutput& out, const ::vnx::search::SearchResult& value, const Type
 	vnx::write_value(_buf + 1, value.num_results_total);
 	vnx::write_value(_buf + 5, value.load_time_us);
 	vnx::write_value(_buf + 9, value.compute_time_us);
-	vnx::write(out, value.words, type_code, type_code->fields[4].code.data());
-	vnx::write(out, value.items, type_code, type_code->fields[5].code.data());
+	vnx::write(out, value.error_msg, type_code, type_code->fields[4].code.data());
+	vnx::write(out, value.words, type_code, type_code->fields[5].code.data());
+	vnx::write(out, value.items, type_code, type_code->fields[6].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::SearchResult& value) {

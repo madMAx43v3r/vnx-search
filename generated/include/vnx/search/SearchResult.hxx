@@ -19,6 +19,7 @@ public:
 	::int32_t num_results_total = 0;
 	::int32_t load_time_us = 0;
 	::int32_t compute_time_us = 0;
+	::std::string error_msg;
 	::std::vector<::std::string> words;
 	::std::vector<::vnx::search::result_item_t> items;
 	
