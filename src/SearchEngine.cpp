@@ -965,6 +965,7 @@ void SearchEngine::update_loop() noexcept
 			}
 			word_context_sync.store_value(word, value);
 			
+			std::vector<uint32_t> finished_pages;
 			std::vector<std::pair<uint32_t, std::shared_ptr<PageInfo>>> page_updates;
 			{
 				std::shared_lock lock(index_mutex);
@@ -983,9 +984,17 @@ void SearchEngine::update_loop() noexcept
 								info->url_key = page.url_key;
 								page_updates.emplace_back(entry.first, info);
 							}
-							page_cache.erase(iter);
+							finished_pages.push_back(entry.first);
 						}
 					}
+				}
+			}
+			if(!finished_pages.empty())
+			{
+				std::unique_lock lock(index_mutex);
+				
+				for(const auto page_id : finished_pages) {
+					page_cache.erase(page_id);
 				}
 			}
 			for(const auto& entry : page_updates) {
