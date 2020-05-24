@@ -188,7 +188,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
 	type_code->code_hash = vnx::Hash64(0xae2c259dc7017d04ull);
 	type_code->is_native = true;
-	type_code->methods.resize(9);
+	type_code->methods.resize(10);
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
 		call_type->name = "vnx.search.SearchEngine.get_domain_info";
@@ -200,7 +200,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.get_domain_info.return";
 			return_type->type_hash = vnx::Hash64(0xdd84ef2259be7eull);
-			return_type->code_hash = vnx::Hash64(0xfc6d8d20c1c22d5aull);
+			return_type->code_hash = vnx::Hash64(0xdfcb1b88107f7f49ull);
 			return_type->is_native = true;
 			return_type->is_return = true;
 			return_type->fields.resize(1);
@@ -208,7 +208,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 				vnx::TypeField& field = return_type->fields[0];
 				field.is_extended = true;
 				field.name = "_ret_0";
-				field.code = {16};
+				field.code = {24};
 			}
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
@@ -244,17 +244,15 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
 			return_type->name = "vnx.search.SearchEngine.get_domain_list.return";
 			return_type->type_hash = vnx::Hash64(0xa06392efe70f0679ull);
-			return_type->code_hash = vnx::Hash64(0xedabdeebc18c97e7ull);
+			return_type->code_hash = vnx::Hash64(0xc404f27dbb00da5bull);
 			return_type->is_native = true;
 			return_type->is_return = true;
-			return_type->depends.resize(1);
-			return_type->depends[0] = ::vnx::search::DomainIndex::static_get_type_code();
 			return_type->fields.resize(1);
 			{
 				vnx::TypeField& field = return_type->fields[0];
 				field.is_extended = true;
 				field.name = "_ret_0";
-				field.code = {12, 19, 0};
+				field.code = {12, 24};
 			}
 			return_type->build();
 			call_type->return_type = vnx::register_type_code(return_type);
@@ -272,6 +270,40 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 		}
 		call_type->build();
 		type_code->methods[1] = vnx::register_type_code(call_type);
+	}
+	{
+		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
+		call_type->name = "vnx.search.SearchEngine.get_page_info";
+		call_type->type_hash = vnx::Hash64(0x8f4b73a7bd7a8effull);
+		call_type->code_hash = vnx::Hash64(0xfbf908d8ecdcb0cull);
+		call_type->is_native = true;
+		call_type->is_method = true;
+		{
+			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
+			return_type->name = "vnx.search.SearchEngine.get_page_info.return";
+			return_type->type_hash = vnx::Hash64(0xa79acda144d4c33bull);
+			return_type->code_hash = vnx::Hash64(0xe53311ffc2e106fdull);
+			return_type->is_native = true;
+			return_type->is_return = true;
+			return_type->fields.resize(1);
+			{
+				vnx::TypeField& field = return_type->fields[0];
+				field.is_extended = true;
+				field.name = "_ret_0";
+				field.code = {24};
+			}
+			return_type->build();
+			call_type->return_type = vnx::register_type_code(return_type);
+		}
+		call_type->fields.resize(1);
+		{
+			vnx::TypeField& field = call_type->fields[0];
+			field.is_extended = true;
+			field.name = "url_key";
+			field.code = {12, 5};
+		}
+		call_type->build();
+		type_code->methods[2] = vnx::register_type_code(call_type);
 	}
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
@@ -298,7 +330,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			field.code = {16};
 		}
 		call_type->build();
-		type_code->methods[2] = vnx::register_type_code(call_type);
+		type_code->methods[3] = vnx::register_type_code(call_type);
 	}
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
@@ -325,7 +357,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			field.code = {16};
 		}
 		call_type->build();
-		type_code->methods[3] = vnx::register_type_code(call_type);
+		type_code->methods[4] = vnx::register_type_code(call_type);
 	}
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
@@ -377,7 +409,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			field.code = {12, 19, 0};
 		}
 		call_type->build();
-		type_code->methods[4] = vnx::register_type_code(call_type);
+		type_code->methods[5] = vnx::register_type_code(call_type);
 	}
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
@@ -411,7 +443,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			field.code = {12, 5};
 		}
 		call_type->build();
-		type_code->methods[5] = vnx::register_type_code(call_type);
+		type_code->methods[6] = vnx::register_type_code(call_type);
 	}
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
@@ -445,7 +477,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			field.code = {12, 5};
 		}
 		call_type->build();
-		type_code->methods[6] = vnx::register_type_code(call_type);
+		type_code->methods[7] = vnx::register_type_code(call_type);
 	}
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
@@ -484,7 +516,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			field.code = {7};
 		}
 		call_type->build();
-		type_code->methods[7] = vnx::register_type_code(call_type);
+		type_code->methods[8] = vnx::register_type_code(call_type);
 	}
 	{
 		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
@@ -523,7 +555,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 			field.code = {7};
 		}
 		call_type->build();
-		type_code->methods[8] = vnx::register_type_code(call_type);
+		type_code->methods[9] = vnx::register_type_code(call_type);
 	}
 	type_code->fields.resize(12);
 	{
@@ -650,7 +682,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(vnx::TypeInput& _i
 				}
 			}
 		}
-		::std::shared_ptr<const ::vnx::search::DomainIndex> _ret_0;
+		::vnx::Object _ret_0;
 		_ret_0 = get_domain_info(host, limit, offset);
 		std::shared_ptr<vnx::Binary> _return_value;
 		{
@@ -688,11 +720,37 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(vnx::TypeInput& _i
 				}
 			}
 		}
-		::std::vector<::vnx::search::DomainIndex> _ret_0;
+		::std::vector<::vnx::Object> _ret_0;
 		_ret_0 = get_domain_list(limit, offset);
 		std::shared_ptr<vnx::Binary> _return_value;
 		{
 			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_get_domain_list_return;
+			_return_value = vnx::Binary::create();
+			_return_value->type_code = _return_type;
+			vnx::BinaryOutputStream _stream_out(_return_value.get());
+			vnx::TypeOutput _out(&_stream_out);
+			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
+			_out.flush();
+		}
+		return _return_value;
+	} else if(_call_type->type_hash == vnx::Hash64(0x8f4b73a7bd7a8effull)) {
+		::std::string url_key;
+		{
+			const char* const _buf = _in.read(_call_type->total_field_size);
+			if(_call_type->is_matched) {
+			}
+			for(const vnx::TypeField* _field : _call_type->ext_fields) {
+				switch(_field->native_index) {
+					case 0: vnx::read(_in, url_key, _call_type, _field->code.data()); break;
+					default: vnx::skip(_in, _call_type, _field->code.data());
+				}
+			}
+		}
+		::vnx::Object _ret_0;
+		_ret_0 = get_page_info(url_key);
+		std::shared_ptr<vnx::Binary> _return_value;
+		{
+			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_get_page_info_return;
 			_return_value = vnx::Binary::create();
 			_return_value->type_code = _return_type;
 			vnx::BinaryOutputStream _stream_out(_return_value.get());

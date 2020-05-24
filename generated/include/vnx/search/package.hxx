@@ -18,7 +18,6 @@ class ContentParserBase;
 class CrawlFrontendBase;
 class CrawlProcessorBase;
 class CrawlStats;
-class DomainIndex;
 class FetchResult;
 class HttpResponse;
 class PageContent;
@@ -51,7 +50,6 @@ extern const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_handle_vnx
 extern const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_handle_vnx_search_TextResponse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_handle_vnx_search_TextResponse_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_CrawlStats; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_DomainIndex; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_FetchResult; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_HttpResponse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_PageContent; ///< \private
@@ -63,6 +61,8 @@ extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_i
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_info_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo; ///< \private
@@ -95,7 +95,6 @@ void read(TypeInput& in, ::vnx::search::ContentParserBase& value, const TypeCode
 void read(TypeInput& in, ::vnx::search::CrawlFrontendBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::CrawlProcessorBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::CrawlStats& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::DomainIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::FetchResult& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::HttpResponse& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::PageContent& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -115,7 +114,6 @@ void write(TypeOutput& out, const ::vnx::search::ContentParserBase& value, const
 void write(TypeOutput& out, const ::vnx::search::CrawlFrontendBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::CrawlProcessorBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::CrawlStats& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::DomainIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::FetchResult& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::HttpResponse& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::PageContent& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -135,7 +133,6 @@ void read(std::istream& in, ::vnx::search::ContentParserBase& value); ///< \priv
 void read(std::istream& in, ::vnx::search::CrawlFrontendBase& value); ///< \private
 void read(std::istream& in, ::vnx::search::CrawlProcessorBase& value); ///< \private
 void read(std::istream& in, ::vnx::search::CrawlStats& value); ///< \private
-void read(std::istream& in, ::vnx::search::DomainIndex& value); ///< \private
 void read(std::istream& in, ::vnx::search::FetchResult& value); ///< \private
 void read(std::istream& in, ::vnx::search::HttpResponse& value); ///< \private
 void read(std::istream& in, ::vnx::search::PageContent& value); ///< \private
@@ -155,7 +152,6 @@ void write(std::ostream& out, const ::vnx::search::ContentParserBase& value); //
 void write(std::ostream& out, const ::vnx::search::CrawlFrontendBase& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::CrawlProcessorBase& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::CrawlStats& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::DomainIndex& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::FetchResult& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::HttpResponse& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::PageContent& value); ///< \private
@@ -175,7 +171,6 @@ void accept(Visitor& visitor, const ::vnx::search::ContentParserBase& value); //
 void accept(Visitor& visitor, const ::vnx::search::CrawlFrontendBase& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::CrawlProcessorBase& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::CrawlStats& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::DomainIndex& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::FetchResult& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::HttpResponse& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::PageContent& value); ///< \private
@@ -276,29 +271,6 @@ struct type<::vnx::search::CrawlStats> {
 		vnx::write(out, value);
 	}
 	void accept(Visitor& visitor, const ::vnx::search::CrawlStats& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::DomainIndex> {
-	void read(TypeInput& in, ::vnx::search::DomainIndex& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::DomainIndex& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::DomainIndex& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::DomainIndex& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::DomainIndex& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {

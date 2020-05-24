@@ -6,10 +6,10 @@
 
 #include <vnx/search/package.hxx>
 #include <vnx/Module.h>
+#include <vnx/Object.h>
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
-#include <vnx/search/DomainIndex.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/search_flags_e.hxx>
 
@@ -59,8 +59,9 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual ::std::shared_ptr<const ::vnx::search::DomainIndex> get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset) const = 0;
-	virtual ::std::vector<::vnx::search::DomainIndex> get_domain_list(const ::int32_t& limit, const ::uint32_t& offset) const = 0;
+	virtual ::vnx::Object get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset) const = 0;
+	virtual ::std::vector<::vnx::Object> get_domain_list(const ::int32_t& limit, const ::uint32_t& offset) const = 0;
+	virtual ::vnx::Object get_page_info(const ::std::string& url_key) const = 0;
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }

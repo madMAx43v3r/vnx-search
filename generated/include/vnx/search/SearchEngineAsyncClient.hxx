@@ -6,10 +6,10 @@
 
 #include <vnx/AsyncClient.h>
 #include <vnx/Module.h>
+#include <vnx/Object.h>
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
-#include <vnx/search/DomainIndex.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/search_flags_e.hxx>
 
@@ -24,10 +24,13 @@ public:
 	SearchEngineAsyncClient(vnx::Hash64 service_addr);
 	
 	uint64_t get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset, 
-			const std::function<void(::std::shared_ptr<const ::vnx::search::DomainIndex>)>& _callback = std::function<void(::std::shared_ptr<const ::vnx::search::DomainIndex>)>());
+			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>());
 	
 	uint64_t get_domain_list(const ::int32_t& limit, const ::uint32_t& offset, 
-			const std::function<void(::std::vector<::vnx::search::DomainIndex>)>& _callback = std::function<void(::std::vector<::vnx::search::DomainIndex>)>());
+			const std::function<void(::std::vector<::vnx::Object>)>& _callback = std::function<void(::std::vector<::vnx::Object>)>());
+	
+	uint64_t get_page_info(const ::std::string& url_key, 
+			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>());
 	
 	uint64_t handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample, 
 			const std::function<void()>& _callback = std::function<void()>());
@@ -58,8 +61,9 @@ protected:
 	void vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Binary> _data) override;
 	
 private:
-	std::map<uint64_t, std::function<void(::std::shared_ptr<const ::vnx::search::DomainIndex>)>> vnx_queue_get_domain_info;
-	std::map<uint64_t, std::function<void(::std::vector<::vnx::search::DomainIndex>)>> vnx_queue_get_domain_list;
+	std::map<uint64_t, std::function<void(::vnx::Object)>> vnx_queue_get_domain_info;
+	std::map<uint64_t, std::function<void(::std::vector<::vnx::Object>)>> vnx_queue_get_domain_list;
+	std::map<uint64_t, std::function<void(::vnx::Object)>> vnx_queue_get_page_info;
 	std::map<uint64_t, std::function<void()>> vnx_queue_handle_vnx_keyvalue_KeyValuePair;
 	std::map<uint64_t, std::function<void()>> vnx_queue_handle_vnx_keyvalue_SyncInfo;
 	std::map<uint64_t, std::function<void(::std::shared_ptr<const ::vnx::search::SearchResult>)>> vnx_queue_query;
