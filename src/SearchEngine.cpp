@@ -131,7 +131,7 @@ std::shared_ptr<const DomainIndex> SearchEngine::get_domain_info(	const std::str
 				auto iter3 = page_index.find(page_id);
 				if(iter3 != page_index.end()) {
 					const auto& page = iter3->second;
-					sorted.emplace_back(page.reverse_links.size(), &page);
+					sorted.emplace_back(page.reverse_domains.size(), &page);
 				}
 			}
 			std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<size_t, const page_t*>>());
