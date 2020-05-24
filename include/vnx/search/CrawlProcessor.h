@@ -94,7 +94,7 @@ private:
 	
 	void update_queue();
 	
-	void check_url(const std::string& url, int depth, std::shared_ptr<const Value> index);
+	void check_url(const Url::Url& url, int depth, std::shared_ptr<const Value> index);
 	
 	void check_all_urls();
 	

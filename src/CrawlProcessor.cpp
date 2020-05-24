@@ -76,7 +76,7 @@ void CrawlProcessor::main()
 	{
 		const auto parsed = process_url(Url::Url(url));
 		url_index_async->get_value(get_url_key(parsed),
-				std::bind(&CrawlProcessor::check_url, this, parsed.str(), 0, std::placeholders::_1));
+				std::bind(&CrawlProcessor::check_url, this, parsed, 0, std::placeholders::_1));
 	}
 	
 	check_all_urls();
@@ -211,7 +211,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 			const auto url = index->scheme + ":" + url_key;
 			const Url::Url parsed(url);
 			if(filter_url(parsed)) {
-				check_url(url, index->depth, index);
+				check_url(parsed, index->depth, index);
 			} else if(!is_robots_txt(parsed)) {
 				delete_url(url_key);
 			}
@@ -367,7 +367,7 @@ void CrawlProcessor::check_queue()
 			switch(domain.robots_state) {
 				case ROBOTS_TXT_UNKNOWN:
 					url_index_async->get_value(link_key,
-							std::bind(&CrawlProcessor::check_url, this, link_url, -1, std::placeholders::_1));
+							std::bind(&CrawlProcessor::check_url, this, Url::Url(link_url), -1, std::placeholders::_1));
 					domain.robot_start_time = now_posix;
 					domain.robots_state = ROBOTS_TXT_PENDING;
 					continue;
@@ -466,9 +466,9 @@ void CrawlProcessor::check_all_urls()
 	url_index_async->sync_all(input_url_index_sync);
 }
 
-void CrawlProcessor::check_url(const std::string& url, int depth, std::shared_ptr<const Value> index_)
+void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_ptr<const Value> index_)
 {
-	const Url::Url parsed(url);
+	const auto url = parsed.str();
 	const auto url_key = get_url_key(parsed);
 	const bool is_robots = is_robots_txt(parsed);
 	
@@ -570,7 +570,7 @@ void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shar
 		if(link_depth <= max_depth)
 		{
 			url_index_async->get_value(get_url_key(parsed),
-					std::bind(&CrawlProcessor::check_url, this, link, link_depth, std::placeholders::_1));
+					std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
 		}
 	}
 }
