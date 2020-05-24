@@ -8,6 +8,7 @@
 #ifndef INCLUDE_VNX_SEARCH_UTIL_H_
 #define INCLUDE_VNX_SEARCH_UTIL_H_
 
+#include <set>
 #include <vector>
 #include <string>
 
@@ -52,18 +53,9 @@ Url::Url process_url(const Url::Url& url)
 inline
 Url::Url process_link(const Url::Url& link, const Url::Url& parent)
 {
-	Url::Url parsed(link);
-	if(parsed.scheme().empty()) {
-		parsed.setScheme(parent.scheme());
-		if(parsed.host().empty()) {
-			parsed.setHost(parent.host());
-			// check if path is relative
-			if(!parsed.path().empty() && parsed.path()[0] != '/') {
-				parsed.relative_to(parent);
-			}
-		}
-	}
-	return process_url(parsed);
+	Url::Url tmp(link);
+	tmp.relative_to(parent);
+	return process_url(tmp);
 }
 
 template<typename T>
