@@ -6,6 +6,7 @@
  */
 
 #include <vnx/search/HtmlParser.h>
+#include <vnx/search/Util.h>
 
 #include <libxml/HTMLparser.h>
 #include <libxml++/libxml++.h>
@@ -13,47 +14,6 @@
 
 namespace vnx {
 namespace search {
-
-template<typename T>
-std::vector<T> get_unique(std::vector<T> in)
-{
-	std::set<T> tmp(in.begin(), in.end());
-	return std::vector<T>(tmp.begin(), tmp.end());
-}
-
-// trim from left
-inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")
-{
-    s.erase(0, s.find_first_not_of(t));
-    return s;
-}
-
-// trim from right
-inline std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v")
-{
-    s.erase(s.find_last_not_of(t) + 1);
-    return s;
-}
-
-// trim from left & right
-inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
-{
-    return ltrim(rtrim(s, t), t);
-}
-
-// remove chars from string
-inline std::string& clean(std::string& s, const char* t = "\n\r\f\v")
-{
-	while(true) {
-		const auto pos = s.find_first_of(t);
-		if(pos != std::string::npos) {
-			s.erase(pos, 1);
-		} else {
-			break;
-		}
-	}
-	return s;
-}
 
 HtmlParser::HtmlParser(const std::string& _vnx_name)
 	:	ContentParserBase(_vnx_name)
@@ -98,13 +58,15 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 		if(node->get_name() == "a") {
 			const auto href = element->get_attribute("href");
 			if(href) {
-				result->links.push_back(href->get_value());
+				std::string link(href->get_value());
+				result->links.push_back(clean(trim(link)));
 			}
 		}
 		if(node->get_name() == "img") {
 			const auto src = element->get_attribute("src");
 			if(src) {
-				result->images.push_back(src->get_value());
+				std::string link(src->get_value());
+				result->images.push_back(clean(trim(link)));
 			}
 		}
 	}

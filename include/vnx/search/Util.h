@@ -18,6 +18,44 @@
 namespace vnx {
 namespace search {
 
+// trim from left
+inline
+std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    s.erase(0, s.find_first_not_of(t));
+    return s;
+}
+
+// trim from right
+inline
+std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// trim from left & right
+inline
+std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+    return ltrim(rtrim(s, t), t);
+}
+
+// remove chars from string
+inline
+std::string& clean(std::string& s, const char* t = "\n\r\f\v")
+{
+	while(true) {
+		const auto pos = s.find_first_of(t);
+		if(pos != std::string::npos) {
+			s.erase(pos, 1);
+		} else {
+			break;
+		}
+	}
+	return s;
+}
+
 inline
 std::string get_url_key(const Url::Url& url)
 {
