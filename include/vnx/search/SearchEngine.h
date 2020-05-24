@@ -58,6 +58,7 @@ protected:
 		std::vector<uint32_t> links;
 		std::vector<uint32_t> reverse_links;
 		std::vector<uint32_t> reverse_domains;
+		std::string get_url() const { return is_loaded ? scheme + ":" + url_key : url_key; }
 	};
 	
 	struct page_cache_t {
@@ -82,9 +83,11 @@ protected:
 						const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
 						const vnx::request_id_t& _request_id) const override;
 	
-	std::shared_ptr<const DomainIndex> get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const;
+	Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const;
 	
-	std::vector<DomainIndex> get_domain_list(const int32_t& limit, const uint32_t& offset) const;
+	Object get_page_info(const std::string& url_key) const;
+	
+	std::vector<Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const;
 	
 	std::vector<std::string> reverse_lookup(const std::string& url_key) const;
 	

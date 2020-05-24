@@ -114,21 +114,22 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 	query_condition.notify_one();
 }
 
-std::shared_ptr<const DomainIndex> SearchEngine::get_domain_info(	const std::string& host,
-																	const int32_t& limit,
-																	const uint32_t& offset) const
+Object SearchEngine::get_domain_info(	const std::string& host,
+										const int32_t& limit,
+										const uint32_t& offset) const
 {
 	std::shared_lock lock(index_mutex);
 	
-	auto iter = domain_map.find(host);
+	Object result;
+	const auto iter = domain_map.find(host);
 	if(iter != domain_map.end()) {
-		auto iter2 = domain_index.find(iter->second);
+		const auto iter2 = domain_index.find(iter->second);
 		if(iter2 != domain_index.end()) {
 			const auto& domain = iter2->second;
 			
 			std::vector<std::pair<size_t, const page_t*>> sorted;
 			for(const auto page_id : domain.pages) {
-				auto iter3 = page_index.find(page_id);
+				const auto iter3 = page_index.find(page_id);
 				if(iter3 != page_index.end()) {
 					const auto& page = iter3->second;
 					sorted.emplace_back(page.reverse_domains.size(), &page);
@@ -136,19 +137,71 @@ std::shared_ptr<const DomainIndex> SearchEngine::get_domain_info(	const std::str
 			}
 			std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<size_t, const page_t*>>());
 			
-			auto result = DomainIndex::create();
-			result->host = host;
-			result->num_pages = sorted.size();
+			std::vector<std::string> pages;
 			for(uint32_t i = 0; i < uint32_t(limit) && offset + i < sorted.size(); ++i) {
-				result->pages.push_back(sorted[offset + i].second->url_key);
+				const auto* page = sorted[offset + i].second;
+				pages.push_back(page->get_url());
 			}
-			return result;
+			Object result;
+			result["host"] = host;
+			result["num_pages"] = sorted.size();
+			result["pages"] = pages;
 		}
 	}
-	return 0;
+	return result;
 }
 
-std::vector<DomainIndex> SearchEngine::get_domain_list(const int32_t& limit, const uint32_t& offset) const
+Object SearchEngine::get_page_info(const std::string& url_key) const
+{
+	std::shared_lock lock(index_mutex);
+	
+	Object result;
+	const auto page_id = find_url_id(url_key);
+	const auto iter = page_index.find(page_id);
+	if(iter != page_index.end()) {
+		const auto& page = iter->second;
+		result["url"] = page.get_url();
+		result["title"] = page.title;
+		result["is_loaded"] = page.is_loaded;
+		result["first_seen"] = page.first_seen;
+		result["last_modified"] = page.last_modified;
+		{
+			const auto iter2 = domain_index.find(page.domain_id);
+			if(iter2 != domain_index.end()) {
+				result["domain"] = iter2->second.host;
+			}
+		}
+		std::vector<std::string> links;
+		std::vector<std::string> reverse_links;
+		std::vector<std::string> reverse_domains;
+		for(const auto link_id : page.links) {
+			const auto iter2 = page_index.find(link_id);
+			if(iter2 != page_index.end()) {
+				const auto& page = iter2->second;
+				links.push_back(page.get_url());
+			}
+		}
+		for(const auto link_id : page.reverse_links) {
+			const auto iter2 = page_index.find(link_id);
+			if(iter2 != page_index.end()) {
+				const auto& page = iter2->second;
+				reverse_links.push_back(page.get_url());
+			}
+		}
+		for(const auto domain_id : page.reverse_domains) {
+			const auto iter2 = domain_index.find(domain_id);
+			if(iter2 != domain_index.end()) {
+				reverse_domains.push_back(iter2->second.host);
+			}
+		}
+		result["links"] = links;
+		result["reverse_links"] = reverse_links;
+		result["reverse_domains"] = reverse_domains;
+	}
+	return result;
+}
+
+std::vector<Object> SearchEngine::get_domain_list(const int32_t& limit, const uint32_t& offset) const
 {
 	std::shared_lock lock(index_mutex);
 	
@@ -159,13 +212,13 @@ std::vector<DomainIndex> SearchEngine::get_domain_list(const int32_t& limit, con
 	}
 	std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<size_t, const domain_t*>>());
 	
-	std::vector<DomainIndex> result;
+	std::vector<Object> result;
 	for(uint32_t i = 0; i < uint32_t(limit) && offset + i < sorted.size(); ++i) {
 		const auto* domain = sorted[offset + i].second;
-		DomainIndex index;
-		index.host = domain->host;
-		index.num_pages = domain->pages.size();
-		result.push_back(index);
+		Object info;
+		info["host"] = domain->host;
+		info["num_pages"] = domain->pages.size();
+		result.push_back(info);
 	}
 	return result;
 }
@@ -176,15 +229,13 @@ std::vector<std::string> SearchEngine::reverse_lookup(const std::string& url_key
 	
 	std::vector<std::string> result;
 	const auto page_id = find_url_id(url_key);
-	if(page_id) {
-		auto iter = page_index.find(page_id);
-		if(iter != page_index.end()) {
-			const auto& page = iter->second;
-			for(const auto link_id : page.reverse_links) {
-				auto iter2 = page_index.find(link_id);
-				if(iter2 != page_index.end()) {
-					result.push_back(iter2->second.url_key);
-				}
+	const auto iter = page_index.find(page_id);
+	if(iter != page_index.end()) {
+		const auto& page = iter->second;
+		for(const auto link_id : page.reverse_links) {
+			const auto iter2 = page_index.find(link_id);
+			if(iter2 != page_index.end()) {
+				result.push_back(iter2->second.url_key);
 			}
 		}
 	}
@@ -197,15 +248,13 @@ std::vector<std::string> SearchEngine::reverse_domain_lookup(const std::string& 
 	
 	std::vector<std::string> result;
 	const auto page_id = find_url_id(url_key);
-	if(page_id) {
-		auto iter = page_index.find(page_id);
-		if(iter != page_index.end()) {
-			const auto& page = iter->second;
-			for(const auto domain_id : page.reverse_domains) {
-				auto iter2 = domain_index.find(domain_id);
-				if(iter2 != domain_index.end()) {
-					result.push_back(iter2->second.host);
-				}
+	const auto iter = page_index.find(page_id);
+	if(iter != page_index.end()) {
+		const auto& page = iter->second;
+		for(const auto domain_id : page.reverse_domains) {
+			const auto iter2 = domain_index.find(domain_id);
+			if(iter2 != domain_index.end()) {
+				result.push_back(iter2->second.host);
 			}
 		}
 	}
@@ -782,7 +831,7 @@ void SearchEngine::query_loop() const noexcept
 					const auto& page = iter->second;
 					if(page.is_loaded) {
 						result_t result;
-						result.url = page.scheme + ":" + page.url_key;
+						result.url = page.get_url();
 						result.title = page.title;
 						result.domain_id = page.domain_id;
 						result.last_modified = page.last_modified;

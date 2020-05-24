@@ -1,5 +1,7 @@
 package vnx.search;
 
+import vnx.Object;
+
 module SearchEngine {
 	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
@@ -29,9 +31,11 @@ module SearchEngine {
 	
 	SearchResult* query(vector<string> words, int limit, uint offset, vector<search_flags_e> flags) const async;
 	
-	DomainIndex* get_domain_info(string host, int limit, uint offset) const;
+	Object get_domain_info(string host, int limit, uint offset) const;
 	
-	vector<DomainIndex> get_domain_list(int limit, uint offset) const;
+	Object get_page_info(string url_key) const;
+	
+	vector<Object> get_domain_list(int limit, uint offset) const;
 	
 	vector<string> reverse_lookup(string url_key) const;
 	
