@@ -36,8 +36,8 @@ target_include_directories(vnx_search
 	PUBLIC
 		include
 		generated/include
-	PRIVATE
 		lib/url-cpp/include
+	PRIVATE
 		lib/libxmlplusplus
 		lib/robotstxt
 		lib/robotstxt/build/libs/abseil-cpp-src
@@ -68,6 +68,9 @@ target_link_libraries(vnx_search_browse vnx_search)
 
 add_executable(vnx_search_crawl src/vnx_search_crawl.cpp)
 target_link_libraries(vnx_search_crawl vnx_search)
+
+add_executable(test_url test/test_url.cpp)
+target_link_libraries(test_url vnx_search)
 
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY generated/include/ DESTINATION include)
