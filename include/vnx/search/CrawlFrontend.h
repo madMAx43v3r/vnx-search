@@ -41,7 +41,7 @@ protected:
 public:
 	struct request_t {
 		std::string url;
-		Url::Url parsed_url;
+		Url::Url parsed_url = Url::Url("");
 		std::vector<std::string> accept_content;
 		vnx::request_id_t request_id;
 		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;
