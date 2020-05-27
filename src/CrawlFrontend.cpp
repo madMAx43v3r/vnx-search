@@ -11,7 +11,6 @@
 #include <vnx/search/CrawlProcessorClient.hxx>
 
 #include <curl/curl.h>
-#include <url.h>
 
 #include <sstream>
 #include <locale>
@@ -92,6 +91,7 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 {
 	auto request = std::make_shared<request_t>();
 	request->url = url;
+	request->parsed_url = Url::Url(url);
 	{
 		std::set<std::string> mime_types;
 		for(const auto& entry : parser_map) {
@@ -252,7 +252,7 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 				}
 			}
 		} else {
-			if(is_robots_txt(Url::Url(data->request->url))) {
+			if(is_robots_txt(data->request->parsed_url)) {
 				content_type = "text/plain";		// assume it's text
 			} else {
 				data->frontend->invalid_content_type_counter++;
@@ -267,7 +267,7 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 			}
 		}
 		if(!valid_type) {
-			if(is_robots_txt(Url::Url(data->request->url))) {
+			if(is_robots_txt(data->request->parsed_url)) {
 				content_type = "text/plain";		// assume it's really text
 			} else {
 				data->frontend->invalid_content_type_counter++;
@@ -364,11 +364,16 @@ void CrawlFrontend::fetch_loop() const noexcept
 			char* final_url = 0;
 			curl_easy_getinfo(client, CURLINFO_EFFECTIVE_URL, &final_url);
 			if(final_url) {
-				const auto url = process_url(Url::Url(std::string(final_url))).str();
-				if(url != request->url) {
-					out->url = url;
-					index->redirect = url;
-					redirect_counter++;
+				try {
+					const auto url = process_url(Url::Url(std::string(final_url))).str();
+					if(url != request->url) {
+						out->url = url;
+						index->redirect = url;
+						redirect_counter++;
+					}
+				}
+				catch(...) {
+					// ignore
 				}
 			}
 		}

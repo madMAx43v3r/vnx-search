@@ -11,6 +11,8 @@
 #include <vnx/search/CrawlFrontendBase.hxx>
 #include <vnx/search/ContentParserAsyncClient.hxx>
 
+#include <url.h>
+
 #include <atomic>
 
 
@@ -39,6 +41,7 @@ protected:
 public:
 	struct request_t {
 		std::string url;
+		Url::Url parsed_url;
 		std::vector<std::string> accept_content;
 		vnx::request_id_t request_id;
 		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;
