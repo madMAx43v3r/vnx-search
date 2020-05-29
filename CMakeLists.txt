@@ -66,6 +66,9 @@ target_link_libraries(vnx_search_query vnx_search)
 add_executable(vnx_search_browse src/vnx_search_browse.cpp)
 target_link_libraries(vnx_search_browse vnx_search)
 
+add_executable(vnx_search_discover src/vnx_search_discover.cpp)
+target_link_libraries(vnx_search_discover vnx_search)
+
 add_executable(vnx_search_crawl src/vnx_search_crawl.cpp)
 target_link_libraries(vnx_search_crawl vnx_search)
 
