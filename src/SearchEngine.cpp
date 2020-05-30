@@ -142,7 +142,6 @@ Object SearchEngine::get_domain_info(	const std::string& host,
 				const auto* page = sorted[offset + i].second;
 				pages.push_back(page->get_url());
 			}
-			Object result;
 			result["host"] = host;
 			result["num_pages"] = sorted.size();
 			result["pages"] = pages;
