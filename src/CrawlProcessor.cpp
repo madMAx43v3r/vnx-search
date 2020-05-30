@@ -622,7 +622,9 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 				page_content_async->delete_value(url_key);
 				log(INFO).out << "Deleted obsolete '" << url_key << "'";
 				
-				if(entry.depth >= 0)
+				if(		entry.depth >= 0
+					&&	index->redirect.size() <= max_url_length
+					&&	filter_url(parsed_redir))
 				{
 					auto copy = vnx::clone(index);
 					copy->scheme = parsed_redir.scheme();
