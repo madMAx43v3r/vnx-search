@@ -521,14 +521,14 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 					free_ids.push_back(i);
 				}
 			}
-			subscribe(input_url_index, 1000);
+			subscribe(input_url_index, 100);
 			url_index_async->sync_all(input_url_index_sync);
 			log(INFO).out << "Found " << free_ids.size() << " free IDs";
 			log(INFO).out << "Starting UrlIndex sync ...";
 		}
 		if(value->collection == "url_index")
 		{
-			subscribe(input_page_index, 1000);
+			subscribe(input_page_index, 100);
 			page_index_sync->sync_all(input_page_index_sync);
 			log(INFO).out << "Starting PageIndex sync ...";
 		}
