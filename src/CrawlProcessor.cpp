@@ -26,6 +26,8 @@ namespace search {
 CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
+	private_addr = Hash64::rand();
+	
 	input_url_index_sync = vnx_name + ".url_index.sync";
 	input_page_index_sync = vnx_name + ".page_index.sync";
 	
@@ -37,10 +39,12 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 
 void CrawlProcessor::main()
 {
-	subscribe(input_text, 1000);				// need to block here since we are a bottleneck
-	subscribe(input_url_index, 1000);			// publisher runs in a separate thread so we can block here
+	subscribe(input_text, 100);					// need to block here since we are a bottleneck
+	subscribe(input_url_index, 100);			// publisher runs in a separate thread so we can block here
 	subscribe(input_url_index_sync, 100);		// sync runs in a separate thread so we can block here
 	subscribe(input_page_index_sync, 100);		// sync runs in a separate thread so we can block here
+	
+	vnx::open_pipe(private_addr, this, UNLIMITED);
 	
 	protocols = get_unique(protocols);
 	domain_blacklist = get_unique(domain_blacklist);
@@ -85,7 +89,19 @@ void CrawlProcessor::main()
 		page_index_async->sync_all(input_page_index_sync);
 	}
 	
+	work_threads.resize(num_worker_threads);
+	for(int i = 0; i < num_worker_threads; ++i) {
+		work_threads[i] = std::thread(&CrawlProcessor::work_loop, this);
+	}
+	
 	Super::main();
+	
+	work_condition.notify_all();
+	for(auto& thread : work_threads) {
+		if(thread.joinable()) {
+			thread.join();
+		}
+	}
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
@@ -109,23 +125,41 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	auto index = PageIndex::create();
 	index->title = value->title;
 	index->last_modified = value->last_modified;
-	
-	process_page(value->url, index, value->text, value->links, value->images);
-	
+	{
+		std::unique_lock lock(work_mutex);
+		while(work_queue.size() >= max_num_pending) {
+			work_reverse_condition.wait(lock);
+		}
+		work_queue.push(std::bind(&CrawlProcessor::process_page, this, value->url, index,
+									value->text, value->links, value->images, false, std::placeholders::_1));
+	}
+	work_condition.notify_one();
+}
+
+void CrawlProcessor::_page_process_callback(const std::string& url_key,
+											const std::shared_ptr<const ::vnx::search::PageIndex>& index,
+											const bool& is_reprocess)
+{
 	page_index_async->store_value(url_key, index);
 	
-	url_index_async->get_value(url_key,
-					std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
-	
-	log(INFO).out << "Processed '" << url_key << "': " << index->words.size() << " index words, "
-			<< index->links.size() << " links, " << index->images.size() << " images";
+	if(is_reprocess) {
+		reproc_counter++;
+	} else {
+		url_index_async->get_value(url_key,
+						std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
+		
+		log(INFO).out << "Processed '" << url_key << "': " << index->words.size() << " index words, "
+				<< index->links.size() << " links, " << index->images.size() << " images";
+	}
 }
 
 void CrawlProcessor::process_page(	const std::string& url,
 									std::shared_ptr<PageIndex> index,
 									const std::string& content,
 									const std::vector<std::string>& links,
-									const std::vector<std::string>& images)
+									const std::vector<std::string>& images,
+									bool is_reprocess,
+									CrawlProcessorClient& client) const
 {
 	std::map<std::string, size_t> word_set;
 	{
@@ -200,6 +234,8 @@ void CrawlProcessor::process_page(	const std::string& url,
 	
 	index->word_count = std::min(word_count, size_t(0xFFFFFFFF));
 	index->version = index_version;
+	
+	client._page_process_callback_async(get_url_key(parent), index, is_reprocess);
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> pair)
@@ -257,7 +293,7 @@ CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 	return domain;
 }
 
-bool CrawlProcessor::filter_url(const Url::Url& parsed)
+bool CrawlProcessor::filter_url(const Url::Url& parsed) const
 {
 	if(!parsed.scheme().empty()) {
 		if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
@@ -285,13 +321,6 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed)
 		if(std::regex_search(url_key, entry)) {
 			return false;
 		}
-	}
-	domain_t& domain = get_domain(host);
-	if(domain.robots_txt &&
-		!matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, parsed.str()))
-	{
-		domain.num_disallowed++;
-		return false;
 	}
 	return true;
 }
@@ -583,11 +612,15 @@ void CrawlProcessor::reproc_page(	const std::string& url_key,
 	new_index->words.clear();
 	new_index->links.clear();
 	new_index->images.clear();
-	
-	process_page(url_key, new_index, content->text, index->links, index->images);
-	
-	page_index_async->store_value(url_key, new_index);
-	reproc_counter++;
+	{
+		std::unique_lock lock(work_mutex);
+		while(work_queue.size() >= max_num_pending) {
+			work_reverse_condition.wait(lock);
+		}
+		work_queue.push(std::bind(&CrawlProcessor::process_page, this, url_key, new_index,
+									content->text, index->links, index->images, true, std::placeholders::_1));
+	}
+	work_condition.notify_one();
 }
 
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key)
@@ -805,6 +838,37 @@ void CrawlProcessor::print_stats()
 			<< found_robots_txt << " found";
 	if(do_reprocess) {
 		log(INFO).out << reproc_counter << " reprocessed, " << delete_counter << " deleted";
+	}
+}
+
+void CrawlProcessor::work_loop() const noexcept
+{
+	CrawlProcessorClient client(private_addr);
+	
+	while(vnx_do_run())
+	{
+		std::function<void(CrawlProcessorClient&)> func;
+		{
+			std::unique_lock<std::mutex> lock(work_mutex);
+			while(vnx_do_run() && work_queue.empty()) {
+				work_condition.wait(lock);
+			}
+			if(vnx_do_run()) {
+				func = std::move(work_queue.front());
+				work_queue.pop();
+			} else {
+				break;
+			}
+		}
+		work_reverse_condition.notify_one();
+		
+		if(func) {
+			try {
+				func(client);
+			} catch(const std::exception& ex) {
+				log(WARN).out << "work_loop(): " << ex.what();
+			}
+		}
 	}
 }
 

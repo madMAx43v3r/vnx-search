@@ -36,6 +36,8 @@ module CrawlProcessor {
 	
 	int max_word_length = 64;
 	
+	int num_worker_threads = 4;
+	
 	int check_interval_ms = 500;			// queue check
 	
 	int update_interval_ms = 5000;			// queue update
@@ -62,6 +64,8 @@ module CrawlProcessor {
 	
 	
 	CrawlStats* get_stats(int limit) const;
+	
+	void _page_process_callback(string url_key, PageIndex* index, bool is_reprocess);
 	
 	void handle(TextResponse sample);
 	

@@ -12,6 +12,7 @@
 #include <vnx/search/UrlIndex.hxx>
 #include <vnx/search/PageIndex.hxx>
 #include <vnx/search/PageContent.hxx>
+#include <vnx/search/CrawlProcessorClient.hxx>
 #include <vnx/search/CrawlFrontendAsyncClient.hxx>
 
 #include <vnx/keyvalue/ServerClient.hxx>
@@ -80,13 +81,19 @@ private:
 						std::shared_ptr<PageIndex> index,
 						const std::string& content,
 						const std::vector<std::string>& links,
-						const std::vector<std::string>& images);
+						const std::vector<std::string>& images,
+						bool is_reprocess,
+						CrawlProcessorClient& client) const;
+	
+	void _page_process_callback(const std::string& url_key,
+								const std::shared_ptr<const PageIndex>& index,
+								const bool& is_reprocess);
 	
 	void delete_url(const std::string& url_key);
 	
 	domain_t& get_domain(const std::string& host);
 	
-	bool filter_url(const Url::Url& parsed);
+	bool filter_url(const Url::Url& parsed) const;
 	
 	int enqueue(const std::string& url, int depth, int64_t load_time = 0);
 	
@@ -132,7 +139,10 @@ private:
 	
 	void print_stats();
 	
+	void work_loop() const noexcept;
+	
 private:
+	Hash64 private_addr;
 	std::map<uint64_t, std::string> pending_urls;
 	std::multimap<int64_t, std::string> waiting;
 	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
@@ -147,6 +157,12 @@ private:
 	
 	std::shared_ptr<googlebot::RobotsMatcher> matcher;
 	std::vector<std::regex> regex_blacklist_;
+	
+	mutable std::mutex work_mutex;
+	std::vector<std::thread> work_threads;
+	mutable std::condition_variable work_condition;
+	mutable std::condition_variable work_reverse_condition;
+	mutable std::queue<std::function<void(CrawlProcessorClient&)>> work_queue;
 	
 	int64_t fetch_counter = 0;
 	int64_t error_counter = 0;
