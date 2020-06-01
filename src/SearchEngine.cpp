@@ -358,17 +358,17 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		if(url_index->fetch_count == 0) {
 			return;
 		}
+		std::unique_lock lock(index_mutex);
+		
 		bool is_redirect = false;
+		const auto org_url_key = pair->key.to_string_value();
 		
 		if(!url_index->redirect.empty())
 		{
-			const auto org_url_key = pair->key.to_string_value();
 			const auto new_url_key = get_url_key(url_index->redirect);
 			
 			if(new_url_key != org_url_key)
 			{
-				std::unique_lock lock(index_mutex);
-				
 				const auto org_page_id = get_url_id(org_url_key);
 				const auto new_page_id = get_url_id(new_url_key);
 				const auto new_iter = page_index.find(new_page_id);
@@ -449,15 +449,18 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 				is_redirect = true;
 			}
 		}
-		
 		if(!is_redirect)
 		{
-			std::unique_lock lock(index_mutex);
-			
-			const auto url_key = pair->key.to_string_value();
-			const auto iter = url_map.find(url_key);
-			if(iter != url_map.end()) {
-				redirects.erase(iter->second);
+			const auto page_id = find_url_id(org_url_key);
+			if(page_id) {
+				const auto iter = page_index.find(page_id);
+				if(iter != page_index.end()) {
+					auto& page = iter->second;
+					page.scheme = url_index->scheme;
+					page.first_seen = url_index->first_seen;
+					page.last_modified = url_index->last_modified;
+				}
+				redirects.erase(page_id);
 			}
 		}
 		return;
