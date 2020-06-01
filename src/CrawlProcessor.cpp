@@ -122,6 +122,12 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 		return;
 	}
 	
+	std::shared_ptr<const PageContent> robots_txt;
+	auto* domain = find_domain(parent.host());
+	if(domain) {
+		robots_txt = domain->robots_txt;
+	}
+	
 	auto index = PageIndex::create();
 	index->title = value->title;
 	index->last_modified = value->last_modified;
@@ -131,7 +137,7 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 			work_reverse_condition.wait(lock);
 		}
 		work_queue.push(std::bind(&CrawlProcessor::process_page, this, value->url, index,
-									value->text, value->links, value->images, false, std::placeholders::_1));
+									value->text, value->links, value->images, robots_txt, false, std::placeholders::_1));
 	}
 	work_condition.notify_one();
 }
@@ -158,6 +164,7 @@ void CrawlProcessor::process_page(	const std::string& url,
 									const std::string& content,
 									const std::vector<std::string>& links,
 									const std::vector<std::string>& images,
+									std::shared_ptr<const PageContent> robots_txt,
 									bool is_reprocess,
 									CrawlProcessorClient& client) const
 {
@@ -189,6 +196,7 @@ void CrawlProcessor::process_page(	const std::string& url,
     }
 	
 	const Url::Url parent(url);
+	googlebot::RobotsMatcher matcher;
 	
 	size_t word_count = 0;
 	for(const auto& word : word_set)
@@ -206,7 +214,11 @@ void CrawlProcessor::process_page(	const std::string& url,
 			const auto full_link = parsed.str();
 			if(full_link.size() <= max_url_length) {
 				if(filter_url(parsed)) {
-					index->links.push_back(full_link);
+					if(parsed.host() != parent.host() || !robots_txt
+						|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
+					{
+						index->links.push_back(full_link);
+					}
 				}
 			}
 		} catch(...) {
@@ -221,7 +233,11 @@ void CrawlProcessor::process_page(	const std::string& url,
 			const auto full_link = parsed.str();
 			if(full_link.size() <= max_url_length) {
 				if(filter_url(parsed)) {
-					index->images.push_back(full_link);
+					if(parsed.host() != parent.host() || !robots_txt
+						|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
+					{
+						index->images.push_back(full_link);
+					}
 				}
 			}
 		} catch(...) {
@@ -630,7 +646,7 @@ void CrawlProcessor::reproc_page(	const std::string& url_key,
 			work_reverse_condition.wait(lock);
 		}
 		work_queue.push(std::bind(&CrawlProcessor::process_page, this, url_key, new_index,
-									content->text, index->links, index->images, true, std::placeholders::_1));
+									content->text, index->links, index->images, nullptr, true, std::placeholders::_1));
 	}
 	work_condition.notify_one();
 }

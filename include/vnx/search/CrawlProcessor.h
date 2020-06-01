@@ -82,6 +82,7 @@ private:
 						const std::string& content,
 						const std::vector<std::string>& links,
 						const std::vector<std::string>& images,
+						std::shared_ptr<const PageContent> robots_txt,
 						bool is_reprocess,
 						CrawlProcessorClient& client) const;
 	
