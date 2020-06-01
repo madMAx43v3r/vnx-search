@@ -515,7 +515,7 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 				const int is_queued = enqueue(url, depth, index->last_fetched + load_delay);
 				
 				auto& domain = get_domain(parsed.host());
-				if(!is_queued) {
+				if(is_queued != 1) {
 					if(index->is_fail) {
 						if(domain.robots_state != ROBOTS_TXT_MISSING) {
 							missing_robots_txt++;
@@ -523,12 +523,11 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 						domain.robots_state = ROBOTS_TXT_MISSING;
 						domain.robots_txt = 0;
 					} else {
-						if(domain.robots_state != ROBOTS_TXT_PENDING) {
-							page_content_async->get_value(url_key,
-									std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
-						}
+						page_content_async->get_value(url_key,
+								std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
+						domain.robots_state == ROBOTS_TXT_PENDING;
 					}
-				} else if(is_queued == 1) {
+				} else {
 					domain.robots_state = ROBOTS_TXT_PENDING;
 				}
 			} else {
