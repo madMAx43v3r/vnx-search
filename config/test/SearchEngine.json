@@ -1,5 +1,5 @@
 {
 	"max_depth": 9,
 	"max_query_pages": 1000,
-	"commit_interval": 600
+	"commit_interval": 60
 }
