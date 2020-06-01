@@ -289,12 +289,8 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 			}
 		}
 		if(!valid_type) {
-			if(is_robots_txt(data->request->parsed_url)) {
-				content_type = "text/plain";		// assume it's really text
-			} else {
-				data->frontend->invalid_content_type_counter++;
-				return 0;
-			}
+			data->frontend->invalid_content_type_counter++;
+			return 0;
 		}
 		data->out->content_type = content_type;
 		data->is_begin = false;
