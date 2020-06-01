@@ -118,6 +118,7 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	page_content_async->store_value(url_key, content);
 	
 	if(is_robots_txt(parent)) {
+		robots_txt_callback(url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, content);
 		return;
 	}
 	
@@ -536,7 +537,7 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 				if(index->http_status < 0) {
 					load_delay = std::min(int64_t(pow(index->fetch_count, reload_power) * error_reload_interval), load_delay);
 				}
-				const int is_queued = enqueue(url, depth, index->last_fetched + load_delay);
+				const auto is_queued = enqueue(url, depth, index->last_fetched + load_delay);
 				
 				auto* domain = find_domain(parsed.host());
 				if(domain) {
@@ -550,7 +551,6 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 						} else {
 							page_content_async->get_value(url_key,
 									std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
-							domain->robots_state == ROBOTS_TXT_PENDING;
 						}
 					} else {
 						domain->robots_state = ROBOTS_TXT_PENDING;
@@ -790,22 +790,24 @@ void CrawlProcessor::robots_txt_callback(	const std::string& url_key,
 											std::shared_ptr<const Value> value)
 {
 	const Url::Url parsed(url_key);
-	auto& domain = get_domain(parsed.host());
-	
+	auto* domain = find_domain(parsed.host());
+	if(!domain) {
+		return;
+	}
 	auto content = std::dynamic_pointer_cast<const PageContent>(value);
 	if(content) {
-		if(!domain.robots_txt) {
+		if(!domain->robots_txt) {
 			found_robots_txt++;
 		}
-		domain.robots_txt = content;
+		domain->robots_txt = content;
 	}
-	if(domain.robots_txt) {
-		domain.robots_state = ROBOTS_TXT_FOUND;
+	if(domain->robots_txt) {
+		domain->robots_state = ROBOTS_TXT_FOUND;
 	} else {
 		if(missing_state == ROBOTS_TXT_TIMEOUT) {
 			timed_out_robots_txt++;
 		}
-		domain.robots_state = missing_state;
+		domain->robots_state = missing_state;
 	}
 }
 
