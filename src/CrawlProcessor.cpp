@@ -483,8 +483,10 @@ void CrawlProcessor::update_queue()
 			const auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
 			limited_emplace(queue, key, &domain, max_queue_size);
 			iter++;
-		} else {
+		} else if(domain.num_pending <= 0) {
 			iter = domain_map.erase(iter);
+		} else {
+			iter++;
 		}
 	}
 	active_domains = domain_map.size();
