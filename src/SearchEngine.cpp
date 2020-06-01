@@ -577,17 +577,22 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 void SearchEngine::url_index_callback(	const std::string& url_key,
 										const uint64_t version,
 										std::shared_ptr<const PageIndex> index,
-										std::shared_ptr<const Value> url_index_)
+										std::shared_ptr<const Value> value)
+{
+	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(value);
+	if(url_index) {
+		if(url_index->depth >= 0) {
+			update_page(url_key, version, index, url_index);
+		}
+	}
+}
+
+void SearchEngine::update_page(	const std::string& url_key,
+								const uint64_t version,
+								std::shared_ptr<const PageIndex> index,
+								std::shared_ptr<const UrlIndex> url_index)
 {
 	std::unique_lock lock(index_mutex);
-	
-	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(url_index_);
-	if(!url_index) {
-		return;
-	}
-	if(url_index->depth < 0) {
-		return;
-	}
 	
 	const Url::Url parsed_url_key(url_key);
 	const auto page_id = get_url_id(url_key);

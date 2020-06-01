@@ -122,8 +122,13 @@ private:
 	
 	void url_index_callback(	const std::string& url_key,
 								const uint64_t version,
-								std::shared_ptr<const PageIndex> page_index_,
-								std::shared_ptr<const Value> url_index_);
+								std::shared_ptr<const PageIndex> index,
+								std::shared_ptr<const Value> value);
+	
+	void update_page(	const std::string& url_key,
+						const uint64_t version,
+						std::shared_ptr<const PageIndex> index,
+						std::shared_ptr<const UrlIndex> url_index);
 	
 	void print_stats();
 	
