@@ -93,6 +93,8 @@ private:
 	
 	domain_t& get_domain(const std::string& host);
 	
+	domain_t* find_domain(const std::string& host);
+	
 	bool filter_url(const Url::Url& parsed) const;
 	
 	int enqueue(const std::string& url, int depth, int64_t load_time = 0);
@@ -119,7 +121,7 @@ private:
 						std::shared_ptr<const PageIndex> index,
 						std::shared_ptr<const PageContent> content);
 	
-	url_t url_fetch_done(const std::string& url_key);
+	url_t url_fetch_done(const std::string& url_key, bool is_fail);
 	
 	void url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index);
 	

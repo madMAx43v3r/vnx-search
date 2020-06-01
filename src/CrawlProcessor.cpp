@@ -286,11 +286,20 @@ void CrawlProcessor::delete_url(const std::string& url_key)
 
 CrawlProcessor::domain_t& CrawlProcessor::get_domain(const std::string& host)
 {
-	domain_t& domain = domain_map[host];
+	auto& domain = domain_map[host];
 	if(domain.host.empty()) {
 		domain.host = host;
 	}
 	return domain;
+}
+
+CrawlProcessor::domain_t* CrawlProcessor::find_domain(const std::string& host)
+{
+	const auto iter = domain_map.find(host);
+	if(iter != domain_map.end()) {
+		return &iter->second;
+	}
+	return 0;
 }
 
 bool CrawlProcessor::filter_url(const Url::Url& parsed) const
@@ -354,7 +363,7 @@ int CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time
 	bool is_waiting = false;
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
-		domain_t& domain = get_domain(host);
+		auto& domain = get_domain(host);
 		domain.queue.emplace(depth, url);
 	} else if(delta < 2 * sync_interval) {
 		waiting.emplace(load_time, url);
@@ -514,21 +523,23 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 				}
 				const int is_queued = enqueue(url, depth, index->last_fetched + load_delay);
 				
-				auto& domain = get_domain(parsed.host());
-				if(is_queued != 1) {
-					if(index->is_fail) {
-						if(domain.robots_state != ROBOTS_TXT_MISSING) {
-							missing_robots_txt++;
+				auto* domain = find_domain(parsed.host());
+				if(domain) {
+					if(is_queued != 1) {
+						if(index->is_fail) {
+							if(domain->robots_state != ROBOTS_TXT_MISSING) {
+								missing_robots_txt++;
+							}
+							domain->robots_state = ROBOTS_TXT_MISSING;
+							domain->robots_txt = 0;
+						} else {
+							page_content_async->get_value(url_key,
+									std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
+							domain->robots_state == ROBOTS_TXT_PENDING;
 						}
-						domain.robots_state = ROBOTS_TXT_MISSING;
-						domain.robots_txt = 0;
 					} else {
-						page_content_async->get_value(url_key,
-								std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
-						domain.robots_state == ROBOTS_TXT_PENDING;
+						domain->robots_state = ROBOTS_TXT_PENDING;
 					}
-				} else {
-					domain.robots_state = ROBOTS_TXT_PENDING;
 				}
 			} else {
 				enqueue(url, depth);
@@ -624,11 +635,19 @@ void CrawlProcessor::reproc_page(	const std::string& url_key,
 	work_condition.notify_one();
 }
 
-CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key)
+CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key, bool is_fail)
 {
 	const auto entry = url_map[url_key];
+	auto* domain = find_domain(entry.domain);
+	if(domain) {
+		domain->num_pending--;
+		if(is_fail) {
+			domain->num_errors++;
+		} else {
+			domain->num_fetched++;
+		}
+	}
 	reload_counter += entry.is_reload ? 1 : 0;
-	get_domain(entry.domain).num_pending--;
 	pending_urls.erase(entry.request_id);
 	url_map.erase(url_key);
 	return entry;
@@ -638,7 +657,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 {
 	const Url::Url parsed(url);
 	const auto url_key = get_url_key(parsed);
-	const auto entry = url_fetch_done(url_key);
+	const auto entry = url_fetch_done(url_key, index ? index->is_fail : true);
 	
 	if(index) {
 		auto copy = vnx::clone(index);
@@ -675,13 +694,6 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		
 		url_index_async->get_value(url_key,
 				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
-		
-		domain_t& domain = get_domain(entry.domain);
-		if(index->is_fail) {
-			domain.num_errors++;
-		} else {
-			domain.num_fetched++;
-		}
 	}
 }
 
@@ -712,7 +724,7 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 		const auto url = iter->second;
 		const Url::Url parsed(url);
 		const auto url_key = get_url_key(parsed);
-		const auto entry = url_fetch_done(url_key);		// after this iter will be invalid
+		const auto entry = url_fetch_done(url_key, true);		// after this, iter will be invalid
 		
 		log(WARN).out << "fetch('" << url << "'): " << ex.what();
 		
@@ -738,7 +750,7 @@ void CrawlProcessor::robots_txt_callback(	const std::string& url_key,
 											std::shared_ptr<const Value> value)
 {
 	const Url::Url parsed(url_key);
-	domain_t& domain = get_domain(parsed.host());
+	auto& domain = get_domain(parsed.host());
 	
 	auto content = std::dynamic_pointer_cast<const PageContent>(value);
 	if(content) {
