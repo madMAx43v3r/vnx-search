@@ -35,7 +35,6 @@ int main(int argc, char** argv)
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("FrontendProxy", vnx::Endpoint::from_url(frontend));
 		proxy->forward_list.push_back("CrawlFrontend");
-		proxy->import_list.push_back("frontend.text_responses");
 		proxy->max_queue_ms = 0;		// quick fix
 		proxy.start_detached();
 	}
