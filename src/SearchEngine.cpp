@@ -355,6 +355,9 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 	
 	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
 	if(url_index) {
+		if(url_index->fetch_count == 0) {
+			return;
+		}
 		bool is_redirect = false;
 		
 		if(!url_index->redirect.empty())
@@ -447,7 +450,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			}
 		}
 		
-		if(!is_redirect && url_index->fetch_count > 0)
+		if(!is_redirect)
 		{
 			std::unique_lock lock(index_mutex);
 			
