@@ -110,7 +110,13 @@ private:
 	
 	uint32_t get_url_id(const std::string& url_key);
 	
-	SearchEngine::domain_t& get_domain(const std::string& host);
+	page_t* find_page(uint32_t url_id);
+	
+	const page_t* find_page(uint32_t url_id) const;
+	
+	domain_t& get_domain(const std::string& host);
+	
+	const domain_t* find_domain(uint32_t domain_id) const;
 	
 	void delete_page(const page_t& page);
 	

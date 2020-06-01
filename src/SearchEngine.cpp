@@ -123,16 +123,13 @@ Object SearchEngine::get_domain_info(	const std::string& host,
 	Object result;
 	const auto iter = domain_map.find(host);
 	if(iter != domain_map.end()) {
-		const auto iter2 = domain_index.find(iter->second);
-		if(iter2 != domain_index.end()) {
-			const auto& domain = iter2->second;
-			
+		const auto* domain = find_domain(iter->second);
+		if(domain) {
 			std::vector<std::pair<size_t, const page_t*>> sorted;
-			for(const auto page_id : domain.pages) {
-				const auto iter3 = page_index.find(page_id);
-				if(iter3 != page_index.end()) {
-					const auto& page = iter3->second;
-					sorted.emplace_back(page.reverse_domains.size(), &page);
+			for(const auto page_id : domain->pages) {
+				const auto* page = find_page(page_id);
+				if(page) {
+					sorted.emplace_back(page->reverse_domains.size(), page);
 				}
 			}
 			std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<size_t, const page_t*>>());
@@ -156,41 +153,38 @@ Object SearchEngine::get_page_info(const std::string& url_key) const
 	
 	Object result;
 	const auto page_id = find_url_id(url_key);
-	const auto iter = page_index.find(page_id);
-	if(iter != page_index.end()) {
-		const auto& page = iter->second;
-		result["url"] = page.get_url();
-		result["title"] = page.title;
-		result["is_loaded"] = page.is_loaded;
-		result["first_seen"] = page.first_seen;
-		result["last_modified"] = page.last_modified;
+	const auto* page = find_page(page_id);
+	if(page) {
+		result["url"] = page->get_url();
+		result["title"] = page->title;
+		result["is_loaded"] = page->is_loaded;
+		result["first_seen"] = page->first_seen;
+		result["last_modified"] = page->last_modified;
 		{
-			const auto iter2 = domain_index.find(page.domain_id);
-			if(iter2 != domain_index.end()) {
-				result["domain"] = iter2->second.host;
+			const auto* domain = find_domain(page->domain_id);
+			if(domain) {
+				result["domain"] = domain->host;
 			}
 		}
 		std::vector<std::string> links;
 		std::vector<std::string> reverse_links;
 		std::vector<std::string> reverse_domains;
-		for(const auto link_id : page.links) {
-			const auto iter2 = page_index.find(link_id);
-			if(iter2 != page_index.end()) {
-				const auto& page = iter2->second;
-				links.push_back(page.get_url());
+		for(const auto link_id : page->links) {
+			const auto* child = find_page(link_id);
+			if(child) {
+				links.push_back(child->get_url());
 			}
 		}
-		for(const auto link_id : page.reverse_links) {
-			const auto iter2 = page_index.find(link_id);
-			if(iter2 != page_index.end()) {
-				const auto& page = iter2->second;
-				reverse_links.push_back(page.get_url());
+		for(const auto link_id : page->reverse_links) {
+			const auto* parent = find_page(link_id);
+			if(parent) {
+				reverse_links.push_back(parent->get_url());
 			}
 		}
-		for(const auto domain_id : page.reverse_domains) {
-			const auto iter2 = domain_index.find(domain_id);
-			if(iter2 != domain_index.end()) {
-				reverse_domains.push_back(iter2->second.host);
+		for(const auto domain_id : page->reverse_domains) {
+			const auto* domain = find_domain(domain_id);
+			if(domain) {
+				reverse_domains.push_back(domain->host);
 			}
 		}
 		result["links"] = links;
@@ -228,13 +222,12 @@ std::vector<std::string> SearchEngine::reverse_lookup(const std::string& url_key
 	
 	std::vector<std::string> result;
 	const auto page_id = find_url_id(url_key);
-	const auto iter = page_index.find(page_id);
-	if(iter != page_index.end()) {
-		const auto& page = iter->second;
-		for(const auto link_id : page.reverse_links) {
-			const auto iter2 = page_index.find(link_id);
-			if(iter2 != page_index.end()) {
-				result.push_back(iter2->second.url_key);
+	const auto* page = find_page(page_id);
+	if(page) {
+		for(const auto link_id : page->reverse_links) {
+			const auto* parent = find_page(link_id);
+			if(parent) {
+				result.push_back(parent->url_key);
 			}
 		}
 	}
@@ -247,13 +240,12 @@ std::vector<std::string> SearchEngine::reverse_domain_lookup(const std::string& 
 	
 	std::vector<std::string> result;
 	const auto page_id = find_url_id(url_key);
-	const auto iter = page_index.find(page_id);
-	if(iter != page_index.end()) {
-		const auto& page = iter->second;
-		for(const auto domain_id : page.reverse_domains) {
-			const auto iter2 = domain_index.find(domain_id);
-			if(iter2 != domain_index.end()) {
-				result.push_back(iter2->second.host);
+	const auto* page = find_page(page_id);
+	if(page) {
+		for(const auto domain_id : page->reverse_domains) {
+			const auto* domain = find_domain(domain_id);
+			if(domain) {
+				result.push_back(domain->host);
 			}
 		}
 	}
@@ -306,6 +298,24 @@ uint32_t SearchEngine::get_url_id(const std::string& url_key)
 	return id;
 }
 
+SearchEngine::page_t* SearchEngine::find_page(uint32_t url_id)
+{
+	const auto iter = page_index.find(url_id);
+	if(iter != page_index.end()) {
+		return &iter->second;
+	}
+	return 0;
+}
+
+const SearchEngine::page_t* SearchEngine::find_page(uint32_t url_id) const
+{
+	const auto iter = page_index.find(url_id);
+	if(iter != page_index.end()) {
+		return &iter->second;
+	}
+	return 0;
+}
+
 SearchEngine::domain_t& SearchEngine::get_domain(const std::string& host)
 {
 	auto iter = domain_map.find(host);
@@ -323,14 +333,22 @@ SearchEngine::domain_t& SearchEngine::get_domain(const std::string& host)
 	}
 }
 
+const SearchEngine::domain_t* SearchEngine::find_domain(uint32_t domain_id) const
+{
+	const auto iter = domain_index.find(domain_id);
+	if(iter != domain_index.end()) {
+		return &iter->second;
+	}
+	return 0;
+}
+
 void SearchEngine::delete_page(const page_t& page)
 {
 	for(const auto parent_id : page.reverse_links)
 	{
-		const auto iter = page_index.find(parent_id);
-		if(iter != page_index.end()) {
-			auto& parent = iter->second;
-			std::remove(parent.links.begin(), parent.links.end(), page.id);
+		auto* parent = find_page(parent_id);
+		if(parent) {
+			std::remove(parent->links.begin(), parent->links.end(), page.id);
 		}
 		open_links.emplace(page.id, parent_id);
 	}
@@ -371,23 +389,21 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 			{
 				const auto org_page_id = get_url_id(org_url_key);
 				const auto new_page_id = get_url_id(new_url_key);
-				const auto new_iter = page_index.find(new_page_id);
-				const auto org_iter = page_index.find(org_page_id);
+				const auto* org_page = find_page(org_page_id);
+				auto* new_page = find_page(new_page_id);
 				
-				if(org_iter != page_index.end())
+				if(org_page)
 				{
-					auto& page = org_iter->second;
-					if(new_iter != page_index.end()) {
+					if(new_page) {
 						// both old and new pages exist
-						auto& new_page = new_iter->second;
-						for(const auto parent_id : page.reverse_links)
+						for(const auto parent_id : org_page->reverse_links)
 						{
 							const auto parent_iter = page_index.find(parent_id);
 							if(parent_iter != page_index.end()) {
 								auto& parent = parent_iter->second;
 								unique_push_back(parent.links, new_page_id);
-								unique_push_back(new_page.reverse_links, parent.id);
-								unique_push_back(new_page.reverse_domains, parent.domain_id);
+								unique_push_back(new_page->reverse_links, parent.id);
+								unique_push_back(new_page->reverse_domains, parent.domain_id);
 							}
 						}
 					} else {
@@ -395,7 +411,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 						std::vector<std::pair<uint32_t, uint32_t>> new_links;
 						const auto range = open_links.equal_range(new_page_id);
 						
-						for(const auto parent_id : page.reverse_links)
+						for(const auto parent_id : org_page->reverse_links)
 						{
 							bool found = false;
 							for(auto entry = range.first; entry != range.second; ++entry) {
@@ -413,10 +429,9 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 						}
 					}
 				}
-				else if(new_iter != page_index.end())
+				else if(new_page)
 				{
 					// new page does exist
-					auto& new_page = new_iter->second;
 					const auto range = open_links.equal_range(org_page_id);
 					
 					for(auto entry = range.first; entry != range.second; ++entry)
@@ -425,8 +440,8 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 						if(parent_iter != page_index.end()) {
 							auto& parent = parent_iter->second;
 							unique_push_back(parent.links, new_page_id);
-							unique_push_back(new_page.reverse_links, parent.id);
-							unique_push_back(new_page.reverse_domains, parent.domain_id);
+							unique_push_back(new_page->reverse_links, parent.id);
+							unique_push_back(new_page->reverse_domains, parent.domain_id);
 						}
 					}
 					open_links.erase(range.first, range.second);
@@ -453,12 +468,11 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		{
 			const auto page_id = find_url_id(org_url_key);
 			if(page_id) {
-				const auto iter = page_index.find(page_id);
-				if(iter != page_index.end()) {
-					auto& page = iter->second;
-					page.scheme = url_index->scheme;
-					page.first_seen = url_index->first_seen;
-					page.last_modified = url_index->last_modified;
+				auto* page = find_page(page_id);
+				if(page) {
+					page->scheme = url_index->scheme;
+					page->first_seen = url_index->first_seen;
+					page->last_modified = url_index->last_modified;
 				}
 				redirects.erase(page_id);
 			}
@@ -619,15 +633,14 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 	
 	for(const auto link_id : links)
 	{
-		auto iter = page_index.find(link_id);
-		if(iter != page_index.end()) {
-			auto& child = iter->second;
+		auto* child = find_page(link_id);
+		if(child) {
 			if(page.is_loaded) {
-				unique_push_back(child.reverse_links, page.id);
+				unique_push_back(child->reverse_links, page.id);
 			} else {
-				child.reverse_links.push_back(page.id);
+				child->reverse_links.push_back(page.id);
 			}
-			unique_push_back(child.reverse_domains, page.domain_id);
+			unique_push_back(child->reverse_domains, page.domain_id);
 			page.links.push_back(link_id);
 		} else {
 			bool found = false;
@@ -649,12 +662,11 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 		const auto range = open_links.equal_range(page.id);
 		for(auto entry = range.first; entry != range.second; ++entry)
 		{
-			auto iter = page_index.find(entry->second);
-			if(iter != page_index.end()) {
-				auto& parent = iter->second;
-				parent.links.push_back(page.id);
-				page.reverse_links.push_back(parent.id);
-				unique_push_back(page.reverse_domains, parent.domain_id);
+			auto* parent = find_page(entry->second);
+			if(parent) {
+				parent->links.push_back(page.id);
+				page.reverse_links.push_back(parent->id);
+				unique_push_back(page.reverse_domains, parent->domain_id);
 			}
 		}
 		open_links.erase(range.first, range.second);
@@ -835,19 +847,15 @@ void SearchEngine::query_loop() const noexcept
 			for(size_t i = 0; i < std::min(num_found, found.size()); ++i)
 			{
 				const auto& entry = found[i];
-				const auto iter = page_index.find(entry.first);
-				if(iter != page_index.end())
-				{
-					const auto& page = iter->second;
-					if(page.is_loaded) {
-						result_t result;
-						result.url = page.get_url();
-						result.title = page.title;
-						result.domain_id = page.domain_id;
-						result.last_modified = page.last_modified;
-						result.score = entry.second * page.reverse_domains.size();
-						results.emplace_back(std::move(result));
-					}
+				const auto* page = find_page(entry.first);
+				if(page && page->is_loaded) {
+					result_t result;
+					result.url = page->get_url();
+					result.title = page->title;
+					result.domain_id = page->domain_id;
+					result.last_modified = page->last_modified;
+					result.score = entry.second * page->reverse_domains.size();
+					results.emplace_back(std::move(result));
 				}
 			}
 		}
@@ -963,26 +971,24 @@ void SearchEngine::update_loop() noexcept
 			
 			if(context) {
 				for(const auto& entry : context->pages) {
-					auto iter = page_index.find(entry.first);
-					if(iter != page_index.end()) {
+					const auto* page = find_page(entry.first);
+					if(page) {
 						auto weight = entry.second;
-						auto iter2 = new_pages.find(entry.first);
-						if(iter2 != new_pages.end()) {
-							weight = iter2->second;
-							new_pages.erase(iter2);
+						auto iter = new_pages.find(entry.first);
+						if(iter != new_pages.end()) {
+							weight = iter->second;
+							new_pages.erase(iter);
 						}
-						const auto& page = iter->second;
-						list.emplace_back(uint64_t(weight) * page.reverse_domains.size(),
+						list.emplace_back(uint64_t(weight) * page->reverse_domains.size(),
 											std::make_pair(entry.first, weight));
 					}
 				}
 			}
 			for(const auto& entry : new_pages) {
-				auto iter = page_index.find(entry.first);
-				if(iter != page_index.end()) {
-					const auto& page = iter->second;
+				const auto* page = find_page(entry.first);
+				if(page) {
 					const auto weight = entry.second;
-					list.emplace_back(uint64_t(weight) * page.reverse_domains.size(), entry);
+					list.emplace_back(uint64_t(weight) * page->reverse_domains.size(), entry);
 				}
 			}
 		}
@@ -1008,12 +1014,11 @@ void SearchEngine::update_loop() noexcept
 					if(iter != page_cache.end()) {
 						if(iter->second.num_pending-- <= 1)
 						{
-							const auto iter2 = page_index.find(entry.first);
-							if(iter2 != page_index.end()) {
-								const auto& page = iter2->second;
+							const auto* page = find_page(entry.first);
+							if(page) {
 								auto info = PageInfo::create();
-								info->version = page.version;
-								info->url_key = page.url_key;
+								info->version = page->version;
+								info->url_key = page->url_key;
 								page_updates.emplace_back(entry.first, info);
 							}
 							finished_pages.push_back(entry.first);
