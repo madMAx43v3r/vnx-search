@@ -39,7 +39,6 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 
 void CrawlProcessor::main()
 {
-	subscribe(input_text, 100);					// need to block here since we are a bottleneck
 	subscribe(input_url_index, 100);			// publisher runs in a separate thread so we can block here
 	subscribe(input_url_index_sync, 100);		// sync runs in a separate thread so we can block here
 	subscribe(input_page_index_sync, 100);		// sync runs in a separate thread so we can block here
@@ -669,63 +668,91 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key,
 	return entry;
 }
 
-void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index)
+void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result)
 {
 	const Url::Url parsed(url);
 	const auto url_key = get_url_key(parsed);
-	const auto entry = url_fetch_done(url_key, index ? index->is_fail : true);
+	const auto entry = url_fetch_done(url_key, result ? result->info.is_fail : true);
 	
-	if(index) {
-		auto copy = vnx::clone(index);
-		copy->scheme = parsed.scheme();
-		copy->depth = entry.depth;
+	if(!result) {
+		return;
+	}
+	auto new_scheme = parsed.scheme();
+	const auto& info = result->info;
+	
+	if(!info.redirect.empty())
+	{
+		const Url::Url parsed_redir(info.redirect);
+		const auto url_key_redir = get_url_key(parsed_redir);
 		
-		if(!index->redirect.empty())
+		if(url_key_redir != url_key)
 		{
-			const Url::Url parsed_redir(index->redirect);
-			const auto url_key_redir = get_url_key(parsed_redir);
+			page_index_async->delete_value(url_key);
+			page_content_async->delete_value(url_key);
+			log(INFO).out << "Deleted obsolete '" << url_key << "'";
 			
-			if(url_key_redir != url_key)
+			if(		entry.depth >= 0
+				&&	info.redirect.size() <= max_url_length
+				&&	filter_url(parsed_redir))
 			{
-				page_index_async->delete_value(url_key);
-				page_content_async->delete_value(url_key);
-				log(INFO).out << "Deleted obsolete '" << url_key << "'";
-				
-				if(		entry.depth >= 0
-					&&	index->redirect.size() <= max_url_length
-					&&	filter_url(parsed_redir))
-				{
-					auto copy = vnx::clone(index);
-					copy->scheme = parsed_redir.scheme();
-					copy->depth = entry.depth;
-					copy->redirect.clear();
-					
-					url_index_async->get_value(url_key_redir,
-						std::bind(&CrawlProcessor::url_update_callback, this, url_key_redir, copy, std::placeholders::_1));
-				}
-			} else {
-				copy->scheme = parsed_redir.scheme();
+				auto copy = info;
+				copy.redirect.clear();
+				url_update(url_key_redir, parsed_redir.scheme(), entry.depth, copy);
 			}
+		} else {
+			new_scheme = parsed_redir.scheme();
 		}
-		
-		url_index_async->get_value(url_key,
-				std::bind(&CrawlProcessor::url_update_callback, this, url_key, copy, std::placeholders::_1));
+	}
+	url_update(url_key, new_scheme, entry.depth, info);
+	
+	try {
+		if(result->response) {
+			handle(result->response);
+		}
+	}
+	catch(const std::exception& ex) {
+		log(WARN).out << ex.what();
 	}
 }
 
+void CrawlProcessor::url_update(	const std::string& url_key,
+									const std::string& new_scheme,
+									const int new_depth,
+									const UrlInfo& info)
+{
+	url_index_async->get_value(url_key,
+						std::bind(&CrawlProcessor::url_update_callback, this,
+								url_key, new_scheme, new_depth, info, std::placeholders::_1));
+}
+
 void CrawlProcessor::url_update_callback(	const std::string& url_key,
-											std::shared_ptr<UrlIndex> fetched,
+											const std::string& new_scheme,
+											const int new_depth,
+											const UrlInfo& info,
 											std::shared_ptr<const Value> previous_)
 {
+	std::shared_ptr<UrlIndex> index;
 	auto previous = std::dynamic_pointer_cast<const UrlIndex>(previous_);
 	if(previous) {
-		fetched->first_seen = previous->first_seen ? previous->first_seen : fetched->last_fetched;
-		fetched->fetch_count = previous->fetch_count + 1;
-		fetched->depth = std::min(previous->depth, fetched->depth);
+		index = vnx::clone(previous);
+	} else {
+		index = UrlIndex::create();
 	}
-	url_index_async->store_value(url_key, fetched);
+	index->UrlInfo::operator=(info);
+	index->scheme = new_scheme;
 	
-	if(fetched->is_fail) {
+	if(previous) {
+		index->first_seen = previous->first_seen ? previous->first_seen : info.last_fetched;
+		index->fetch_count = previous->fetch_count + 1;
+		index->depth = std::min(previous->depth, new_depth);
+	} else {
+		index->first_seen = info.last_fetched;
+		index->fetch_count = 1;
+		index->depth = new_depth;
+	}
+	url_index_async->store_value(url_key, index);
+	
+	if(info.is_fail) {
 		error_counter++;
 	} else {
 		fetch_counter++;
@@ -734,7 +761,7 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 
 void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& ex)
 {
-	auto iter = pending_urls.find(request_id);
+	const auto iter = pending_urls.find(request_id);
 	if(iter != pending_urls.end())
 	{
 		const auto url = iter->second;
@@ -749,13 +776,10 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 			if(std::dynamic_pointer_cast<const NoSuchService>(vnx_except->value())) {
 				enqueue(url, entry.depth);
 			} else {
-				auto index = UrlIndex::create();
-				index->scheme = parsed.scheme();
-				index->depth = entry.depth;
-				index->last_fetched = std::time(0);
-				index->is_fail = true;
-				url_index_async->get_value(url_key,
-						std::bind(&CrawlProcessor::url_update_callback, this, url_key, index, std::placeholders::_1));
+				UrlInfo info;
+				info.last_fetched = std::time(0);
+				info.is_fail = true;
+				url_update(url_key, parsed.scheme(), entry.depth, info);
 			}
 		}
 	}

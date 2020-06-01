@@ -124,9 +124,18 @@ private:
 	
 	url_t url_fetch_done(const std::string& url_key, bool is_fail);
 	
-	void url_fetch_callback(const std::string& url, std::shared_ptr<const UrlIndex> index);
+	void url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result);
 	
-	void url_update_callback(const std::string& url_key, std::shared_ptr<UrlIndex> fetched, std::shared_ptr<const Value> previous);
+	void url_update(	const std::string& url_key,
+						const std::string& new_scheme,
+						const int new_depth,
+						const UrlInfo& info);
+	
+	void url_update_callback(	const std::string& url_key,
+								const std::string& new_scheme,
+								const int new_depth,
+								const UrlInfo& info,
+								std::shared_ptr<const Value> previous);
 	
 	void robots_txt_callback(const std::string& url_key, robots_txt_state_e missing_state, std::shared_ptr<const Value> value);
 	

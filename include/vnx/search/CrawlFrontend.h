@@ -29,22 +29,26 @@ protected:
 	void main() override;
 	
 	void fetch_async(	const std::string& url,
-						const std::function<void(const std::shared_ptr<const UrlIndex>&)>& _callback,
+						const std::function<void(const std::shared_ptr<const FetchResult>&)>& _callback,
 						const vnx::request_id_t& _request_id) const override;
 	
 	void register_parser(	const vnx::Hash64& address,
 							const std::vector<std::string>& mime_types,
 							const int32_t& num_threads) override;
 	
-	void handle(std::shared_ptr<const HttpResponse> value) override;
+	void _fetch_callback(	const std::shared_ptr<const HttpResponse>& response,
+							const std::pair<Hash64, uint64_t>& request_id);
 	
 public:
 	struct request_t {
 		std::string url;
 		Url::Url parsed_url = Url::Url("");
 		std::vector<std::string> accept_content;
+		uint64_t parse_id = 0;
 		vnx::request_id_t request_id;
-		std::function<void(const std::shared_ptr<const UrlIndex>&)> callback;
+		std::shared_ptr<FetchResult> result;
+		std::shared_ptr<const HttpResponse> response;
+		std::function<void(const std::shared_ptr<const FetchResult>&)> callback;
 	};
 	
 private:
@@ -54,7 +58,8 @@ private:
 		std::shared_ptr<ContentParserAsyncClient> client;
 	};
 	
-	void parse_callback(std::shared_ptr<const TextResponse> value);
+	void parse_callback(std::shared_ptr<const TextResponse> value,
+						const std::pair<Hash64, uint64_t>& request_id);
 	
 	void parse_error(Hash64 address, uint64_t request_id, const std::exception& ex);
 	
@@ -67,15 +72,16 @@ private:
 	static size_t write_callback(char* buf, size_t size, size_t len, void* userdata);
 	
 private:
+	Hash64 private_addr;
 	Hash64 unique_service;
 	std::vector<std::thread> work_threads;
 	
-	mutable std::mutex mutex;
+	mutable std::mutex work_mutex;
 	mutable std::condition_variable work_condition;
-	
 	mutable std::queue<std::shared_ptr<request_t>> work_queue;
 	
 	std::map<Hash64, parser_t> parser_map;
+	mutable std::map<request_id_t, std::shared_ptr<request_t>> pending;
 	
 	mutable std::atomic<uint64_t> fetch_counter {0};
 	mutable std::atomic<uint64_t> redirect_counter {0};
@@ -94,8 +100,6 @@ private:
 	uint64_t last_fetch_count = 0;
 	uint64_t last_num_bytes_fetched = 0;
 	uint64_t last_num_bytes_parsed = 0;
-	
-	size_t parse_counter = 0;
 	
 };
 

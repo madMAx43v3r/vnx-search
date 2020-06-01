@@ -1,31 +1,13 @@
 package vnx.search;
 
-class UrlIndex {
+class UrlIndex extends UrlInfo {
 	
 	string scheme;					// 'http' or 'https'
 	
-	string content_type;			// mime type
-	
-	string redirect;				// final url (including scheme)
-	
 	long first_seen;				// posix timestamp [sec]
 	
-	long last_fetched;				// posix timestamp [sec]
-	
-	long last_modified;				// posix timestamp [sec]
-	
-	long fetch_duration_us;			// [usec]
-	
-	long num_bytes = -1;			// payload
-	
-	int http_status = -1;
-	
-	int curl_status = -1;
-	
-	int fetch_count;
+	uint fetch_count;
 	
 	int depth = -1;
-	
-	bool is_fail;
 	
 }

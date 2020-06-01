@@ -1,0 +1,9 @@
+package vnx.search;
+
+class FetchResult {
+	
+	UrlInfo info;
+	
+	TextResponse* response;
+	
+}

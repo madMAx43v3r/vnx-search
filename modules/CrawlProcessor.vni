@@ -2,8 +2,6 @@ package vnx.search;
 
 module CrawlProcessor {
 	
-	vnx.TopicPtr input_text = "frontend.text_responses";			// TextResponse
-	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
 	
 	vnx.TopicPtr output_crawl_stats = "backend.crawl_stats";

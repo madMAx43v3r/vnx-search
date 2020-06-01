@@ -1,0 +1,23 @@
+package vnx.search;
+
+class UrlInfo {
+	
+	string redirect;				// final url (including scheme)
+	
+	string content_type;			// mime type
+	
+	long last_fetched;				// posix timestamp [sec]
+	
+	long last_modified;				// posix timestamp [sec]
+	
+	int fetch_duration_us;			// [usec]
+	
+	int num_bytes = -1;				// payload
+	
+	int http_status = -1;
+	
+	int curl_status = -1;
+	
+	bool is_fail;
+	
+}
