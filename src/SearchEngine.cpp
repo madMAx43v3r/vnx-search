@@ -265,8 +265,8 @@ std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, 
 	std::shared_lock lock(index_mutex);
 	
 	std::vector<std::string> result;
-	for(auto it = word_set.lower_bound(prefix); it != word_set.end() && result.size() < size_t(limit); ++it) {
-		result.push_back(*it);
+	for(auto it = word_map.lower_bound(prefix); it != word_map.end() && result.size() < size_t(limit); ++it) {
+		result.push_back(it->first);
 	}
 	return result;
 }
@@ -465,7 +465,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		std::unique_lock lock(index_mutex);
 		
 		const auto word = pair->key.to_string_value();
-		word_set.insert(word);
+		word_map.emplace(word, word_t());
 		return;
 	}
 	
@@ -549,7 +549,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 			is_initialized = true;
 			
 			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
-					<< page_index.size() << " pages and " << word_set.size() << " words.";
+					<< page_index.size() << " pages and " << word_map.size() << " words.";
 		}
 	}
 }
@@ -665,15 +665,20 @@ void SearchEngine::url_index_callback(	const std::string& url_key,
 			const auto& word = entry.first;
 			auto& cached = word_cache[word];
 			if(!cached) {
-				cached = std::make_shared<word_t>();
+				cached = std::make_shared<word_cache_t>();
 				cached->queue_time_us = now_wall_us;
 				{
 					std::lock_guard lock(update_mutex);
 					update_queue.emplace(cached->queue_time_us, word);
 				}
-				word_set.insert(word);
 			}
 			cached->add_pages.emplace_back(page_id, entry.second * inv_word_count);
+			
+			if(!page.is_loaded) {
+				// TODO: consider new words on updates
+				word_t& word_entry = word_map[word];
+				word_entry.num_pages++;
+			}
 		}
 		page_cache[page.id].num_pending += index->words.size();
 		page.version = version;
@@ -690,7 +695,7 @@ void SearchEngine::print_stats()
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
 			<< page_index.size() << " pages, "
-			<< word_cache.size() << " / " << word_set.size() << " words, "
+			<< word_cache.size() << " / " << word_map.size() << " words, "
 			<< open_links.size() << " open links, "
 			<< redirects.size() << " redirects";
 	
@@ -913,7 +918,7 @@ void SearchEngine::update_loop() noexcept
 		}
 		do_wait = false;
 		
-		std::shared_ptr<word_t> cached;
+		std::shared_ptr<word_cache_t> cached;
 		{
 			std::unique_lock lock(index_mutex);
 			

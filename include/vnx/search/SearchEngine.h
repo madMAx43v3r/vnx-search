@@ -34,8 +34,7 @@ public:
 	
 protected:
 	struct word_t {
-		int64_t queue_time_us = 0;
-		std::vector<std::pair<uint32_t, float>> add_pages;
+		uint32_t num_pages = 0;
 	};
 	
 	struct domain_t {
@@ -63,6 +62,11 @@ protected:
 	
 	struct page_cache_t {
 		std::atomic<size_t> num_pending {0};
+	};
+	
+	struct word_cache_t {
+		int64_t queue_time_us = 0;
+		std::vector<std::pair<uint32_t, float>> add_pages;
 	};
 	
 	struct query_t {
@@ -136,16 +140,16 @@ private:
 	mutable std::shared_mutex index_mutex;
 	
 	std::vector<uint32_t> free_ids;
-	std::unordered_map<std::string, uint32_t> url_map;
+	std::map<std::string, word_t> word_map;
 	std::map<std::string, uint32_t> domain_map;
+	std::unordered_map<std::string, uint32_t> url_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
-	std::unordered_multimap<uint32_t, uint32_t> open_links;
 	std::unordered_map<uint32_t, uint32_t> redirects;
+	std::unordered_multimap<uint32_t, uint32_t> open_links;
 	
-	std::set<std::string> word_set;
 	std::unordered_map<uint32_t, page_cache_t> page_cache;
-	std::unordered_map<std::string, std::shared_ptr<word_t>> word_cache;
+	std::unordered_map<std::string, std::shared_ptr<word_cache_t>> word_cache;
 	
 	mutable std::mutex query_mutex;
 	mutable std::condition_variable query_condition;
@@ -155,10 +159,10 @@ private:
 	mutable std::condition_variable update_condition;
 	mutable std::queue<std::pair<int64_t, std::string>> update_queue;
 	
-	volatile bool is_initialized = false;
 	int init_sync_count = 0;
 	uint32_t next_url_id = 1;
 	uint32_t next_domain_id = 1;
+	volatile bool is_initialized = false;
 	
 	mutable std::atomic<int64_t> query_counter {0};
 	mutable std::atomic<int64_t> page_update_counter {0};
