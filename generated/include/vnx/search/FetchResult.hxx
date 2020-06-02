@@ -5,7 +5,6 @@
 #define INCLUDE_vnx_search_FetchResult_HXX_
 
 #include <vnx/search/package.hxx>
-#include <vnx/Value.h>
 #include <vnx/search/TextResponse.hxx>
 #include <vnx/search/UrlInfo.hxx>
 
@@ -13,13 +12,12 @@
 namespace vnx {
 namespace search {
 
-class FetchResult : public ::vnx::Value {
+class FetchResult : public ::vnx::search::UrlInfo {
 public:
 	
-	::vnx::search::UrlInfo info;
 	std::shared_ptr<const ::vnx::search::TextResponse> response;
 	
-	typedef ::vnx::Value Super;
+	typedef ::vnx::search::UrlInfo Super;
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
