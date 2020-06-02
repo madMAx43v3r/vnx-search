@@ -15,13 +15,13 @@ namespace search {
 class SearchResult : public ::vnx::Value {
 public:
 	
-	::vnx::bool_t is_fail = 0;
-	::int32_t num_results_total = 0;
-	::int32_t load_time_us = 0;
-	::int32_t compute_time_us = 0;
-	::std::string error_msg;
-	::std::vector<::std::string> words;
-	::std::vector<::vnx::search::result_item_t> items;
+	vnx::bool_t is_fail = 0;
+	int32_t num_results_total = 0;
+	int32_t load_time_us = 0;
+	int32_t compute_time_us = 0;
+	std::string error_msg;
+	std::vector<std::string> words;
+	std::vector<::vnx::search::result_item_t> items;
 	
 	typedef ::vnx::Value Super;
 	

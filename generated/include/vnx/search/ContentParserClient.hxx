@@ -19,7 +19,7 @@ public:
 	
 	ContentParserClient(vnx::Hash64 service_addr);
 	
-	::std::shared_ptr<const ::vnx::search::TextResponse> parse(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& response);
+	std::shared_ptr<const ::vnx::search::TextResponse> parse(const std::shared_ptr<const ::vnx::search::HttpResponse>& response);
 	
 };
 

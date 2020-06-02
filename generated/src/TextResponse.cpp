@@ -8,6 +8,8 @@
 #include <vnx/Visitor.h>
 #include <vnx/Object.h>
 #include <vnx/Struct.h>
+#include <vnx/search/Response.hxx>
+
 
 
 namespace vnx {
@@ -150,7 +152,7 @@ std::istream& operator>>(std::istream& _in, TextResponse& _value) {
 }
 
 const vnx::TypeCode* TextResponse::static_get_type_code() {
-	const vnx::TypeCode* type_code = vnx::get_type_code(vnx::Hash64(0x7cee1cd5b88ec569ull));
+	const vnx::TypeCode* type_code = vnx::get_type_code(VNX_TYPE_HASH);
 	if(!type_code) {
 		type_code = vnx::register_type_code(static_create_type_code());
 	}
@@ -167,7 +169,6 @@ std::shared_ptr<vnx::TypeCode> TextResponse::static_create_type_code() {
 	type_code->parents.resize(1);
 	type_code->parents[0] = ::vnx::search::Response::static_get_type_code();
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<TextResponse>(); };
-	type_code->methods.resize(0);
 	type_code->fields.resize(9);
 	{
 		vnx::TypeField& field = type_code->fields[0];

@@ -11,6 +11,12 @@
 #include <vnx/Config.h>
 #include <vnx/Binary.h>
 #include <vnx/NoSuchMethod.hxx>
+#include <vnx/Module.h>
+#include <vnx/search/ContentParser_parse.hxx>
+#include <vnx/search/ContentParser_parse_return.hxx>
+#include <vnx/search/HttpResponse.hxx>
+#include <vnx/search/TextResponse.hxx>
+
 
 
 namespace vnx {
@@ -34,11 +40,11 @@ const char* ContentParserBase::get_type_name() const {
 	return "vnx.search.ContentParser";
 }
 const vnx::TypeCode* ContentParserBase::get_type_code() const {
-	return vnx::search::vnx_native_type_code_ContentParser;
+	return vnx::search::vnx_native_type_code_ContentParserBase;
 }
 
 void ContentParserBase::accept(vnx::Visitor& _visitor) const {
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_ContentParser;
+	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_ContentParserBase;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, frontend_server);
 	_visitor.type_end(*_type_code);
@@ -87,7 +93,7 @@ std::istream& operator>>(std::istream& _in, ContentParserBase& _value) {
 }
 
 const vnx::TypeCode* ContentParserBase::static_get_type_code() {
-	const vnx::TypeCode* type_code = vnx::get_type_code(vnx::Hash64(0xbe968e62c4bea207ull));
+	const vnx::TypeCode* type_code = vnx::get_type_code(VNX_TYPE_HASH);
 	if(!type_code) {
 		type_code = vnx::register_type_code(static_create_type_code());
 	}
@@ -101,40 +107,7 @@ std::shared_ptr<vnx::TypeCode> ContentParserBase::static_create_type_code() {
 	type_code->code_hash = vnx::Hash64(0x7711f34b6e9a4060ull);
 	type_code->is_native = true;
 	type_code->methods.resize(1);
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.ContentParser.parse";
-		call_type->type_hash = vnx::Hash64(0x3a3496c5361fbf35ull);
-		call_type->code_hash = vnx::Hash64(0x5b8e395d8c08f350ull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.ContentParser.parse.return";
-			return_type->type_hash = vnx::Hash64(0xa4f19c7005e2d444ull);
-			return_type->code_hash = vnx::Hash64(0x5d07ab5945acaab2ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {16};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(1);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "response";
-			field.code = {16};
-		}
-		call_type->build();
-		type_code->methods[0] = vnx::register_type_code(call_type);
-	}
+	type_code->methods[0] = ::vnx::search::ContentParser_parse::static_get_type_code();
 	type_code->fields.resize(1);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -147,41 +120,23 @@ std::shared_ptr<vnx::TypeCode> ContentParserBase::static_create_type_code() {
 	return type_code;
 }
 
-void ContentParserBase::vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) {
-	const uint64_t _type_hash = _sample->value->get_type_hash();
+void ContentParserBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 }
 
-std::shared_ptr<vnx::Value> ContentParserBase::vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) {
-	if(_call_type->type_hash == vnx::Hash64(0x3a3496c5361fbf35ull)) {
-		::std::shared_ptr<const ::vnx::search::HttpResponse> response;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, response, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+std::shared_ptr<vnx::Value> ContentParserBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) {
+	const auto _type_hash = _value->get_type_hash();
+	if(_type_hash == vnx::Hash64(0x3a3496c5361fbf35ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::ContentParser_parse>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::std::shared_ptr<const ::vnx::search::TextResponse> _ret_0;
-		_ret_0 = parse(response);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_ContentParser_parse_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::ContentParser_parse_return::create();
+		_return_value->_ret_0 = parse(_args->response);
 		return _return_value;
 	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
-	_ex->method = _call_type->name;
+	_ex->method = _value->get_type_name();
 	return _ex;
 }
 
@@ -216,7 +171,7 @@ void read(TypeInput& in, ::vnx::search::ContentParserBase& value, const TypeCode
 
 void write(TypeOutput& out, const ::vnx::search::ContentParserBase& value, const TypeCode* type_code, const uint16_t* code) {
 	if(!type_code || (code && code[0] == CODE_ANY)) {
-		type_code = vnx::search::vnx_native_type_code_ContentParser;
+		type_code = vnx::search::vnx_native_type_code_ContentParserBase;
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::ContentParserBase>(out);
 	}

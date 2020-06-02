@@ -11,6 +11,30 @@
 #include <vnx/Config.h>
 #include <vnx/Binary.h>
 #include <vnx/NoSuchMethod.hxx>
+#include <vnx/Module.h>
+#include <vnx/Object.h>
+#include <vnx/TopicPtr.h>
+#include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/search/SearchEngine_get_domain_info.hxx>
+#include <vnx/search/SearchEngine_get_domain_info_return.hxx>
+#include <vnx/search/SearchEngine_get_domain_list.hxx>
+#include <vnx/search/SearchEngine_get_domain_list_return.hxx>
+#include <vnx/search/SearchEngine_get_page_info.hxx>
+#include <vnx/search/SearchEngine_get_page_info_return.hxx>
+#include <vnx/search/SearchEngine_query.hxx>
+#include <vnx/search/SearchEngine_query_return.hxx>
+#include <vnx/search/SearchEngine_reverse_domain_lookup.hxx>
+#include <vnx/search/SearchEngine_reverse_domain_lookup_return.hxx>
+#include <vnx/search/SearchEngine_reverse_lookup.hxx>
+#include <vnx/search/SearchEngine_reverse_lookup_return.hxx>
+#include <vnx/search/SearchEngine_suggest_domains.hxx>
+#include <vnx/search/SearchEngine_suggest_domains_return.hxx>
+#include <vnx/search/SearchEngine_suggest_words.hxx>
+#include <vnx/search/SearchEngine_suggest_words_return.hxx>
+#include <vnx/search/SearchResult.hxx>
+#include <vnx/search/search_flags_e.hxx>
+
 
 
 namespace vnx {
@@ -45,11 +69,11 @@ const char* SearchEngineBase::get_type_name() const {
 	return "vnx.search.SearchEngine";
 }
 const vnx::TypeCode* SearchEngineBase::get_type_code() const {
-	return vnx::search::vnx_native_type_code_SearchEngine;
+	return vnx::search::vnx_native_type_code_SearchEngineBase;
 }
 
 void SearchEngineBase::accept(vnx::Visitor& _visitor) const {
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine;
+	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngineBase;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, input_url_index);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, input_page_index);
@@ -175,7 +199,7 @@ std::istream& operator>>(std::istream& _in, SearchEngineBase& _value) {
 }
 
 const vnx::TypeCode* SearchEngineBase::static_get_type_code() {
-	const vnx::TypeCode* type_code = vnx::get_type_code(vnx::Hash64(0x4e0f26d3496896a1ull));
+	const vnx::TypeCode* type_code = vnx::get_type_code(VNX_TYPE_HASH);
 	if(!type_code) {
 		type_code = vnx::register_type_code(static_create_type_code());
 	}
@@ -188,375 +212,15 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
 	type_code->code_hash = vnx::Hash64(0xae2c259dc7017d04ull);
 	type_code->is_native = true;
-	type_code->methods.resize(10);
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.get_domain_info";
-		call_type->type_hash = vnx::Hash64(0xc775a7413dab0511ull);
-		call_type->code_hash = vnx::Hash64(0xe9963befdbd05cd9ull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.get_domain_info.return";
-			return_type->type_hash = vnx::Hash64(0xdd84ef2259be7eull);
-			return_type->code_hash = vnx::Hash64(0xdfcb1b88107f7f49ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {24};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(3);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "host";
-			field.code = {12, 5};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[1];
-			field.name = "limit";
-			field.code = {7};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[2];
-			field.name = "offset";
-			field.code = {3};
-		}
-		call_type->build();
-		type_code->methods[0] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.get_domain_list";
-		call_type->type_hash = vnx::Hash64(0x6852b566cb5e7ba5ull);
-		call_type->code_hash = vnx::Hash64(0xcbdee5cd0a36010bull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.get_domain_list.return";
-			return_type->type_hash = vnx::Hash64(0xa06392efe70f0679ull);
-			return_type->code_hash = vnx::Hash64(0xc404f27dbb00da5bull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {12, 24};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(2);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.name = "limit";
-			field.code = {7};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[1];
-			field.name = "offset";
-			field.code = {3};
-		}
-		call_type->build();
-		type_code->methods[1] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.get_page_info";
-		call_type->type_hash = vnx::Hash64(0x8f4b73a7bd7a8effull);
-		call_type->code_hash = vnx::Hash64(0xfbf908d8ecdcb0cull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.get_page_info.return";
-			return_type->type_hash = vnx::Hash64(0xa79acda144d4c33bull);
-			return_type->code_hash = vnx::Hash64(0xe53311ffc2e106fdull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {24};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(1);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "url_key";
-			field.code = {12, 5};
-		}
-		call_type->build();
-		type_code->methods[2] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_KeyValuePair";
-		call_type->type_hash = vnx::Hash64(0xd31e7941dec9d83aull);
-		call_type->code_hash = vnx::Hash64(0x7b64d9ce23fb7bbbull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_KeyValuePair.return";
-			return_type->type_hash = vnx::Hash64(0x65dba7428d26148bull);
-			return_type->code_hash = vnx::Hash64(0x357d3ffaa9c5d422ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(1);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "sample";
-			field.code = {16};
-		}
-		call_type->build();
-		type_code->methods[3] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_SyncInfo";
-		call_type->type_hash = vnx::Hash64(0x358a7aca8a9f1e94ull);
-		call_type->code_hash = vnx::Hash64(0x1ca0a4a37d7c94b5ull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.handle_vnx_keyvalue_SyncInfo.return";
-			return_type->type_hash = vnx::Hash64(0xac7ffe12b596e74ull);
-			return_type->code_hash = vnx::Hash64(0x629ac618b3b14668ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(1);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "sample";
-			field.code = {16};
-		}
-		call_type->build();
-		type_code->methods[4] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.query";
-		call_type->type_hash = vnx::Hash64(0x14a6c3ff80018ce8ull);
-		call_type->code_hash = vnx::Hash64(0x2b2f92fb22bdefa5ull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		call_type->depends.resize(1);
-		call_type->depends[0] = ::vnx::search::search_flags_e::static_get_type_code();
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.query.return";
-			return_type->type_hash = vnx::Hash64(0xc4adbd01e9504960ull);
-			return_type->code_hash = vnx::Hash64(0xf6398e0c698422aaull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {16};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(4);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "words";
-			field.code = {12, 12, 5};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[1];
-			field.name = "limit";
-			field.code = {7};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[2];
-			field.name = "offset";
-			field.code = {3};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[3];
-			field.is_extended = true;
-			field.name = "flags";
-			field.code = {12, 19, 0};
-		}
-		call_type->build();
-		type_code->methods[5] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.reverse_domain_lookup";
-		call_type->type_hash = vnx::Hash64(0x70967f585e137c7dull);
-		call_type->code_hash = vnx::Hash64(0x9d296f650060e3cfull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.reverse_domain_lookup.return";
-			return_type->type_hash = vnx::Hash64(0x8f0160842cd83465ull);
-			return_type->code_hash = vnx::Hash64(0xe38707770baf6ef1ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {12, 12, 5};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(1);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "url_key";
-			field.code = {12, 5};
-		}
-		call_type->build();
-		type_code->methods[6] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.reverse_lookup";
-		call_type->type_hash = vnx::Hash64(0x4e3b1cbd5cbd42afull);
-		call_type->code_hash = vnx::Hash64(0x6ed0d85be579ded7ull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.reverse_lookup.return";
-			return_type->type_hash = vnx::Hash64(0x12b287ac93bf5253ull);
-			return_type->code_hash = vnx::Hash64(0xd006c2696de1ec86ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {12, 12, 5};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(1);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "url_key";
-			field.code = {12, 5};
-		}
-		call_type->build();
-		type_code->methods[7] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.suggest_domains";
-		call_type->type_hash = vnx::Hash64(0x1abdd70e75f411b3ull);
-		call_type->code_hash = vnx::Hash64(0x95c1d8013664b51cull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.suggest_domains.return";
-			return_type->type_hash = vnx::Hash64(0x385aae88fe3df753ull);
-			return_type->code_hash = vnx::Hash64(0x8a0fbe919ddca0d8ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {12, 12, 5};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(2);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "prefix";
-			field.code = {12, 5};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[1];
-			field.name = "limit";
-			field.code = {7};
-		}
-		call_type->build();
-		type_code->methods[8] = vnx::register_type_code(call_type);
-	}
-	{
-		std::shared_ptr<vnx::TypeCode> call_type = std::make_shared<vnx::TypeCode>();
-		call_type->name = "vnx.search.SearchEngine.suggest_words";
-		call_type->type_hash = vnx::Hash64(0x7124d7bfda1b31f2ull);
-		call_type->code_hash = vnx::Hash64(0xd1e53a9be6fe4469ull);
-		call_type->is_native = true;
-		call_type->is_method = true;
-		{
-			std::shared_ptr<vnx::TypeCode> return_type = std::make_shared<vnx::TypeCode>();
-			return_type->name = "vnx.search.SearchEngine.suggest_words.return";
-			return_type->type_hash = vnx::Hash64(0xcf74c35d3594cc90ull);
-			return_type->code_hash = vnx::Hash64(0x212693bdbecedcd1ull);
-			return_type->is_native = true;
-			return_type->is_return = true;
-			return_type->fields.resize(1);
-			{
-				vnx::TypeField& field = return_type->fields[0];
-				field.is_extended = true;
-				field.name = "_ret_0";
-				field.code = {12, 12, 5};
-			}
-			return_type->build();
-			call_type->return_type = vnx::register_type_code(return_type);
-		}
-		call_type->fields.resize(2);
-		{
-			vnx::TypeField& field = call_type->fields[0];
-			field.is_extended = true;
-			field.name = "prefix";
-			field.code = {12, 5};
-		}
-		{
-			vnx::TypeField& field = call_type->fields[1];
-			field.name = "limit";
-			field.code = {7};
-		}
-		call_type->build();
-		type_code->methods[9] = vnx::register_type_code(call_type);
-	}
+	type_code->methods.resize(8);
+	type_code->methods[0] = ::vnx::search::SearchEngine_get_domain_info::static_get_type_code();
+	type_code->methods[1] = ::vnx::search::SearchEngine_get_domain_list::static_get_type_code();
+	type_code->methods[2] = ::vnx::search::SearchEngine_get_page_info::static_get_type_code();
+	type_code->methods[3] = ::vnx::search::SearchEngine_query::static_get_type_code();
+	type_code->methods[4] = ::vnx::search::SearchEngine_reverse_domain_lookup::static_get_type_code();
+	type_code->methods[5] = ::vnx::search::SearchEngine_reverse_lookup::static_get_type_code();
+	type_code->methods[6] = ::vnx::search::SearchEngine_suggest_domains::static_get_type_code();
+	type_code->methods[7] = ::vnx::search::SearchEngine_suggest_words::static_get_type_code();
 	type_code->fields.resize(12);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -639,334 +303,97 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	return type_code;
 }
 
-void SearchEngineBase::vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) {
-	const uint64_t _type_hash = _sample->value->get_type_hash();
+void SearchEngineBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
+	const auto _type_hash = _sample->value->get_type_hash();
 	if(_type_hash == 0xf87436237449d8afull) {
-		std::shared_ptr<const vnx::keyvalue::KeyValuePair> _value = std::dynamic_pointer_cast<const vnx::keyvalue::KeyValuePair>(_sample->value);
+		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::KeyValuePair>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
 		}
 	} else if(_type_hash == 0x4f9820ae95813502ull) {
-		std::shared_ptr<const vnx::keyvalue::SyncInfo> _value = std::dynamic_pointer_cast<const vnx::keyvalue::SyncInfo>(_sample->value);
+		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::SyncInfo>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
 		}
 	}
 }
 
-std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) {
-	if(_call_type->type_hash == vnx::Hash64(0xc775a7413dab0511ull)) {
-		::std::string host;
-		::int32_t limit = 0;
-		::uint32_t offset = 0;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[1];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, limit, _field->code.data());
-					}
-				}
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[2];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, offset, _field->code.data());
-					}
-				}
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, host, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) {
+	const auto _type_hash = _value->get_type_hash();
+	if(_type_hash == vnx::Hash64(0xc775a7413dab0511ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::vnx::Object _ret_0;
-		_ret_0 = get_domain_info(host, limit, offset);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_get_domain_info_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::SearchEngine_get_domain_info_return::create();
+		_return_value->_ret_0 = get_domain_info(_args->host, _args->limit, _args->offset);
 		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0x6852b566cb5e7ba5ull)) {
-		::int32_t limit = 0;
-		::uint32_t offset = 0;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[0];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, limit, _field->code.data());
-					}
-				}
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[1];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, offset, _field->code.data());
-					}
-				}
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+	} else if(_type_hash == vnx::Hash64(0x6852b566cb5e7ba5ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::std::vector<::vnx::Object> _ret_0;
-		_ret_0 = get_domain_list(limit, offset);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_get_domain_list_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::SearchEngine_get_domain_list_return::create();
+		_return_value->_ret_0 = get_domain_list(_args->limit, _args->offset);
 		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0x8f4b73a7bd7a8effull)) {
-		::std::string url_key;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, url_key, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+	} else if(_type_hash == vnx::Hash64(0x8f4b73a7bd7a8effull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::vnx::Object _ret_0;
-		_ret_0 = get_page_info(url_key);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_get_page_info_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::SearchEngine_get_page_info_return::create();
+		_return_value->_ret_0 = get_page_info(_args->url_key);
 		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0xd31e7941dec9d83aull)) {
-		::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> sample;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, sample, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+	} else if(_type_hash == vnx::Hash64(0x14a6c3ff80018ce8ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_query>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		handle(sample);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-		}
-		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0x358a7aca8a9f1e94ull)) {
-		::std::shared_ptr<const ::vnx::keyvalue::SyncInfo> sample;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, sample, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
-		}
-		handle(sample);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-		}
-		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0x14a6c3ff80018ce8ull)) {
-		::std::vector<::std::string> words;
-		::int32_t limit = 0;
-		::uint32_t offset = 0;
-		::std::vector<::vnx::search::search_flags_e> flags;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[1];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, limit, _field->code.data());
-					}
-				}
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[2];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, offset, _field->code.data());
-					}
-				}
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, words, _call_type, _field->code.data()); break;
-					case 3: vnx::read(_in, flags, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
-		}
-		query_async(words, limit, offset, flags, std::bind(&SearchEngineBase::query_async_return, this, _request_id, std::placeholders::_1), _request_id);
+		query_async(_args->words, _args->limit, _args->offset, _args->flags, std::bind(&SearchEngineBase::query_async_callback, this, _request_id, std::placeholders::_1), _request_id);
 		return 0;
-	} else if(_call_type->type_hash == vnx::Hash64(0x70967f585e137c7dull)) {
-		::std::string url_key;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, url_key, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+	} else if(_type_hash == vnx::Hash64(0x70967f585e137c7dull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::std::vector<::std::string> _ret_0;
-		_ret_0 = reverse_domain_lookup(url_key);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_reverse_domain_lookup_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::SearchEngine_reverse_domain_lookup_return::create();
+		_return_value->_ret_0 = reverse_domain_lookup(_args->url_key);
 		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0x4e3b1cbd5cbd42afull)) {
-		::std::string url_key;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, url_key, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+	} else if(_type_hash == vnx::Hash64(0x4e3b1cbd5cbd42afull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_lookup>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::std::vector<::std::string> _ret_0;
-		_ret_0 = reverse_lookup(url_key);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_reverse_lookup_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::SearchEngine_reverse_lookup_return::create();
+		_return_value->_ret_0 = reverse_lookup(_args->url_key);
 		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0x1abdd70e75f411b3ull)) {
-		::std::string prefix;
-		::int32_t limit = 0;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[1];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, limit, _field->code.data());
-					}
-				}
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, prefix, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+	} else if(_type_hash == vnx::Hash64(0x1abdd70e75f411b3ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::std::vector<::std::string> _ret_0;
-		_ret_0 = suggest_domains(prefix, limit);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_suggest_domains_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::SearchEngine_suggest_domains_return::create();
+		_return_value->_ret_0 = suggest_domains(_args->prefix, _args->limit);
 		return _return_value;
-	} else if(_call_type->type_hash == vnx::Hash64(0x7124d7bfda1b31f2ull)) {
-		::std::string prefix;
-		::int32_t limit = 0;
-		{
-			const char* const _buf = _in.read(_call_type->total_field_size);
-			if(_call_type->is_matched) {
-				{
-					const vnx::TypeField* const _field = _call_type->field_map[1];
-					if(_field) {
-						vnx::read_value(_buf + _field->offset, limit, _field->code.data());
-					}
-				}
-			}
-			for(const vnx::TypeField* _field : _call_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, prefix, _call_type, _field->code.data()); break;
-					default: vnx::skip(_in, _call_type, _field->code.data());
-				}
-			}
+	} else if(_type_hash == vnx::Hash64(0x7124d7bfda1b31f2ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_words>(_value);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		::std::vector<::std::string> _ret_0;
-		_ret_0 = suggest_words(prefix, limit);
-		std::shared_ptr<vnx::Binary> _return_value;
-		{
-			const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_suggest_words_return;
-			_return_value = vnx::Binary::create();
-			_return_value->type_code = _return_type;
-			vnx::BinaryOutputStream _stream_out(_return_value.get());
-			vnx::TypeOutput _out(&_stream_out);
-			vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-			_out.flush();
-		}
+		auto _return_value = ::vnx::search::SearchEngine_suggest_words_return::create();
+		_return_value->_ret_0 = suggest_words(_args->prefix, _args->limit);
 		return _return_value;
 	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
-	_ex->method = _call_type->name;
+	_ex->method = _value->get_type_name();
 	return _ex;
 }
 
-void SearchEngineBase::query_async_return(const vnx::request_id_t& _request_id, const ::std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) {
-	std::shared_ptr<vnx::Binary> _return_value;
-	const vnx::TypeCode* _return_type = vnx::search::vnx_native_type_code_SearchEngine_query_return;
-	_return_value = vnx::Binary::create();
-	_return_value->type_code = _return_type;
-	vnx::BinaryOutputStream _stream_out(_return_value.get());
-	vnx::TypeOutput _out(&_stream_out);
-	vnx::write(_out, _ret_0, _return_type, _return_type->fields[0].code.data());
-	_out.flush();
-	vnx_async_return(_request_id, _return_value);
+void SearchEngineBase::query_async_callback(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) {
+	auto _return_value = ::vnx::search::SearchEngine_query_return::create();
+	_return_value->_ret_0 = _ret_0;
+	vnx_async_callback(_request_id, _return_value);
 }
 
 
@@ -1041,7 +468,7 @@ void read(TypeInput& in, ::vnx::search::SearchEngineBase& value, const TypeCode*
 
 void write(TypeOutput& out, const ::vnx::search::SearchEngineBase& value, const TypeCode* type_code, const uint16_t* code) {
 	if(!type_code || (code && code[0] == CODE_ANY)) {
-		type_code = vnx::search::vnx_native_type_code_SearchEngine;
+		type_code = vnx::search::vnx_native_type_code_SearchEngineBase;
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::SearchEngineBase>(out);
 	}

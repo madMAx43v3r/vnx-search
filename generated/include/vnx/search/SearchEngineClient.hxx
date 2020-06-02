@@ -23,29 +23,21 @@ public:
 	
 	SearchEngineClient(vnx::Hash64 service_addr);
 	
-	::vnx::Object get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset);
+	::vnx::Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset);
 	
-	::std::vector<::vnx::Object> get_domain_list(const ::int32_t& limit, const ::uint32_t& offset);
+	std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset);
 	
-	::vnx::Object get_page_info(const ::std::string& url_key);
+	::vnx::Object get_page_info(const std::string& url_key);
 	
-	void handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
+	std::shared_ptr<const ::vnx::search::SearchResult> query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags);
 	
-	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
+	std::vector<std::string> reverse_domain_lookup(const std::string& url_key);
 	
-	void handle(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample);
+	std::vector<std::string> reverse_lookup(const std::string& url_key);
 	
-	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample);
+	std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit);
 	
-	::std::shared_ptr<const ::vnx::search::SearchResult> query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::uint32_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags);
-	
-	::std::vector<::std::string> reverse_domain_lookup(const ::std::string& url_key);
-	
-	::std::vector<::std::string> reverse_lookup(const ::std::string& url_key);
-	
-	::std::vector<::std::string> suggest_domains(const ::std::string& prefix, const ::int32_t& limit);
-	
-	::std::vector<::std::string> suggest_words(const ::std::string& prefix, const ::int32_t& limit);
+	std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit);
 	
 };
 

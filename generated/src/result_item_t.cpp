@@ -8,6 +8,8 @@
 #include <vnx/Visitor.h>
 #include <vnx/Object.h>
 #include <vnx/Struct.h>
+#include <vnx/Value.h>
+
 
 
 namespace vnx {
@@ -115,7 +117,7 @@ std::istream& operator>>(std::istream& _in, result_item_t& _value) {
 }
 
 const vnx::TypeCode* result_item_t::static_get_type_code() {
-	const vnx::TypeCode* type_code = vnx::get_type_code(vnx::Hash64(0x25b1d557d37a1bdfull));
+	const vnx::TypeCode* type_code = vnx::get_type_code(VNX_TYPE_HASH);
 	if(!type_code) {
 		type_code = vnx::register_type_code(static_create_type_code());
 	}
@@ -130,7 +132,6 @@ std::shared_ptr<vnx::TypeCode> result_item_t::static_create_type_code() {
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<result_item_t>(); };
-	type_code->methods.resize(0);
 	type_code->fields.resize(4);
 	{
 		vnx::TypeField& field = type_code->fields[0];

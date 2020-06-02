@@ -10,6 +10,7 @@
 #include <vnx/Struct.h>
 
 
+
 namespace vnx {
 namespace search {
 
@@ -96,7 +97,7 @@ std::istream& operator>>(std::istream& _in, search_flags_e& _value) {
 }
 
 const vnx::TypeCode* search_flags_e::static_get_type_code() {
-	const vnx::TypeCode* type_code = vnx::get_type_code(vnx::Hash64(0xe55b90a8ffab58ffull));
+	const vnx::TypeCode* type_code = vnx::get_type_code(VNX_TYPE_HASH);
 	if(!type_code) {
 		type_code = vnx::register_type_code(static_create_type_code());
 	}
@@ -111,7 +112,6 @@ std::shared_ptr<vnx::TypeCode> search_flags_e::static_create_type_code() {
 	type_code->is_native = true;
 	type_code->is_enum = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<search_flags_e>>(); };
-	type_code->methods.resize(0);
 	type_code->fields.resize(1);
 	{
 		vnx::TypeField& field = type_code->fields[0];

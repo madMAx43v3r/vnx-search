@@ -9,6 +9,7 @@
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/search/CrawlStats.hxx>
+#include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -21,15 +22,11 @@ public:
 	
 	CrawlProcessorClient(vnx::Hash64 service_addr);
 	
-	::std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const ::int32_t& limit);
+	void _page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess);
 	
-	void handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
+	void _page_process_callback_async(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess);
 	
-	void handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample);
-	
-	void handle(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample);
-	
-	void handle_async(const ::std::shared_ptr<const ::vnx::search::TextResponse>& sample);
+	std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const int32_t& limit);
 	
 };
 

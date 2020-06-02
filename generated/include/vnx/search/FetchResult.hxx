@@ -6,6 +6,8 @@
 
 #include <vnx/search/package.hxx>
 #include <vnx/Value.h>
+#include <vnx/search/TextResponse.hxx>
+#include <vnx/search/UrlInfo.hxx>
 
 
 namespace vnx {
@@ -14,6 +16,8 @@ namespace search {
 class FetchResult : public ::vnx::Value {
 public:
 	
+	::vnx::search::UrlInfo info;
+	std::shared_ptr<const ::vnx::search::TextResponse> response;
 	
 	typedef ::vnx::Value Super;
 	

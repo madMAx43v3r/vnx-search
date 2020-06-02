@@ -5,6 +5,30 @@
 #include <vnx/search/SearchEngineClient.hxx>
 #include <vnx/Input.h>
 #include <vnx/Output.h>
+#include <vnx/Module.h>
+#include <vnx/Object.h>
+#include <vnx/TopicPtr.h>
+#include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/search/SearchEngine_get_domain_info.hxx>
+#include <vnx/search/SearchEngine_get_domain_info_return.hxx>
+#include <vnx/search/SearchEngine_get_domain_list.hxx>
+#include <vnx/search/SearchEngine_get_domain_list_return.hxx>
+#include <vnx/search/SearchEngine_get_page_info.hxx>
+#include <vnx/search/SearchEngine_get_page_info_return.hxx>
+#include <vnx/search/SearchEngine_query.hxx>
+#include <vnx/search/SearchEngine_query_return.hxx>
+#include <vnx/search/SearchEngine_reverse_domain_lookup.hxx>
+#include <vnx/search/SearchEngine_reverse_domain_lookup_return.hxx>
+#include <vnx/search/SearchEngine_reverse_lookup.hxx>
+#include <vnx/search/SearchEngine_reverse_lookup_return.hxx>
+#include <vnx/search/SearchEngine_suggest_domains.hxx>
+#include <vnx/search/SearchEngine_suggest_domains_return.hxx>
+#include <vnx/search/SearchEngine_suggest_words.hxx>
+#include <vnx/search/SearchEngine_suggest_words_return.hxx>
+#include <vnx/search/SearchResult.hxx>
+#include <vnx/search/search_flags_e.hxx>
+
 
 
 namespace vnx {
@@ -20,293 +44,100 @@ SearchEngineClient::SearchEngineClient(vnx::Hash64 service_addr)
 {
 }
 
-::vnx::Object SearchEngineClient::get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_domain_info;
-	{
-		char* const _buf = _out.write(8);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write_value(_buf + 4, offset);
-		vnx::write(_out, host, _type_code, _type_code->fields[0].code.data());
+::vnx::Object SearchEngineClient::get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_info::create();
+	_method->host = host;
+	_method->limit = limit;
+	_method->offset = offset;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
 	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::vnx::Object _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
+	return _result->_ret_0;
 }
 
-::std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const ::int32_t& limit, const ::uint32_t& offset) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_domain_list;
-	{
-		char* const _buf = _out.write(8);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write_value(_buf + 4, offset);
+std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const int32_t& limit, const uint32_t& offset) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_list::create();
+	_method->limit = limit;
+	_method->offset = offset;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
 	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::std::vector<::vnx::Object> _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
+	return _result->_ret_0;
 }
 
-::vnx::Object SearchEngineClient::get_page_info(const ::std::string& url_key) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_page_info;
-	{
-		vnx::write(_out, url_key, _type_code, _type_code->fields[0].code.data());
+::vnx::Object SearchEngineClient::get_page_info(const std::string& url_key) {
+	auto _method = ::vnx::search::SearchEngine_get_page_info::create();
+	_method->url_key = url_key;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
 	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::vnx::Object _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
+	return _result->_ret_0;
 }
 
-void SearchEngineClient::handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair;
-	{
-		vnx::write(_out, sample, _type_code, _type_code->fields[0].code.data());
+std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags) {
+	auto _method = ::vnx::search::SearchEngine_query::create();
+	_method->words = words;
+	_method->limit = limit;
+	_method->offset = offset;
+	_method->flags = flags;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_query_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
 	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
+	return _result->_ret_0;
 }
 
-void SearchEngineClient::handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample) {
-	vnx_is_async = true;
-	handle(sample);
+std::vector<std::string> SearchEngineClient::reverse_domain_lookup(const std::string& url_key) {
+	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
+	_method->url_key = url_key;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
+	}
+	return _result->_ret_0;
 }
 
-void SearchEngineClient::handle(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo;
-	{
-		vnx::write(_out, sample, _type_code, _type_code->fields[0].code.data());
+std::vector<std::string> SearchEngineClient::reverse_lookup(const std::string& url_key) {
+	auto _method = ::vnx::search::SearchEngine_reverse_lookup::create();
+	_method->url_key = url_key;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_lookup_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
 	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
+	return _result->_ret_0;
 }
 
-void SearchEngineClient::handle_async(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample) {
-	vnx_is_async = true;
-	handle(sample);
+std::vector<std::string> SearchEngineClient::suggest_domains(const std::string& prefix, const int32_t& limit) {
+	auto _method = ::vnx::search::SearchEngine_suggest_domains::create();
+	_method->prefix = prefix;
+	_method->limit = limit;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
+	}
+	return _result->_ret_0;
 }
 
-::std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::uint32_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_query;
-	{
-		char* const _buf = _out.write(8);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write_value(_buf + 4, offset);
-		vnx::write(_out, words, _type_code, _type_code->fields[0].code.data());
-		vnx::write(_out, flags, _type_code, _type_code->fields[3].code.data());
+std::vector<std::string> SearchEngineClient::suggest_words(const std::string& prefix, const int32_t& limit) {
+	auto _method = ::vnx::search::SearchEngine_suggest_words::create();
+	_method->prefix = prefix;
+	_method->limit = limit;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_words_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
 	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::std::shared_ptr<const ::vnx::search::SearchResult> _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
-}
-
-::std::vector<::std::string> SearchEngineClient::reverse_domain_lookup(const ::std::string& url_key) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_reverse_domain_lookup;
-	{
-		vnx::write(_out, url_key, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::std::vector<::std::string> _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
-}
-
-::std::vector<::std::string> SearchEngineClient::reverse_lookup(const ::std::string& url_key) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_reverse_lookup;
-	{
-		vnx::write(_out, url_key, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::std::vector<::std::string> _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
-}
-
-::std::vector<::std::string> SearchEngineClient::suggest_domains(const ::std::string& prefix, const ::int32_t& limit) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_suggest_domains;
-	{
-		char* const _buf = _out.write(4);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write(_out, prefix, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::std::vector<::std::string> _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
-}
-
-::std::vector<::std::string> SearchEngineClient::suggest_words(const ::std::string& prefix, const ::int32_t& limit) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_suggest_words;
-	{
-		char* const _buf = _out.write(4);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write(_out, prefix, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::std::vector<::std::string> _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
+	return _result->_ret_0;
 }
 
 

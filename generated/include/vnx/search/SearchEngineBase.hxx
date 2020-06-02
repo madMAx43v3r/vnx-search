@@ -22,16 +22,16 @@ public:
 	
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
-	::std::string url_index_server = "UrlIndex";
-	::std::string page_index_server = "PageIndex";
-	::std::string page_content_server = "PageContent";
-	::int32_t max_query_pages = 1000;
-	::int32_t num_query_threads = 4;
-	::int32_t num_update_threads = 4;
-	::int32_t commit_interval = 3600;
-	::int32_t stats_interval_ms = 10000;
-	::vnx::float32_t word_power = 1;
-	::std::vector<::std::string> protocols;
+	std::string url_index_server = "UrlIndex";
+	std::string page_index_server = "PageIndex";
+	std::string page_content_server = "PageContent";
+	int32_t max_query_pages = 1000;
+	int32_t num_query_threads = 4;
+	int32_t num_update_threads = 4;
+	int32_t commit_interval = 3600;
+	int32_t stats_interval_ms = 10000;
+	vnx::float32_t word_power = 1;
+	std::vector<std::string> protocols;
 	
 	typedef ::vnx::Module Super;
 	
@@ -59,24 +59,24 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual ::vnx::Object get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset) const = 0;
-	virtual ::std::vector<::vnx::Object> get_domain_list(const ::int32_t& limit, const ::uint32_t& offset) const = 0;
-	virtual ::vnx::Object get_page_info(const ::std::string& url_key) const = 0;
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
+	virtual ::vnx::Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const = 0;
+	virtual std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const = 0;
+	virtual ::vnx::Object get_page_info(const std::string& url_key) const = 0;
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value) {}
-	virtual void query_async(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::uint32_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(const ::std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
-	virtual ::std::vector<::std::string> reverse_domain_lookup(const ::std::string& url_key) const = 0;
-	virtual ::std::vector<::std::string> reverse_lookup(const ::std::string& url_key) const = 0;
-	virtual ::std::vector<::std::string> suggest_domains(const ::std::string& prefix, const ::int32_t& limit) const = 0;
-	virtual ::std::vector<::std::string> suggest_words(const ::std::string& prefix, const ::int32_t& limit) const = 0;
+	virtual void query_async(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(const std::shared_ptr<const ::vnx::search::SearchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual std::vector<std::string> reverse_domain_lookup(const std::string& url_key) const = 0;
+	virtual std::vector<std::string> reverse_lookup(const std::string& url_key) const = 0;
+	virtual std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit) const = 0;
+	virtual std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit) const = 0;
 	
-	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;
+	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
 	
 private:
-	void query_async_return(const vnx::request_id_t& _request_id, const ::std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0);
+	void query_async_callback(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0);
 	
 };
 

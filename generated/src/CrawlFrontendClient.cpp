@@ -5,6 +5,18 @@
 #include <vnx/search/CrawlFrontendClient.hxx>
 #include <vnx/Input.h>
 #include <vnx/Output.h>
+#include <vnx/Hash64.h>
+#include <vnx/Module.h>
+#include <vnx/TopicPtr.h>
+#include <vnx/search/CrawlFrontend__fetch_callback.hxx>
+#include <vnx/search/CrawlFrontend__fetch_callback_return.hxx>
+#include <vnx/search/CrawlFrontend_fetch.hxx>
+#include <vnx/search/CrawlFrontend_fetch_return.hxx>
+#include <vnx/search/CrawlFrontend_register_parser.hxx>
+#include <vnx/search/CrawlFrontend_register_parser_return.hxx>
+#include <vnx/search/FetchResult.hxx>
+#include <vnx/search/HttpResponse.hxx>
+
 
 
 namespace vnx {
@@ -20,71 +32,38 @@ CrawlFrontendClient::CrawlFrontendClient(vnx::Hash64 service_addr)
 {
 }
 
-::std::shared_ptr<const ::vnx::search::UrlIndex> CrawlFrontendClient::fetch(const ::std::string& url) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_CrawlFrontend_fetch;
-	{
-		vnx::write(_out, url, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-	
-	vnx::BinaryInputStream _stream_in(vnx_return_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _type_code->return_type;
-	::std::shared_ptr<const ::vnx::search::UrlIndex> _ret_0;
-	{
-		const char* const _buf = _in.read(_return_type->total_field_size);
-		if(_return_type->is_matched) {
-		}
-		for(const vnx::TypeField* _field : _return_type->ext_fields) {
-			switch(_field->native_index) {
-				case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-				default: vnx::skip(_in, _return_type, _field->code.data());
-			}
-		}
-	}
-	return _ret_0;
+void CrawlFrontendClient::_fetch_callback(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id) {
+	auto _method = ::vnx::search::CrawlFrontend__fetch_callback::create();
+	_method->response = response;
+	_method->request_id = request_id;
+	auto _return_value = vnx_request(_method);
 }
 
-void CrawlFrontendClient::handle(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_CrawlFrontend_handle_vnx_search_HttpResponse;
-	{
-		vnx::write(_out, sample, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
-}
-
-void CrawlFrontendClient::handle_async(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample) {
+void CrawlFrontendClient::_fetch_callback_async(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id) {
 	vnx_is_async = true;
-	handle(sample);
+	_fetch_callback(response, request_id);
 }
 
-void CrawlFrontendClient::register_parser(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_CrawlFrontend_register_parser;
-	{
-		char* const _buf = _out.write(4);
-		vnx::write_value(_buf + 0, num_threads);
-		vnx::write(_out, address, _type_code, _type_code->fields[0].code.data());
-		vnx::write(_out, mime_types, _type_code, _type_code->fields[1].code.data());
+std::shared_ptr<const ::vnx::search::FetchResult> CrawlFrontendClient::fetch(const std::string& url) {
+	auto _method = ::vnx::search::CrawlFrontend_fetch::create();
+	_method->url = url;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlFrontend_fetch_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("Client: !_result");
 	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	vnx_request(_argument_data);
+	return _result->_ret_0;
 }
 
-void CrawlFrontendClient::register_parser_async(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads) {
+void CrawlFrontendClient::register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads) {
+	auto _method = ::vnx::search::CrawlFrontend_register_parser::create();
+	_method->address = address;
+	_method->mime_types = mime_types;
+	_method->num_threads = num_threads;
+	auto _return_value = vnx_request(_method);
+}
+
+void CrawlFrontendClient::register_parser_async(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads) {
 	vnx_is_async = true;
 	register_parser(address, mime_types, num_threads);
 }

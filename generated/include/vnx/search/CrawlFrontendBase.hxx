@@ -8,8 +8,8 @@
 #include <vnx/Hash64.h>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.h>
+#include <vnx/search/FetchResult.hxx>
 #include <vnx/search/HttpResponse.hxx>
-#include <vnx/search/UrlIndex.hxx>
 
 
 namespace vnx {
@@ -20,13 +20,13 @@ public:
 	
 	::vnx::TopicPtr output_http = "frontend.http_responses";
 	::vnx::TopicPtr output_text = "frontend.text_responses";
-	::int32_t num_threads = 10;
-	::int32_t response_timeout_ms = 30000;
-	::int32_t stats_interval_ms = 10000;
-	::int64_t max_content_length = 1048576;
-	::int64_t max_response_size = 4194304;
-	::std::string processor_server = "CrawlProcessor";
-	::std::string user_agent = "Mozilla/5.0";
+	int32_t num_threads = 10;
+	int32_t response_timeout_ms = 30000;
+	int32_t stats_interval_ms = 10000;
+	int64_t max_content_length = 1048576;
+	int64_t max_response_size = 4194304;
+	std::string processor_server = "CrawlProcessor";
+	std::string user_agent = "Mozilla/5.0";
 	
 	typedef ::vnx::Module Super;
 	
@@ -54,16 +54,15 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual void fetch_async(const ::std::string& url, const std::function<void(const ::std::shared_ptr<const ::vnx::search::UrlIndex>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
-	virtual void handle(std::shared_ptr<const ::vnx::search::HttpResponse> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
-	virtual void handle(std::shared_ptr<const ::vnx::search::HttpResponse> _value) {}
-	virtual void register_parser(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads) = 0;
+	virtual void _fetch_callback(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id) = 0;
+	virtual void fetch_async(const std::string& url, const std::function<void(const std::shared_ptr<const ::vnx::search::FetchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual void register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads) = 0;
 	
-	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;
+	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
 	
 private:
-	void fetch_async_return(const vnx::request_id_t& _request_id, const ::std::shared_ptr<const ::vnx::search::UrlIndex>& _ret_0);
+	void fetch_async_callback(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::FetchResult>& _ret_0);
 	
 };
 

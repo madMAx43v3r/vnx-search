@@ -14,7 +14,7 @@ namespace search {
 class PageContent : public ::vnx::Value {
 public:
 	
-	::std::string text;
+	std::string text;
 	
 	typedef ::vnx::Value Super;
 	

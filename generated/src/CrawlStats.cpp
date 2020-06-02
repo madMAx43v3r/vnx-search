@@ -8,6 +8,9 @@
 #include <vnx/Visitor.h>
 #include <vnx/Object.h>
 #include <vnx/Struct.h>
+#include <vnx/Value.h>
+#include <vnx/search/crawl_domain_stats_t.hxx>
+
 
 
 namespace vnx {
@@ -143,7 +146,7 @@ std::istream& operator>>(std::istream& _in, CrawlStats& _value) {
 }
 
 const vnx::TypeCode* CrawlStats::static_get_type_code() {
-	const vnx::TypeCode* type_code = vnx::get_type_code(vnx::Hash64(0x1c9c8e69ae389c30ull));
+	const vnx::TypeCode* type_code = vnx::get_type_code(VNX_TYPE_HASH);
 	if(!type_code) {
 		type_code = vnx::register_type_code(static_create_type_code());
 	}
@@ -160,7 +163,6 @@ std::shared_ptr<vnx::TypeCode> CrawlStats::static_create_type_code() {
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<CrawlStats>(); };
 	type_code->depends.resize(1);
 	type_code->depends[0] = ::vnx::search::crawl_domain_stats_t::static_get_type_code();
-	type_code->methods.resize(0);
 	type_code->fields.resize(8);
 	{
 		vnx::TypeField& field = type_code->fields[0];

@@ -5,30 +5,21 @@
 #define INCLUDE_vnx_search_UrlIndex_HXX_
 
 #include <vnx/search/package.hxx>
-#include <vnx/Value.h>
+#include <vnx/search/UrlInfo.hxx>
 
 
 namespace vnx {
 namespace search {
 
-class UrlIndex : public ::vnx::Value {
+class UrlIndex : public ::vnx::search::UrlInfo {
 public:
 	
-	::std::string scheme;
-	::std::string content_type;
-	::std::string redirect;
-	::int64_t first_seen = 0;
-	::int64_t last_fetched = 0;
-	::int64_t last_modified = 0;
-	::int64_t fetch_duration_us = 0;
-	::int64_t num_bytes = -1;
-	::int32_t http_status = -1;
-	::int32_t curl_status = -1;
-	::int32_t fetch_count = 0;
-	::int32_t depth = -1;
-	::vnx::bool_t is_fail = 0;
+	std::string scheme;
+	int64_t first_seen = 0;
+	uint32_t fetch_count = 0;
+	int32_t depth = -1;
 	
-	typedef ::vnx::Value Super;
+	typedef ::vnx::search::UrlInfo Super;
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;

@@ -8,6 +8,8 @@
 #include <vnx/Visitor.h>
 #include <vnx/Object.h>
 #include <vnx/Struct.h>
+#include <vnx/Value.h>
+
 
 
 namespace vnx {
@@ -15,7 +17,7 @@ namespace search {
 
 
 const vnx::Hash64 PageInfo::VNX_TYPE_HASH(0x547cfd9b2bb19c80ull);
-const vnx::Hash64 PageInfo::VNX_CODE_HASH(0xd2003213ef05c62aull);
+const vnx::Hash64 PageInfo::VNX_CODE_HASH(0x90aa40b72360f52dull);
 
 vnx::Hash64 PageInfo::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -49,6 +51,7 @@ void PageInfo::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, version);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, url_key);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, words);
 	_visitor.type_end(*_type_code);
 }
 
@@ -56,6 +59,7 @@ void PageInfo::write(std::ostream& _out) const {
 	_out << "{\"__type\": \"vnx.search.PageInfo\"";
 	_out << ", \"version\": "; vnx::write(_out, version);
 	_out << ", \"url_key\": "; vnx::write(_out, url_key);
+	_out << ", \"words\": "; vnx::write(_out, words);
 	_out << "}";
 }
 
@@ -67,6 +71,8 @@ void PageInfo::read(std::istream& _in) {
 			vnx::from_string(_entry.second, url_key);
 		} else if(_entry.first == "version") {
 			vnx::from_string(_entry.second, version);
+		} else if(_entry.first == "words") {
+			vnx::from_string(_entry.second, words);
 		}
 	}
 }
@@ -75,6 +81,7 @@ vnx::Object PageInfo::to_object() const {
 	vnx::Object _object;
 	_object["version"] = version;
 	_object["url_key"] = url_key;
+	_object["words"] = words;
 	return _object;
 }
 
@@ -84,6 +91,8 @@ void PageInfo::from_object(const vnx::Object& _object) {
 			_entry.second.to(url_key);
 		} else if(_entry.first == "version") {
 			_entry.second.to(version);
+		} else if(_entry.first == "words") {
+			_entry.second.to(words);
 		}
 	}
 }
@@ -101,7 +110,7 @@ std::istream& operator>>(std::istream& _in, PageInfo& _value) {
 }
 
 const vnx::TypeCode* PageInfo::static_get_type_code() {
-	const vnx::TypeCode* type_code = vnx::get_type_code(vnx::Hash64(0x547cfd9b2bb19c80ull));
+	const vnx::TypeCode* type_code = vnx::get_type_code(VNX_TYPE_HASH);
 	if(!type_code) {
 		type_code = vnx::register_type_code(static_create_type_code());
 	}
@@ -112,12 +121,11 @@ std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.PageInfo";
 	type_code->type_hash = vnx::Hash64(0x547cfd9b2bb19c80ull);
-	type_code->code_hash = vnx::Hash64(0xd2003213ef05c62aull);
+	type_code->code_hash = vnx::Hash64(0x90aa40b72360f52dull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageInfo>(); };
-	type_code->methods.resize(0);
-	type_code->fields.resize(2);
+	type_code->fields.resize(3);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.name = "version";
@@ -128,6 +136,12 @@ std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
 		field.is_extended = true;
 		field.name = "url_key";
 		field.code = {12, 5};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[2];
+		field.is_extended = true;
+		field.name = "words";
+		field.code = {12, 12, 5};
 	}
 	type_code->build();
 	return type_code;
@@ -163,6 +177,7 @@ void read(TypeInput& in, ::vnx::search::PageInfo& value, const TypeCode* type_co
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 1: vnx::read(in, value.url_key, type_code, _field->code.data()); break;
+			case 2: vnx::read(in, value.words, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -180,6 +195,7 @@ void write(TypeOutput& out, const ::vnx::search::PageInfo& value, const TypeCode
 	char* const _buf = out.write(8);
 	vnx::write_value(_buf + 0, value.version);
 	vnx::write(out, value.url_key, type_code, type_code->fields[1].code.data());
+	vnx::write(out, value.words, type_code, type_code->fields[2].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::PageInfo& value) {

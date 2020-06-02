@@ -18,7 +18,7 @@ struct search_flags_e {
 		LATEST_NEWS = 1050161006,
 	};
 	
-	::uint32_t value = 0;
+	uint32_t value = 0;
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;

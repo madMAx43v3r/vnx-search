@@ -14,11 +14,11 @@ namespace search {
 class Response : public ::vnx::Value {
 public:
 	
-	::std::string url;
-	::std::string profile;
-	::int64_t date = 0;
-	::int64_t last_modified = 0;
-	::int64_t fetch_duration_us = 0;
+	std::string url;
+	std::string profile;
+	int64_t date = 0;
+	int64_t last_modified = 0;
+	int64_t fetch_duration_us = 0;
 	
 	typedef ::vnx::Value Super;
 	

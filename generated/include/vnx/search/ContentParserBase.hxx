@@ -16,7 +16,7 @@ namespace search {
 class ContentParserBase : public ::vnx::Module {
 public:
 	
-	::std::string frontend_server = "CrawlFrontend";
+	std::string frontend_server = "CrawlFrontend";
 	
 	typedef ::vnx::Module Super;
 	
@@ -44,10 +44,10 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual ::std::shared_ptr<const ::vnx::search::TextResponse> parse(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& response) const = 0;
+	virtual std::shared_ptr<const ::vnx::search::TextResponse> parse(const std::shared_ptr<const ::vnx::search::HttpResponse>& response) const = 0;
 	
-	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;
+	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
 	
 private:
 	

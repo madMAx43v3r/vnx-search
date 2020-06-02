@@ -8,8 +8,8 @@
 #include <vnx/Hash64.h>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.h>
+#include <vnx/search/FetchResult.hxx>
 #include <vnx/search/HttpResponse.hxx>
-#include <vnx/search/UrlIndex.hxx>
 
 
 namespace vnx {
@@ -21,15 +21,15 @@ public:
 	
 	CrawlFrontendClient(vnx::Hash64 service_addr);
 	
-	::std::shared_ptr<const ::vnx::search::UrlIndex> fetch(const ::std::string& url);
+	void _fetch_callback(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id);
 	
-	void handle(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample);
+	void _fetch_callback_async(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id);
 	
-	void handle_async(const ::std::shared_ptr<const ::vnx::search::HttpResponse>& sample);
+	std::shared_ptr<const ::vnx::search::FetchResult> fetch(const std::string& url);
 	
-	void register_parser(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads);
+	void register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads);
 	
-	void register_parser_async(const ::vnx::Hash64& address, const ::std::vector<::std::string>& mime_types, const ::int32_t& num_threads);
+	void register_parser_async(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads);
 	
 };
 

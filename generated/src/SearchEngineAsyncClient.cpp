@@ -5,6 +5,30 @@
 #include <vnx/search/SearchEngineAsyncClient.hxx>
 #include <vnx/Input.h>
 #include <vnx/Output.h>
+#include <vnx/Module.h>
+#include <vnx/Object.h>
+#include <vnx/TopicPtr.h>
+#include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/search/SearchEngine_get_domain_info.hxx>
+#include <vnx/search/SearchEngine_get_domain_info_return.hxx>
+#include <vnx/search/SearchEngine_get_domain_list.hxx>
+#include <vnx/search/SearchEngine_get_domain_list_return.hxx>
+#include <vnx/search/SearchEngine_get_page_info.hxx>
+#include <vnx/search/SearchEngine_get_page_info_return.hxx>
+#include <vnx/search/SearchEngine_query.hxx>
+#include <vnx/search/SearchEngine_query_return.hxx>
+#include <vnx/search/SearchEngine_reverse_domain_lookup.hxx>
+#include <vnx/search/SearchEngine_reverse_domain_lookup_return.hxx>
+#include <vnx/search/SearchEngine_reverse_lookup.hxx>
+#include <vnx/search/SearchEngine_reverse_lookup_return.hxx>
+#include <vnx/search/SearchEngine_suggest_domains.hxx>
+#include <vnx/search/SearchEngine_suggest_domains_return.hxx>
+#include <vnx/search/SearchEngine_suggest_words.hxx>
+#include <vnx/search/SearchEngine_suggest_words_return.hxx>
+#include <vnx/search/SearchResult.hxx>
+#include <vnx/search/search_flags_e.hxx>
+
 
 
 namespace vnx {
@@ -20,174 +44,81 @@ SearchEngineAsyncClient::SearchEngineAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
-uint64_t SearchEngineAsyncClient::get_domain_info(const ::std::string& host, const ::int32_t& limit, const ::uint32_t& offset, const std::function<void(::vnx::Object)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_domain_info;
-	{
-		char* const _buf = _out.write(8);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write_value(_buf + 4, offset);
-		vnx::write(_out, host, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset, const std::function<void(::vnx::Object)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_info::create();
+	_method->host = host;
+	_method->limit = limit;
+	_method->offset = offset;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_get_domain_info[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::get_domain_list(const ::int32_t& limit, const ::uint32_t& offset, const std::function<void(::std::vector<::vnx::Object>)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_domain_list;
-	{
-		char* const _buf = _out.write(8);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write_value(_buf + 4, offset);
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::get_domain_list(const int32_t& limit, const uint32_t& offset, const std::function<void(std::vector<::vnx::Object>)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_list::create();
+	_method->limit = limit;
+	_method->offset = offset;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_get_domain_list[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::get_page_info(const ::std::string& url_key, const std::function<void(::vnx::Object)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_page_info;
-	{
-		vnx::write(_out, url_key, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::get_page_info(const std::string& url_key, const std::function<void(::vnx::Object)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_get_page_info::create();
+	_method->url_key = url_key;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_get_page_info[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::handle(const ::std::shared_ptr<const ::vnx::keyvalue::KeyValuePair>& sample, const std::function<void()>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_KeyValuePair;
-	{
-		vnx::write(_out, sample, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
-	vnx_queue_handle_vnx_keyvalue_KeyValuePair[_request_id] = _callback;
-	vnx_num_pending++;
-	return _request_id;
-}
-
-uint64_t SearchEngineAsyncClient::handle(const ::std::shared_ptr<const ::vnx::keyvalue::SyncInfo>& sample, const std::function<void()>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_handle_vnx_keyvalue_SyncInfo;
-	{
-		vnx::write(_out, sample, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
-	vnx_queue_handle_vnx_keyvalue_SyncInfo[_request_id] = _callback;
-	vnx_num_pending++;
-	return _request_id;
-}
-
-uint64_t SearchEngineAsyncClient::query(const ::std::vector<::std::string>& words, const ::int32_t& limit, const ::uint32_t& offset, const ::std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(::std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_query;
-	{
-		char* const _buf = _out.write(8);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write_value(_buf + 4, offset);
-		vnx::write(_out, words, _type_code, _type_code->fields[0].code.data());
-		vnx::write(_out, flags, _type_code, _type_code->fields[3].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_query::create();
+	_method->words = words;
+	_method->limit = limit;
+	_method->offset = offset;
+	_method->flags = flags;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_query[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::reverse_domain_lookup(const ::std::string& url_key, const std::function<void(::std::vector<::std::string>)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_reverse_domain_lookup;
-	{
-		vnx::write(_out, url_key, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::reverse_domain_lookup(const std::string& url_key, const std::function<void(std::vector<std::string>)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
+	_method->url_key = url_key;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_reverse_domain_lookup[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::reverse_lookup(const ::std::string& url_key, const std::function<void(::std::vector<::std::string>)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_reverse_lookup;
-	{
-		vnx::write(_out, url_key, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::reverse_lookup(const std::string& url_key, const std::function<void(std::vector<std::string>)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_reverse_lookup::create();
+	_method->url_key = url_key;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_reverse_lookup[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::suggest_domains(const ::std::string& prefix, const ::int32_t& limit, const std::function<void(::std::vector<::std::string>)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_suggest_domains;
-	{
-		char* const _buf = _out.write(4);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write(_out, prefix, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::suggest_domains(const std::string& prefix, const int32_t& limit, const std::function<void(std::vector<std::string>)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_suggest_domains::create();
+	_method->prefix = prefix;
+	_method->limit = limit;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_suggest_domains[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::suggest_words(const ::std::string& prefix, const ::int32_t& limit, const std::function<void(::std::vector<::std::string>)>& _callback) {
-	std::shared_ptr<vnx::Binary> _argument_data = vnx::Binary::create();
-	vnx::BinaryOutputStream _stream_out(_argument_data.get());
-	vnx::TypeOutput _out(&_stream_out);
-	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_suggest_words;
-	{
-		char* const _buf = _out.write(4);
-		vnx::write_value(_buf + 0, limit);
-		vnx::write(_out, prefix, _type_code, _type_code->fields[0].code.data());
-	}
-	_out.flush();
-	_argument_data->type_code = _type_code;
-	const uint64_t _request_id = vnx_request(_argument_data);
+uint64_t SearchEngineAsyncClient::suggest_words(const std::string& prefix, const int32_t& limit, const std::function<void(std::vector<std::string>)>& _callback) {
+	auto _method = ::vnx::search::SearchEngine_suggest_words::create();
+	_method->prefix = prefix;
+	_method->limit = limit;
+	const auto _request_id = vnx_request(_method);
 	vnx_queue_suggest_words[_request_id] = _callback;
 	vnx_num_pending++;
 	return _request_id;
@@ -202,12 +133,6 @@ std::vector<uint64_t> SearchEngineAsyncClient::vnx_get_pending_ids() const {
 		_list.push_back(entry.first);
 	}
 	for(const auto& entry : vnx_queue_get_page_info) {
-		_list.push_back(entry.first);
-	}
-	for(const auto& entry : vnx_queue_handle_vnx_keyvalue_KeyValuePair) {
-		_list.push_back(entry.first);
-	}
-	for(const auto& entry : vnx_queue_handle_vnx_keyvalue_SyncInfo) {
 		_list.push_back(entry.first);
 	}
 	for(const auto& entry : vnx_queue_query) {
@@ -232,8 +157,6 @@ void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id) {
 	vnx_num_pending -= vnx_queue_get_domain_info.erase(_request_id);
 	vnx_num_pending -= vnx_queue_get_domain_list.erase(_request_id);
 	vnx_num_pending -= vnx_queue_get_page_info.erase(_request_id);
-	vnx_num_pending -= vnx_queue_handle_vnx_keyvalue_KeyValuePair.erase(_request_id);
-	vnx_num_pending -= vnx_queue_handle_vnx_keyvalue_SyncInfo.erase(_request_id);
 	vnx_num_pending -= vnx_queue_query.erase(_request_id);
 	vnx_num_pending -= vnx_queue_reverse_domain_lookup.erase(_request_id);
 	vnx_num_pending -= vnx_queue_reverse_lookup.erase(_request_id);
@@ -241,214 +164,125 @@ void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id) {
 	vnx_num_pending -= vnx_queue_suggest_words.erase(_request_id);
 }
 
-void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Binary> _data) {
-	vnx::BinaryInputStream _stream_in(_data.get());
-	vnx::TypeInput _in(&_stream_in);
-	const vnx::TypeCode* _return_type = _data->type_code;
-	
-	if(_return_type->type_hash == vnx::Hash64(0xdd84ef2259be7eull)) {
-		::vnx::Object _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
+void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
+	const auto _type_hash = _value->get_type_hash();
+	if(_type_hash == vnx::Hash64(0xdd84ef2259be7eull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-		auto _iter = vnx_queue_get_domain_info.find(_request_id);
+		const auto _iter = vnx_queue_get_domain_info.find(_request_id);
 		if(_iter != vnx_queue_get_domain_info.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_get_domain_info.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}
-	else if(_return_type->type_hash == vnx::Hash64(0xa06392efe70f0679ull)) {
-		::std::vector<::vnx::Object> _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
+	else if(_type_hash == vnx::Hash64(0xa06392efe70f0679ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-		auto _iter = vnx_queue_get_domain_list.find(_request_id);
+		const auto _iter = vnx_queue_get_domain_list.find(_request_id);
 		if(_iter != vnx_queue_get_domain_list.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_get_domain_list.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}
-	else if(_return_type->type_hash == vnx::Hash64(0xa79acda144d4c33bull)) {
-		::vnx::Object _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
+	else if(_type_hash == vnx::Hash64(0xa79acda144d4c33bull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-		auto _iter = vnx_queue_get_page_info.find(_request_id);
+		const auto _iter = vnx_queue_get_page_info.find(_request_id);
 		if(_iter != vnx_queue_get_page_info.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_get_page_info.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}
-	else if(_return_type->type_hash == vnx::Hash64(0x65dba7428d26148bull)) {
-		auto _iter = vnx_queue_handle_vnx_keyvalue_KeyValuePair.find(_request_id);
-		if(_iter != vnx_queue_handle_vnx_keyvalue_KeyValuePair.end()) {
-			const auto _callback = std::move(_iter->second);
-			vnx_queue_handle_vnx_keyvalue_KeyValuePair.erase(_iter);
-			vnx_num_pending--;
-			if(_callback) {
-				_callback();
-			}
+	else if(_type_hash == vnx::Hash64(0xc4adbd01e9504960ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_query_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-	}
-	else if(_return_type->type_hash == vnx::Hash64(0xac7ffe12b596e74ull)) {
-		auto _iter = vnx_queue_handle_vnx_keyvalue_SyncInfo.find(_request_id);
-		if(_iter != vnx_queue_handle_vnx_keyvalue_SyncInfo.end()) {
-			const auto _callback = std::move(_iter->second);
-			vnx_queue_handle_vnx_keyvalue_SyncInfo.erase(_iter);
-			vnx_num_pending--;
-			if(_callback) {
-				_callback();
-			}
-		}
-	}
-	else if(_return_type->type_hash == vnx::Hash64(0xc4adbd01e9504960ull)) {
-		::std::shared_ptr<const ::vnx::search::SearchResult> _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
-		}
-		auto _iter = vnx_queue_query.find(_request_id);
+		const auto _iter = vnx_queue_query.find(_request_id);
 		if(_iter != vnx_queue_query.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_query.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}
-	else if(_return_type->type_hash == vnx::Hash64(0x8f0160842cd83465ull)) {
-		::std::vector<::std::string> _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
+	else if(_type_hash == vnx::Hash64(0x8f0160842cd83465ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-		auto _iter = vnx_queue_reverse_domain_lookup.find(_request_id);
+		const auto _iter = vnx_queue_reverse_domain_lookup.find(_request_id);
 		if(_iter != vnx_queue_reverse_domain_lookup.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_reverse_domain_lookup.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}
-	else if(_return_type->type_hash == vnx::Hash64(0x12b287ac93bf5253ull)) {
-		::std::vector<::std::string> _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
+	else if(_type_hash == vnx::Hash64(0x12b287ac93bf5253ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_lookup_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-		auto _iter = vnx_queue_reverse_lookup.find(_request_id);
+		const auto _iter = vnx_queue_reverse_lookup.find(_request_id);
 		if(_iter != vnx_queue_reverse_lookup.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_reverse_lookup.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}
-	else if(_return_type->type_hash == vnx::Hash64(0x385aae88fe3df753ull)) {
-		::std::vector<::std::string> _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
+	else if(_type_hash == vnx::Hash64(0x385aae88fe3df753ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-		auto _iter = vnx_queue_suggest_domains.find(_request_id);
+		const auto _iter = vnx_queue_suggest_domains.find(_request_id);
 		if(_iter != vnx_queue_suggest_domains.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_suggest_domains.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}
-	else if(_return_type->type_hash == vnx::Hash64(0xcf74c35d3594cc90ull)) {
-		::std::vector<::std::string> _ret_0;
-		{
-			const char* const _buf = _in.read(_return_type->total_field_size);
-			if(_return_type->is_matched) {
-			}
-			for(const vnx::TypeField* _field : _return_type->ext_fields) {
-				switch(_field->native_index) {
-					case 0: vnx::read(_in, _ret_0, _return_type, _field->code.data()); break;
-					default: vnx::skip(_in, _return_type, _field->code.data());
-				}
-			}
+	else if(_type_hash == vnx::Hash64(0xcf74c35d3594cc90ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_words_return>(_value);
+		if(!_result) {
+			throw std::logic_error("AsyncClient: !_result");
 		}
-		auto _iter = vnx_queue_suggest_words.find(_request_id);
+		const auto _iter = vnx_queue_suggest_words.find(_request_id);
 		if(_iter != vnx_queue_suggest_words.end()) {
 			const auto _callback = std::move(_iter->second);
 			vnx_queue_suggest_words.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
-				_callback(_ret_0);
+				_callback(_result->_ret_0);
 			}
 		}
 	}

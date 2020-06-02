@@ -9,6 +9,7 @@
 #include <vnx/TopicPtr.h>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/search/CrawlStats.hxx>
+#include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -18,35 +19,35 @@ namespace search {
 class CrawlProcessorBase : public ::vnx::Module {
 public:
 	
-	::vnx::TopicPtr input_text = "frontend.text_responses";
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
-	::std::string url_index_server = "UrlIndex";
-	::std::string page_index_server = "PageIndex";
-	::std::string page_content_server = "PageContent";
-	::std::string crawl_frontend_server = "CrawlFrontend";
-	::int32_t jump_cost = 3;
-	::int32_t max_depth = 5;
-	::int32_t reload_interval = 10000;
-	::int32_t error_reload_interval = 100000;
-	::int32_t sync_interval = 10000;
-	::int32_t max_per_minute = 12;
-	::int32_t max_num_pending = 100;
-	::int32_t max_queue_size = 1000;
-	::int32_t max_url_length = 256;
-	::int32_t max_word_length = 64;
-	::int32_t check_interval_ms = 500;
-	::int32_t update_interval_ms = 5000;
-	::int32_t robots_txt_timeout = 1000;
-	::vnx::float32_t reload_power = 4;
-	::uint32_t index_version = 0;
-	::vnx::bool_t do_reprocess = false;
-	::std::string user_agent = "Googlebot";
-	::std::vector<::std::string> protocols;
-	::std::vector<::std::string> root_urls;
-	::std::vector<::std::string> domain_blacklist;
-	::std::vector<::std::string> path_blacklist;
-	::std::vector<::std::string> regex_blacklist;
+	std::string url_index_server = "UrlIndex";
+	std::string page_index_server = "PageIndex";
+	std::string page_content_server = "PageContent";
+	std::string crawl_frontend_server = "CrawlFrontend";
+	int32_t jump_cost = 3;
+	int32_t max_depth = 5;
+	int32_t reload_interval = 10000;
+	int32_t error_reload_interval = 100000;
+	int32_t sync_interval = 10000;
+	int32_t max_per_minute = 12;
+	int32_t max_num_pending = 100;
+	int32_t max_queue_size = 1000;
+	int32_t max_url_length = 256;
+	int32_t max_word_length = 64;
+	int32_t num_worker_threads = 4;
+	int32_t check_interval_ms = 500;
+	int32_t update_interval_ms = 5000;
+	int32_t robots_txt_timeout = 1000;
+	vnx::float32_t reload_power = 4;
+	uint32_t index_version = 0;
+	vnx::bool_t do_reprocess = false;
+	std::string user_agent = "Googlebot";
+	std::vector<std::string> protocols;
+	std::vector<std::string> root_urls;
+	std::vector<std::string> domain_blacklist;
+	std::vector<std::string> path_blacklist;
+	std::vector<std::string> regex_blacklist;
 	
 	typedef ::vnx::Module Super;
 	
@@ -74,14 +75,15 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual ::std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const ::int32_t& limit) const = 0;
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
+	virtual void _page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess) = 0;
+	virtual std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const int32_t& limit) const = 0;
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
-	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value, std::shared_ptr<const ::vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value) {}
 	
-	void vnx_handle_switch(std::shared_ptr<const ::vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(vnx::TypeInput& _in, const vnx::TypeCode* _call_type, const vnx::request_id_t& _request_id) override;
+	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
 	
 private:
 	

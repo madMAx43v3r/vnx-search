@@ -15,9 +15,9 @@ namespace search {
 class HttpResponse : public ::vnx::search::Response {
 public:
 	
-	::int32_t status = -1;
-	::std::string content_type;
-	::std::string content_charset;
+	int32_t status = -1;
+	std::string content_type;
+	std::string content_charset;
 	::vnx::Buffer payload;
 	
 	typedef ::vnx::search::Response Super;
