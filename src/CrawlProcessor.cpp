@@ -672,17 +672,16 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 {
 	const Url::Url parsed(url);
 	const auto url_key = get_url_key(parsed);
-	const auto entry = url_fetch_done(url_key, result ? result->info.is_fail : true);
+	const auto entry = url_fetch_done(url_key, result ? result->is_fail : true);
 	
 	if(!result) {
 		return;
 	}
 	auto new_scheme = parsed.scheme();
-	const auto& info = result->info;
 	
-	if(!info.redirect.empty())
+	if(!result->redirect.empty())
 	{
-		const Url::Url parsed_redir(info.redirect);
+		const Url::Url parsed_redir(result->redirect);
 		const auto url_key_redir = get_url_key(parsed_redir);
 		
 		if(url_key_redir != url_key)
@@ -692,18 +691,18 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			log(INFO).out << "Deleted obsolete '" << url_key << "'";
 			
 			if(		entry.depth >= 0
-				&&	info.redirect.size() <= max_url_length
+				&&	result->redirect.size() <= max_url_length
 				&&	filter_url(parsed_redir))
 			{
-				auto copy = info;
-				copy.redirect.clear();
-				url_update(url_key_redir, parsed_redir.scheme(), entry.depth, copy);
+				UrlInfo info = *result;
+				info.redirect.clear();
+				url_update(url_key_redir, parsed_redir.scheme(), entry.depth, info);
 			}
 		} else {
 			new_scheme = parsed_redir.scheme();
 		}
 	}
-	url_update(url_key, new_scheme, entry.depth, info);
+	url_update(url_key, new_scheme, entry.depth, *result);
 	
 	try {
 		if(result->response) {

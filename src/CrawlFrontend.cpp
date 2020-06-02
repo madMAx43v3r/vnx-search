@@ -133,12 +133,16 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 void CrawlFrontend::_fetch_callback(const std::shared_ptr<const HttpResponse>& value,
 									const std::pair<Hash64, uint64_t>& request_id)
 {
+	auto request = pending[request_id];
+	if(!value) {
+		request->callback(request->result);
+		pending.erase(request_id);
+		return;
+	}
 	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_duration_us/1000
-			<< " ms (" << float(value->payload.size() / (value->fetch_duration_us * 1e-6f) / 1024.) << " KB/s)";
+			<< " ms (" << float(value->payload.size() / (value->fetch_duration_us * 1e-6) / 1024.) << " KB/s)";
 	
-	auto& request = pending[request_id];
 	std::multimap<size_t, parser_t*> parser_list;
-	
 	for(auto& entry : parser_map) {
 		auto& parser = entry.second;
 		if(parser.content_types.count(value->content_type)) {
@@ -164,7 +168,7 @@ void CrawlFrontend::parse_callback(	std::shared_ptr<const TextResponse> value,
 	log(INFO).out << "Parsed '" << value->url << "': " << value->text.size() << " bytes, "
 			<< value->links.size() << " links, " << value->images.size() << " images";
 	
-	auto& request = pending[request_id];
+	auto request = pending[request_id];
 	request->result->response = value;
 	request->callback(request->result);
 	pending.erase(request_id);
@@ -218,7 +222,7 @@ void CrawlFrontend::print_stats()
 
 struct fetch_t {
 	std::shared_ptr<CrawlFrontend::request_t> request;
-	std::shared_ptr<HttpResponse> out;
+	std::shared_ptr<HttpResponse> http;
 	const CrawlFrontend* frontend = 0;
 	CURL* client = 0;
 	bool is_begin = true;
@@ -232,13 +236,13 @@ size_t CrawlFrontend::header_callback(char* buffer, size_t size, size_t len, voi
 	if(iequals(line.substr(0, 4), "Date")) {
 		const auto pos = line.find(':');
 		if(pos != std::string::npos) {
-			data->out->date = parse_http_date(line.substr(pos + 1));
+			data->http->date = parse_http_date(line.substr(pos + 1));
 		}
 	}
 	if(iequals(line.substr(0, 13), "Last-Modified")) {
 		const auto pos = line.find(':');
 		if(pos != std::string::npos) {
-			data->out->last_modified = parse_http_date(line.substr(pos + 1));
+			data->http->last_modified = parse_http_date(line.substr(pos + 1));
 		}
 	}
 	return len;
@@ -261,9 +265,9 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 					pos += 8;
 					auto end = content_type.find(';', pos);
 					if(end != std::string::npos) {
-						data->out->content_charset = content_type.substr(pos, end - pos);
+						data->http->content_charset = content_type.substr(pos, end - pos);
 					} else {
-						data->out->content_charset = content_type.substr(pos);
+						data->http->content_charset = content_type.substr(pos);
 					}
 				}
 			}
@@ -292,24 +296,26 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 			data->frontend->invalid_content_type_counter++;
 			return 0;
 		}
-		data->out->content_type = content_type;
+		data->http->content_type = content_type;
 		data->is_begin = false;
 	}
 	
-	const size_t offset = data->out->payload.size();
+	const size_t offset = data->http->payload.size();
 	if(offset + len > data->frontend->max_response_size) {
-		data->out->payload.clear();
+		data->http->payload.clear();
 		data->frontend->invalid_response_size_counter++;
 		return 0;
 	}
-	data->out->payload.resize(offset + len);
-	::memcpy(data->out->payload.data(offset), buf, len);
+	data->http->payload.resize(offset + len);
+	::memcpy(data->http->payload.data(offset), buf, len);
 	return len;
 }
 
 void CrawlFrontend::fetch_loop() const noexcept
 {
 	CrawlFrontendClient frontend(private_addr);
+	
+	::signal(SIGPIPE, SIG_IGN);
 	
 	while(vnx_do_run())
 	{
@@ -327,16 +333,12 @@ void CrawlFrontend::fetch_loop() const noexcept
 			}
 		}
 		
-		auto out = HttpResponse::create();
-		out->url = request->url;
-		out->payload.reserve(1048576);
-		
 		auto result = FetchResult::create();
-		auto* info = &result->info;
-		info->last_fetched = std::time(0);
-		info->is_fail = true;
+		result->last_fetched = std::time(0);
+		result->is_fail = true;
 		
-		::signal(SIGPIPE, SIG_IGN);
+		auto http = HttpResponse::create();
+		http->url = request->url;
 		
 		CURL* client = curl_easy_init();
 		if(!client) {
@@ -345,7 +347,7 @@ void CrawlFrontend::fetch_loop() const noexcept
 		
 		fetch_t fetch_data;
 		fetch_data.request = request;
-		fetch_data.out = out;
+		fetch_data.http = http;
 		fetch_data.frontend = this;
 		fetch_data.client = client;
 		
@@ -387,8 +389,8 @@ void CrawlFrontend::fetch_loop() const noexcept
 					const Url::Url parent(request->url);
 					const auto url = process_link(Url::Url(std::string(final_url)), parent).str();
 					if(url != request->url) {
-						out->url = url;
-						info->redirect = url;
+						http->url = url;
+						result->redirect = url;
 						redirect_counter++;
 					}
 				}
@@ -398,26 +400,24 @@ void CrawlFrontend::fetch_loop() const noexcept
 			}
 		}
 		
-		if(out->content_type.empty() && out->payload.size() == 0) {
-			out->content_type = "text/plain";
+		http->status = status;
+		http->fetch_duration_us = fetch_time;
+		if(!http->date) {
+			http->date = result->last_fetched;
+		}
+		if(!http->last_modified) {
+			http->last_modified = http->date;
+		}
+		if(http->content_type.empty() && http->payload.size() == 0) {
+			http->content_type = "text/plain";
 		}
 		
 		switch(res) {
 			case CURLE_OK:
-				if(status == 200)
-				{
-					out->status = status;
-					out->fetch_duration_us = fetch_time;
-					if(!out->date) {
-						out->date = info->last_fetched;
-					}
-					if(!out->last_modified) {
-						out->last_modified = out->date;
-					}
-					info->is_fail = false;
+				if(status == 200) {
+					result->is_fail = false;
 					fetch_counter++;
-				}
-				else {
+				} else {
 					server_fail_counter++;
 				}
 				break;
@@ -452,19 +452,23 @@ void CrawlFrontend::fetch_loop() const noexcept
 				general_fail_counter++;
 		}
 		
-		info->fetch_duration_us = fetch_time;
-		info->http_status = status;
-		info->num_bytes = out->payload.size();
-		info->content_type = out->content_type;
-		info->last_modified = out->last_modified;
-		info->curl_status = res;
+		result->fetch_duration_us = fetch_time;
+		result->http_status = status;
+		result->num_bytes = http->payload.size();
+		result->content_type = http->content_type;
+		result->last_modified = http->last_modified;
+		result->curl_status = res;
 		
 		curl_easy_cleanup(client);
 		
+		if(result->is_fail) {
+			http = 0;
+		}
+		
 		try {
 			request->result = result;
-			request->response = out;
-			frontend._fetch_callback_async(out, request->request_id);
+			request->response = http;
+			frontend._fetch_callback_async(http, request->request_id);
 		}
 		catch(...) {
 			auto ex = Exception::create();

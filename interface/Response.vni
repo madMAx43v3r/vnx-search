@@ -4,8 +4,6 @@ class Response {
 	
 	string url;
 	
-	string profile;
-	
 	long date;						// posix timestamp [s]
 	
 	long last_modified;				// posix timestamp [s]
