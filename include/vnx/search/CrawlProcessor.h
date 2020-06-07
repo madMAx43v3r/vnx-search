@@ -70,7 +70,7 @@ protected:
 	
 	void main() override;
 	
-	std::shared_ptr<const CrawlStats> get_stats(const int32_t& limit) const override;
+	Object get_stats(const int32_t& limit) const override;
 	
 	void handle(std::shared_ptr<const TextResponse> value) override;
 	

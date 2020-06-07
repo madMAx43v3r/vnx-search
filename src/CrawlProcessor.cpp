@@ -7,7 +7,6 @@
 
 #include <vnx/search/CrawlProcessor.h>
 #include <vnx/search/Util.h>
-#include <vnx/search/CrawlStats.hxx>
 
 #include <unicode/unistr.h>
 #include <unicode/brkiter.h>
@@ -78,7 +77,7 @@ void CrawlProcessor::main()
 	for(const auto& url : root_urls)
 	{
 		const auto parsed = process_url(Url::Url(url));
-		url_index_async->get_value(get_url_key(parsed),
+		url_index_async->get_value(Variant(get_url_key(parsed)),
 				std::bind(&CrawlProcessor::check_url, this, parsed, 0, std::placeholders::_1));
 	}
 	
@@ -115,7 +114,7 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	auto content = PageContent::create();
 	content->text = value->text;
 	
-	page_content_async->store_value(url_key, content);
+	page_content_async->store_value(Variant(url_key), content);
 	
 	if(is_robots_txt(parent)) {
 		robots_txt_callback(url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, content);
@@ -146,12 +145,12 @@ void CrawlProcessor::_page_process_callback(const std::string& url_key,
 											const std::shared_ptr<const ::vnx::search::PageIndex>& index,
 											const bool& is_reprocess)
 {
-	page_index_async->store_value(url_key, index);
+	page_index_async->store_value(Variant(url_key), index);
 	
 	if(is_reprocess) {
 		reproc_counter++;
 	} else {
-		url_index_async->get_value(url_key,
+		url_index_async->get_value(Variant(url_key),
 						std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
 		
 		log(INFO).out << "Processed '" << url_key << "': " << index->words.size() << " index words, "
@@ -276,10 +275,10 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 			if(do_reprocess) {
 				const Url::Url parsed(url_key);
 				if(is_robots_txt(parsed)) {
-					page_index_async->delete_value(url_key);
+					page_index_async->delete_value(Variant(url_key));
 				} else if(filter_url(parsed)) {
 					if(index->version < index_version) {
-						page_content_async->get_value(url_key,
+						page_content_async->get_value(Variant(url_key),
 								std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
 					}
 				} else {
@@ -293,9 +292,9 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 
 void CrawlProcessor::delete_url(const std::string& url_key)
 {
-	url_index_async->delete_value(url_key);
-	page_index_async->delete_value(url_key);
-	page_content_async->delete_value(url_key);
+	url_index_async->delete_value(Variant(url_key));
+	page_index_async->delete_value(Variant(url_key));
+	page_content_async->delete_value(Variant(url_key));
 	delete_counter++;
 	log(INFO).out << "Deleted '" << url_key << "'";
 }
@@ -420,14 +419,14 @@ void CrawlProcessor::check_queue()
 			pending_robots_txt++;
 			switch(domain.robots_state) {
 				case ROBOTS_TXT_UNKNOWN:
-					url_index_async->get_value(link_key,
+					url_index_async->get_value(Variant(link_key),
 							std::bind(&CrawlProcessor::check_url, this, Url::Url(link_url), -1, std::placeholders::_1));
 					domain.robot_start_time = now_posix;
 					domain.robots_state = ROBOTS_TXT_PENDING;
 					continue;
 				case ROBOTS_TXT_PENDING: {
 					const bool is_timeout = now_posix - domain.robot_start_time > robots_txt_timeout;
-					page_content_async->get_value(link_key, std::bind(&CrawlProcessor::robots_txt_callback, this, link_key,
+					page_content_async->get_value(Variant(link_key), std::bind(&CrawlProcessor::robots_txt_callback, this, link_key,
 									is_timeout ? ROBOTS_TXT_TIMEOUT : ROBOTS_TXT_PENDING, std::placeholders::_1));
 					continue;
 				}
@@ -549,7 +548,7 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 							domain->robots_state = ROBOTS_TXT_MISSING;
 							domain->robots_txt = 0;
 						} else {
-							page_content_async->get_value(url_key,
+							page_content_async->get_value(Variant(url_key),
 									std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
 						}
 					} else {
@@ -573,7 +572,7 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 				auto copy = vnx::clone(index);
 				copy->scheme = parsed.scheme();
 				copy->depth = depth;
-				url_index_async->store_value(url_key, copy);
+				url_index_async->store_value(Variant(url_key), copy);
 			}
 		} else {
 			delete_url(url_key);
@@ -583,7 +582,7 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 		index->scheme = parsed.scheme();
 		index->depth = depth;
 		index->first_seen = std::time(0);
-		url_index_async->store_value(url_key, index);
+		url_index_async->store_value(Variant(url_key), index);
 		enqueue(url, depth);
 	}
 }
@@ -625,7 +624,7 @@ void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shar
 		
 		if(link_depth <= max_depth)
 		{
-			url_index_async->get_value(get_url_key(parsed),
+			url_index_async->get_value(Variant(get_url_key(parsed)),
 					std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
 		}
 	}
@@ -686,8 +685,8 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		
 		if(url_key_redir != url_key)
 		{
-			page_index_async->delete_value(url_key);
-			page_content_async->delete_value(url_key);
+			page_index_async->delete_value(Variant(url_key));
+			page_content_async->delete_value(Variant(url_key));
 			log(INFO).out << "Deleted obsolete '" << url_key << "'";
 			
 			if(		entry.depth >= 0
@@ -719,7 +718,7 @@ void CrawlProcessor::url_update(	const std::string& url_key,
 									const int new_depth,
 									const UrlInfo& info)
 {
-	url_index_async->get_value(url_key,
+	url_index_async->get_value(Variant(url_key),
 						std::bind(&CrawlProcessor::url_update_callback, this,
 								url_key, new_scheme, new_depth, info, std::placeholders::_1));
 }
@@ -749,7 +748,7 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 		index->fetch_count = 1;
 		index->depth = new_depth;
 	}
-	url_index_async->store_value(url_key, index);
+	url_index_async->store_value(Variant(url_key), index);
 	
 	if(info.is_fail) {
 		error_counter++;
@@ -825,51 +824,42 @@ void CrawlProcessor::page_content_error(uint64_t request_id, const std::exceptio
 	log(WARN).out << "PageContent: " << ex.what();
 }
 
-std::shared_ptr<const CrawlStats> CrawlProcessor::get_stats(const int32_t& limit) const
+Object CrawlProcessor::get_stats(const int32_t& limit) const
 {
-	auto stats = CrawlStats::create();
-	stats->num_fetched = fetch_counter;
-	stats->num_errors = error_counter;
-	stats->num_reload = reload_counter;
-	stats->num_domains = domain_map.size();
-	stats->num_queued = url_map.size();
-	stats->num_waiting = waiting.size();
+	Object stats;
+	stats["num_fetched"] = fetch_counter;
+	stats["num_errors"] = error_counter;
+	stats["num_reload"] = reload_counter;
+	stats["num_domains"] = domain_map.size();
+	stats["num_queued"] = url_map.size();
+	stats["num_waiting"] = waiting.size();
 	{
-		std::vector<crawl_domain_stats_t> domains;
-		domains.reserve(domain_map.size());
+		std::multimap<int64_t, Object, std::greater<int64_t>> sorted_fetched;
+		std::multimap<int64_t, Object, std::greater<int64_t>> sorted_queued;
 		for(const auto& entry : domain_map) {
-			crawl_domain_stats_t dstats;
-			dstats.host = entry.first;
-			dstats.num_fetched = entry.second.num_fetched;
-			dstats.num_errors = entry.second.num_errors;
-			dstats.num_disallowed = entry.second.num_disallowed;
-			dstats.num_queued = entry.second.queue.size();
-			dstats.has_robots_txt = entry.second.robots_state == ROBOTS_TXT_FOUND;
-			domains.push_back(dstats);
+			Object domain;
+			domain["host"] = entry.first;
+			domain["num_fetched"] = entry.second.num_fetched;
+			domain["num_errors"] = entry.second.num_errors;
+			domain["num_disallowed"] = entry.second.num_disallowed;
+			domain["num_queued"] = entry.second.queue.size();
+			domain["has_robots_txt"] = entry.second.robots_state == ROBOTS_TXT_FOUND;
+			limited_emplace(sorted_fetched, entry.second.num_fetched, domain, size_t(limit));
+			limited_emplace(sorted_queued, entry.second.queue.size(), domain, size_t(limit));
 		}
 		{
-			std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> sorted;
-			for(const auto& entry : domains) {
-				limited_emplace(sorted, entry.num_fetched, entry, size_t(limit));
+			std::vector<Object> list;
+			for(const auto& entry : sorted_fetched) {
+				list.push_back(entry.second);
 			}
-			for(const auto& entry : sorted) {
-				stats->most_fetched.push_back(entry.second);
-				if(stats->most_fetched.size() >= size_t(limit)) {
-					break;
-				}
-			}
+			stats["most_fetched"] = list;
 		}
 		{
-			std::multimap<int64_t, crawl_domain_stats_t, std::greater<int64_t>> sorted;
-			for(const auto& entry : domains) {
-				limited_emplace(sorted, entry.num_queued, entry, size_t(limit));
+			std::vector<Object> list;
+			for(const auto& entry : sorted_queued) {
+				list.push_back(entry.second);
 			}
-			for(const auto& entry : sorted) {
-				stats->most_queued.push_back(entry.second);
-				if(stats->most_queued.size() >= size_t(limit)) {
-					break;
-				}
-			}
+			stats["most_queued"] = list;
 		}
 	}
 	return stats;

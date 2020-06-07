@@ -7,10 +7,8 @@
 
 #include <vnx/search/SearchEngineClient.hxx>
 
-#include <vnx/Config.h>
-#include <vnx/Process.h>
+#include <vnx/vnx.h>
 #include <vnx/Proxy.h>
-#include <vnx/PrettyPrinter.h>
 
 
 int main(int argc, char** argv)

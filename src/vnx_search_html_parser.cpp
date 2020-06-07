@@ -7,8 +7,7 @@
 
 #include <vnx/search/HtmlParser.h>
 
-#include <vnx/Config.h>
-#include <vnx/Process.h>
+#include <vnx/vnx.h>
 #include <vnx/Terminal.h>
 #include <vnx/Proxy.h>
 

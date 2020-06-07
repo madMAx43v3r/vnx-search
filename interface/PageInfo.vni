@@ -2,8 +2,10 @@ package vnx.search;
 
 class PageInfo {
 	
-	ulong version;					// database version
+	uint id;						// page id
 	
-	string url_key;
+	ulong version;					// word context version
+	
+	vector<uint> words;
 	
 }

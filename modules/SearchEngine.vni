@@ -16,6 +16,8 @@ module SearchEngine {
 	
 	int max_query_pages = 1000;
 	
+	int max_word_cache = 1000000;
+	
 	int num_query_threads = 4;
 	
 	int num_update_threads = 4;

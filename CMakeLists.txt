@@ -37,6 +37,7 @@ target_include_directories(vnx_search
 		include
 		generated/include
 		lib/url-cpp/include
+		lib/libstx/include
 	PRIVATE
 		lib/libxmlplusplus
 		lib/robotstxt

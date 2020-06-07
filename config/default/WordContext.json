@@ -1,0 +1,5 @@
+{
+	"rewrite_threshold": 0.25,
+	"rewrite_chunk_count": 10000,
+	"rewrite_chunk_size": 4194304
+}

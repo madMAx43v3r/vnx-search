@@ -10,8 +10,7 @@
 #include <vnx/search/PlainTextParser.h>
 #include <vnx/search/CrawlFrontendClient.hxx>
 
-#include <vnx/Config.h>
-#include <vnx/Process.h>
+#include <vnx/vnx.h>
 #include <vnx/Terminal.h>
 #include <vnx/Server.h>
 

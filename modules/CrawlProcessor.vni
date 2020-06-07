@@ -61,7 +61,7 @@ module CrawlProcessor {
 	vector<string> regex_blacklist;
 	
 	
-	CrawlStats* get_stats(int limit) const;
+	vnx.Object get_stats(int limit) const;
 	
 	void _page_process_callback(string url_key, PageIndex* index, bool is_reprocess);
 	

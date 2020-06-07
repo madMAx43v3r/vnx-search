@@ -1,6 +1,7 @@
 {
-	"max_query_pages": 1000,
+	"max_query_pages": 3000,
 	"num_update_threads": 8,
-	"num_query_threads": 4,
-	"commit_interval": 10000
+	"num_query_threads": 8,
+	"commit_interval": 10000,
+	"max_word_cache": 3000000
 }

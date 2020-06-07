@@ -2,8 +2,10 @@ package vnx.search;
 
 class WordContext {
 	
+	uint id;						// word id
+	
 	long last_update;				// posix [sec]
 	
-	vector<pair<uint, ushort>> pages;			// (page_id => sqrt(weight))
+	vector<pair<uint, ushort>> pages;			// [page_id, weight]
 	
 }
