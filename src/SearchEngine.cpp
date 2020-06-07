@@ -1017,7 +1017,7 @@ void SearchEngine::update_loop() noexcept
 			
 			const auto iter = word_index.find(word_id);
 			if(iter != word_index.end()) {
-				word = iter->second.value;
+				word = iter->second.value.str();
 			} else {
 				log(WARN).out << "update_loop(): invalid word id: " << word_id;
 				continue;
