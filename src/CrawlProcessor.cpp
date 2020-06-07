@@ -425,7 +425,7 @@ void CrawlProcessor::check_queue()
 					domain.robots_state = ROBOTS_TXT_PENDING;
 					continue;
 				case ROBOTS_TXT_PENDING: {
-					const bool is_timeout = now_posix - domain.robot_start_time > robots_txt_timeout;
+					const bool is_timeout = now_posix - domain.robot_start_time > robots_timeout;
 					page_content_async->get_value(Variant(link_key), std::bind(&CrawlProcessor::robots_txt_callback, this, link_key,
 									is_timeout ? ROBOTS_TXT_TIMEOUT : ROBOTS_TXT_PENDING, std::placeholders::_1));
 					continue;
@@ -532,7 +532,7 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 		depth = std::min(depth, index->depth);
 		if(is_robots) {
 			if(index->last_fetched > 0) {
-				int64_t load_delay = 2678400;
+				int64_t load_delay = robots_reload_interval;
 				if(index->http_status < 0) {
 					load_delay = std::min(int64_t(pow(index->fetch_count, reload_power) * error_reload_interval), load_delay);
 				}

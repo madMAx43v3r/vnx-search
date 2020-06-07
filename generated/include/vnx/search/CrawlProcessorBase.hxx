@@ -38,7 +38,8 @@ public:
 	int32_t num_worker_threads = 4;
 	int32_t check_interval_ms = 500;
 	int32_t update_interval_ms = 5000;
-	int32_t robots_txt_timeout = 1000;
+	int32_t robots_timeout = 1000;
+	int32_t robots_reload_interval = 1209600;
 	vnx::float32_t reload_power = 4;
 	uint32_t index_version = 0;
 	vnx::bool_t do_reprocess = false;

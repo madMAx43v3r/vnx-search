@@ -40,7 +40,9 @@ module CrawlProcessor {
 	
 	int update_interval_ms = 5000;			// queue update
 	
-	int robots_txt_timeout = 1000;			// max time to wait for robots.txt [sec]
+	int robots_timeout = 1000;				// max time to wait for robots.txt [sec]
+	
+	int robots_reload_interval = 2678400;	// [sec]
 	
 	float reload_power = 4;
 	
