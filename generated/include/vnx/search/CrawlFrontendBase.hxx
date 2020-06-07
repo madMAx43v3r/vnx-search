@@ -5,9 +5,9 @@
 #define INCLUDE_vnx_search_CrawlFrontendBase_HXX_
 
 #include <vnx/search/package.hxx>
-#include <vnx/Hash64.h>
+#include <vnx/Hash64.hpp>
 #include <vnx/Module.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
 #include <vnx/search/HttpResponse.hxx>
 

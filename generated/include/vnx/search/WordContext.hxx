@@ -14,6 +14,7 @@ namespace search {
 class WordContext : public ::vnx::Value {
 public:
 	
+	uint32_t id = 0;
 	int64_t last_update = 0;
 	std::vector<std::pair<uint32_t, uint16_t>> pages;
 	

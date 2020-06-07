@@ -5,7 +5,7 @@
 #define INCLUDE_vnx_search_SearchEngine_get_domain_list_return_HXX_
 
 #include <vnx/search/package.hxx>
-#include <vnx/Object.h>
+#include <vnx/Object.hpp>
 #include <vnx/Value.h>
 
 

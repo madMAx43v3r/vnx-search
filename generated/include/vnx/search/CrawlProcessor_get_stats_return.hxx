@@ -5,8 +5,8 @@
 #define INCLUDE_vnx_search_CrawlProcessor_get_stats_return_HXX_
 
 #include <vnx/search/package.hxx>
+#include <vnx/Object.hpp>
 #include <vnx/Value.h>
-#include <vnx/search/CrawlStats.hxx>
 
 
 namespace vnx {
@@ -15,7 +15,7 @@ namespace search {
 class CrawlProcessor_get_stats_return : public ::vnx::Value {
 public:
 	
-	std::shared_ptr<const ::vnx::search::CrawlStats> _ret_0;
+	::vnx::Object _ret_0;
 	
 	typedef ::vnx::Value Super;
 	

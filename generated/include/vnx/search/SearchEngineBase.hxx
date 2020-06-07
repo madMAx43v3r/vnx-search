@@ -6,8 +6,8 @@
 
 #include <vnx/search/package.hxx>
 #include <vnx/Module.h>
-#include <vnx/Object.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/Object.hpp>
+#include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/search/SearchResult.hxx>
@@ -26,6 +26,7 @@ public:
 	std::string page_index_server = "PageIndex";
 	std::string page_content_server = "PageContent";
 	int32_t max_query_pages = 1000;
+	int32_t max_word_cache = 1000000;
 	int32_t num_query_threads = 4;
 	int32_t num_update_threads = 4;
 	int32_t commit_interval = 3600;

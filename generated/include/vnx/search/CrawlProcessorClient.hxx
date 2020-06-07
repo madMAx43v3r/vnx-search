@@ -6,9 +6,9 @@
 
 #include <vnx/Client.h>
 #include <vnx/Module.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/Object.hpp>
+#include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/CrawlStats.hxx>
 #include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
@@ -26,7 +26,7 @@ public:
 	
 	void _page_process_callback_async(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess);
 	
-	std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const int32_t& limit);
+	::vnx::Object get_stats(const int32_t& limit);
 	
 };
 

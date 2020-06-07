@@ -5,7 +5,7 @@
 #define INCLUDE_vnx_search_CrawlFrontend__fetch_callback_HXX_
 
 #include <vnx/search/package.hxx>
-#include <vnx/Hash64.h>
+#include <vnx/Hash64.hpp>
 #include <vnx/Value.h>
 #include <vnx/search/HttpResponse.hxx>
 

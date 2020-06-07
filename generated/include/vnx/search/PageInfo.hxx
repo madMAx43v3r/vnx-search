@@ -14,9 +14,9 @@ namespace search {
 class PageInfo : public ::vnx::Value {
 public:
 	
+	uint32_t id = 0;
 	uint64_t version = 0;
-	std::string url_key;
-	std::vector<std::string> words;
+	std::vector<uint32_t> words;
 	
 	typedef ::vnx::Value Super;
 	

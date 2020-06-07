@@ -5,7 +5,7 @@
 #define INCLUDE_vnx_search_HttpResponse_HXX_
 
 #include <vnx/search/package.hxx>
-#include <vnx/Buffer.h>
+#include <vnx/Buffer.hpp>
 #include <vnx/search/Response.hxx>
 
 

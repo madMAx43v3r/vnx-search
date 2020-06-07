@@ -6,9 +6,9 @@
 
 #include <vnx/search/package.hxx>
 #include <vnx/Module.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/Object.hpp>
+#include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/CrawlStats.hxx>
 #include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
@@ -76,7 +76,7 @@ public:
 	
 protected:
 	virtual void _page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess) = 0;
-	virtual std::shared_ptr<const ::vnx::search::CrawlStats> get_stats(const int32_t& limit) const = 0;
+	virtual ::vnx::Object get_stats(const int32_t& limit) const = 0;
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }

@@ -6,8 +6,8 @@
 
 #include <vnx/AsyncClient.h>
 #include <vnx/Module.h>
-#include <vnx/Object.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/Object.hpp>
+#include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/search/SearchResult.hxx>

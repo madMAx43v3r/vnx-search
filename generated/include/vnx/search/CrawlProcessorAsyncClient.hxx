@@ -6,9 +6,9 @@
 
 #include <vnx/AsyncClient.h>
 #include <vnx/Module.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/Object.hpp>
+#include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/CrawlStats.hxx>
 #include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
@@ -26,7 +26,7 @@ public:
 			const std::function<void()>& _callback = std::function<void()>());
 	
 	uint64_t get_stats(const int32_t& limit, 
-			const std::function<void(std::shared_ptr<const ::vnx::search::CrawlStats>)>& _callback = std::function<void(std::shared_ptr<const ::vnx::search::CrawlStats>)>());
+			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	
@@ -37,7 +37,7 @@ protected:
 	
 private:
 	std::map<uint64_t, std::function<void()>> vnx_queue__page_process_callback;
-	std::map<uint64_t, std::function<void(std::shared_ptr<const ::vnx::search::CrawlStats>)>> vnx_queue_get_stats;
+	std::map<uint64_t, std::function<void(::vnx::Object)>> vnx_queue_get_stats;
 	
 };
 
