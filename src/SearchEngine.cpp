@@ -1040,7 +1040,7 @@ void SearchEngine::update_loop() noexcept
 		for(const auto& entry : p_word_cache->add_pages)
 		{
 			const float tmp = powf(entry.second, word_power);
-			new_pages.emplace(entry.first, std::max(std::min(int(tmp * (0xFFFF * 10)), 0xFFFF), 1));
+			new_pages.emplace(entry.first, std::max(std::min(int(tmp * (0xFFFF * word_cutoff)), 0xFFFF), 1));
 		}
 		for(const auto page_id : p_word_cache->rem_pages)
 		{

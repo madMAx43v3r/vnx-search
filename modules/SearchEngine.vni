@@ -26,6 +26,8 @@ module SearchEngine {
 	
 	int stats_interval_ms = 10000;
 	
+	int word_cutoff = 100;					// minimum total word count for weighting
+	
 	float word_power = 1;					// word frequency non-linearity
 	
 	vector<string> protocols;				// protocols to allow as links
