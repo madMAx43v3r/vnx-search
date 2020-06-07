@@ -723,8 +723,8 @@ void SearchEngine::update_words(const uint32_t page_id,
 	const float inv_word_count = 1.f / index->word_count;
 	
 	struct word_info_t {
-		int mode = 0;
-		uint16_t weight = 0;
+		short mode = 0;
+		uint16_t count = 0;
 	};
 	
 	std::unordered_map<uint32_t, word_info_t> words;
@@ -736,7 +736,7 @@ void SearchEngine::update_words(const uint32_t page_id,
 			const auto word_id = get_word(entry.first).id;
 			auto& info = words[word_id];
 			info.mode++;
-			info.weight = entry.second;
+			info.count = entry.second;
 		}
 	}
 	{
@@ -766,7 +766,7 @@ void SearchEngine::update_words(const uint32_t page_id,
 			update_queue.emplace(now_wall_us, p_word_cache);
 		}
 		if(entry.second.mode >= 0) {
-			p_word_cache->add_pages.emplace_back(page_id, entry.second.weight * inv_word_count);
+			p_word_cache->add_pages.emplace_back(page_id, entry.second.count * inv_word_count);
 			r_page_cache.num_pending++;
 		}
 		if(entry.second.mode <= 0) {
