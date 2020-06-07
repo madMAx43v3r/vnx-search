@@ -415,12 +415,11 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 						// both old and new pages exist
 						for(const auto parent_id : org_page->reverse_links)
 						{
-							const auto parent_iter = page_index.find(parent_id);
-							if(parent_iter != page_index.end()) {
-								auto& parent = parent_iter->second;
-								unique_push_back(parent.links, new_page_id);
-								unique_push_back(new_page->reverse_links, parent.id);
-								unique_push_back(new_page->reverse_domains, parent.domain_id);
+							auto* parent = find_page(parent_id);
+							if(parent) {
+								unique_push_back(parent->links, new_page_id);
+								unique_push_back(new_page->reverse_links, parent->id);
+								unique_push_back(new_page->reverse_domains, parent->domain_id);
 							}
 						}
 					} else {
@@ -453,12 +452,11 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 					
 					for(auto entry = range.first; entry != range.second; ++entry)
 					{
-						const auto parent_iter = page_index.find(entry->second);
-						if(parent_iter != page_index.end()) {
-							auto& parent = parent_iter->second;
-							unique_push_back(parent.links, new_page_id);
-							unique_push_back(new_page->reverse_links, parent.id);
-							unique_push_back(new_page->reverse_domains, parent.domain_id);
+						auto* parent = find_page(entry->second);
+						if(parent) {
+							unique_push_back(parent->links, new_page_id);
+							unique_push_back(new_page->reverse_links, parent->id);
+							unique_push_back(new_page->reverse_domains, parent->domain_id);
 						}
 					}
 					open_links.erase(range.first, range.second);
