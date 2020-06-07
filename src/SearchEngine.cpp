@@ -1069,17 +1069,13 @@ void SearchEngine::update_loop() noexcept
 					list.emplace_back(uint64_t(weight) * page->reverse_domains.size(), entry);
 				}
 			}
-		}
-		std::sort(list.begin(), list.end(), std::greater<std::pair<uint64_t, std::pair<uint32_t, uint16_t>>>());
-		
-		{
-			std::shared_lock lock(index_mutex);
 			
 			const auto iter = word_index.find(word_id);
 			if(iter != word_index.end()) {
 				iter->second.num_pages = list.size();
 			}
 		}
+		std::sort(list.begin(), list.end(), std::greater<std::pair<uint64_t, std::pair<uint32_t, uint16_t>>>());
 		
 		try {
 			if(list.size()) {
