@@ -9,7 +9,6 @@
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -22,22 +21,19 @@ public:
 	
 	CrawlProcessorAsyncClient(vnx::Hash64 service_addr);
 	
-	uint64_t _page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess, 
-			const std::function<void()>& _callback = std::function<void()>());
-	
 	uint64_t get_stats(const int32_t& limit, 
-			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>());
+			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	
 protected:
-	void vnx_purge_request(uint64_t _request_id) override;
+	void vnx_purge_request(uint64_t _request_id, const std::exception& _ex) override;
 	
 	void vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) override;
 	
 private:
-	std::map<uint64_t, std::function<void()>> vnx_queue__page_process_callback;
-	std::map<uint64_t, std::function<void(::vnx::Object)>> vnx_queue_get_stats;
+	std::map<uint64_t, std::pair<std::function<void(::vnx::Object)>, std::function<void(const std::exception&)>>> vnx_queue_get_stats;
 	
 };
 

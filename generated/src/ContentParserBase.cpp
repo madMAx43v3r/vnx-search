@@ -118,10 +118,10 @@ std::shared_ptr<vnx::TypeCode> ContentParserBase::static_create_type_code() {
 void ContentParserBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 }
 
-std::shared_ptr<vnx::Value> ContentParserBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) {
-	const auto _type_hash = _value->get_type_hash();
+std::shared_ptr<vnx::Value> ContentParserBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
+	const auto _type_hash = _method->get_type_hash();
 	if(_type_hash == vnx::Hash64(0x3a3496c5361fbf35ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::ContentParser_parse>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::ContentParser_parse>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -131,7 +131,7 @@ std::shared_ptr<vnx::Value> ContentParserBase::vnx_call_switch(std::shared_ptr<c
 	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
-	_ex->method = _value->get_type_name();
+	_ex->method = _method->get_type_name();
 	return _ex;
 }
 

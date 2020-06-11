@@ -24,45 +24,53 @@ public:
 	SearchEngineAsyncClient(vnx::Hash64 service_addr);
 	
 	uint64_t get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset, 
-			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>());
+			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t get_domain_list(const int32_t& limit, const uint32_t& offset, 
-			const std::function<void(std::vector<::vnx::Object>)>& _callback = std::function<void(std::vector<::vnx::Object>)>());
+			const std::function<void(std::vector<::vnx::Object>)>& _callback = std::function<void(std::vector<::vnx::Object>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t get_page_info(const std::string& url_key, 
-			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>());
+			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags, 
-			const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback = std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>());
+			const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback = std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t reverse_domain_lookup(const std::string& url_key, 
-			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>());
+			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t reverse_lookup(const std::string& url_key, 
-			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>());
+			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t suggest_domains(const std::string& prefix, const int32_t& limit, 
-			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>());
+			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t suggest_words(const std::string& prefix, const int32_t& limit, 
-			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>());
+			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	
 protected:
-	void vnx_purge_request(uint64_t _request_id) override;
+	void vnx_purge_request(uint64_t _request_id, const std::exception& _ex) override;
 	
 	void vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) override;
 	
 private:
-	std::map<uint64_t, std::function<void(::vnx::Object)>> vnx_queue_get_domain_info;
-	std::map<uint64_t, std::function<void(std::vector<::vnx::Object>)>> vnx_queue_get_domain_list;
-	std::map<uint64_t, std::function<void(::vnx::Object)>> vnx_queue_get_page_info;
-	std::map<uint64_t, std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>> vnx_queue_query;
-	std::map<uint64_t, std::function<void(std::vector<std::string>)>> vnx_queue_reverse_domain_lookup;
-	std::map<uint64_t, std::function<void(std::vector<std::string>)>> vnx_queue_reverse_lookup;
-	std::map<uint64_t, std::function<void(std::vector<std::string>)>> vnx_queue_suggest_domains;
-	std::map<uint64_t, std::function<void(std::vector<std::string>)>> vnx_queue_suggest_words;
+	std::map<uint64_t, std::pair<std::function<void(::vnx::Object)>, std::function<void(const std::exception&)>>> vnx_queue_get_domain_info;
+	std::map<uint64_t, std::pair<std::function<void(std::vector<::vnx::Object>)>, std::function<void(const std::exception&)>>> vnx_queue_get_domain_list;
+	std::map<uint64_t, std::pair<std::function<void(::vnx::Object)>, std::function<void(const std::exception&)>>> vnx_queue_get_page_info;
+	std::map<uint64_t, std::pair<std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>, std::function<void(const std::exception&)>>> vnx_queue_query;
+	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_reverse_domain_lookup;
+	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_reverse_lookup;
+	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_suggest_domains;
+	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_suggest_words;
 	
 };
 

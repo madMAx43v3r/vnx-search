@@ -9,7 +9,6 @@
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -21,10 +20,6 @@ public:
 	CrawlProcessorClient(const std::string& service_name);
 	
 	CrawlProcessorClient(vnx::Hash64 service_addr);
-	
-	void _page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess);
-	
-	void _page_process_callback_async(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess);
 	
 	::vnx::Object get_stats(const int32_t& limit);
 	

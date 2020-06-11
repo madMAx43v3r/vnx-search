@@ -341,10 +341,10 @@ void SearchEngineBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sam
 	}
 }
 
-std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) {
-	const auto _type_hash = _value->get_type_hash();
+std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
+	const auto _type_hash = _method->get_type_hash();
 	if(_type_hash == vnx::Hash64(0xc775a7413dab0511ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -352,7 +352,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 		_return_value->_ret_0 = get_domain_info(_args->host, _args->limit, _args->offset);
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x6852b566cb5e7ba5ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -360,7 +360,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 		_return_value->_ret_0 = get_domain_list(_args->limit, _args->offset);
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x8f4b73a7bd7a8effull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -368,14 +368,14 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 		_return_value->_ret_0 = get_page_info(_args->url_key);
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x14a6c3ff80018ce8ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_query>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_query>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		query_async(_args->words, _args->limit, _args->offset, _args->flags, std::bind(&SearchEngineBase::query_async_callback, this, _request_id, std::placeholders::_1), _request_id);
+		query_async(_args->words, _args->limit, _args->offset, _args->flags, _request_id);
 		return 0;
 	} else if(_type_hash == vnx::Hash64(0x70967f585e137c7dull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -383,7 +383,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 		_return_value->_ret_0 = reverse_domain_lookup(_args->url_key);
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x4e3b1cbd5cbd42afull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_lookup>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_lookup>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -391,7 +391,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 		_return_value->_ret_0 = reverse_lookup(_args->url_key);
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x1abdd70e75f411b3ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -399,7 +399,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 		_return_value->_ret_0 = suggest_domains(_args->prefix, _args->limit);
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x7124d7bfda1b31f2ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_words>(_value);
+		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_words>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
@@ -409,11 +409,11 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
-	_ex->method = _value->get_type_name();
+	_ex->method = _method->get_type_name();
 	return _ex;
 }
 
-void SearchEngineBase::query_async_callback(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) {
+void SearchEngineBase::query_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) const {
 	auto _return_value = ::vnx::search::SearchEngine_query_return::create();
 	_return_value->_ret_0 = _ret_0;
 	vnx_async_callback(_request_id, _return_value);

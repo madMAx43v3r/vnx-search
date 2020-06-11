@@ -9,7 +9,6 @@
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -39,7 +38,7 @@ public:
 	int32_t check_interval_ms = 500;
 	int32_t update_interval_ms = 5000;
 	int32_t robots_timeout = 1000;
-	int32_t robots_reload_interval = 1209600;
+	int32_t robots_reload_interval = 2678400;
 	vnx::float32_t reload_power = 4;
 	uint32_t index_version = 0;
 	vnx::bool_t do_reprocess = false;
@@ -76,7 +75,6 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual void _page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess) = 0;
 	virtual ::vnx::Object get_stats(const int32_t& limit) const = 0;
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
@@ -84,9 +82,7 @@ protected:
 	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
-	
-private:
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;
 	
 };
 

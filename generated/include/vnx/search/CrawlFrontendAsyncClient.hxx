@@ -9,7 +9,6 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
-#include <vnx/search/HttpResponse.hxx>
 
 
 namespace vnx {
@@ -21,26 +20,24 @@ public:
 	
 	CrawlFrontendAsyncClient(vnx::Hash64 service_addr);
 	
-	uint64_t _fetch_callback(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id, 
-			const std::function<void()>& _callback = std::function<void()>());
-	
 	uint64_t fetch(const std::string& url, 
-			const std::function<void(std::shared_ptr<const ::vnx::search::FetchResult>)>& _callback = std::function<void(std::shared_ptr<const ::vnx::search::FetchResult>)>());
+			const std::function<void(std::shared_ptr<const ::vnx::search::FetchResult>)>& _callback = std::function<void(std::shared_ptr<const ::vnx::search::FetchResult>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads, 
-			const std::function<void()>& _callback = std::function<void()>());
+			const std::function<void()>& _callback = std::function<void()>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	std::vector<uint64_t> vnx_get_pending_ids() const override;
 	
 protected:
-	void vnx_purge_request(uint64_t _request_id) override;
+	void vnx_purge_request(uint64_t _request_id, const std::exception& _ex) override;
 	
 	void vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) override;
 	
 private:
-	std::map<uint64_t, std::function<void()>> vnx_queue__fetch_callback;
-	std::map<uint64_t, std::function<void(std::shared_ptr<const ::vnx::search::FetchResult>)>> vnx_queue_fetch;
-	std::map<uint64_t, std::function<void()>> vnx_queue_register_parser;
+	std::map<uint64_t, std::pair<std::function<void(std::shared_ptr<const ::vnx::search::FetchResult>)>, std::function<void(const std::exception&)>>> vnx_queue_fetch;
+	std::map<uint64_t, std::pair<std::function<void()>, std::function<void(const std::exception&)>>> vnx_queue_register_parser;
 	
 };
 

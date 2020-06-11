@@ -8,11 +8,8 @@
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/CrawlProcessor__page_process_callback.hxx>
-#include <vnx/search/CrawlProcessor__page_process_callback_return.hxx>
 #include <vnx/search/CrawlProcessor_get_stats.hxx>
 #include <vnx/search/CrawlProcessor_get_stats_return.hxx>
-#include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -30,26 +27,13 @@ CrawlProcessorClient::CrawlProcessorClient(vnx::Hash64 service_addr)
 {
 }
 
-void CrawlProcessorClient::_page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess) {
-	auto _method = ::vnx::search::CrawlProcessor__page_process_callback::create();
-	_method->url_key = url_key;
-	_method->index = index;
-	_method->is_reprocess = is_reprocess;
-	auto _return_value = vnx_request(_method);
-}
-
-void CrawlProcessorClient::_page_process_callback_async(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess) {
-	vnx_is_async = true;
-	_page_process_callback(url_key, index, is_reprocess);
-}
-
 ::vnx::Object CrawlProcessorClient::get_stats(const int32_t& limit) {
 	auto _method = ::vnx::search::CrawlProcessor_get_stats::create();
 	_method->limit = limit;
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlProcessor_get_stats_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("CrawlProcessorClient: !_result");
 	}
 	return _result->_ret_0;
 }

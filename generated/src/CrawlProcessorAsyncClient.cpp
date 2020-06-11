@@ -8,11 +8,8 @@
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/KeyValuePair.hxx>
-#include <vnx/search/CrawlProcessor__page_process_callback.hxx>
-#include <vnx/search/CrawlProcessor__page_process_callback_return.hxx>
 #include <vnx/search/CrawlProcessor_get_stats.hxx>
 #include <vnx/search/CrawlProcessor_get_stats_return.hxx>
-#include <vnx/search/PageIndex.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -30,72 +27,57 @@ CrawlProcessorAsyncClient::CrawlProcessorAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
-uint64_t CrawlProcessorAsyncClient::_page_process_callback(const std::string& url_key, const std::shared_ptr<const ::vnx::search::PageIndex>& index, const vnx::bool_t& is_reprocess, const std::function<void()>& _callback) {
-	auto _method = ::vnx::search::CrawlProcessor__page_process_callback::create();
-	_method->url_key = url_key;
-	_method->index = index;
-	_method->is_reprocess = is_reprocess;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue__page_process_callback[_request_id] = _callback;
-	vnx_num_pending++;
-	return _request_id;
-}
-
-uint64_t CrawlProcessorAsyncClient::get_stats(const int32_t& limit, const std::function<void(::vnx::Object)>& _callback) {
+uint64_t CrawlProcessorAsyncClient::get_stats(const int32_t& limit, const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::CrawlProcessor_get_stats::create();
 	_method->limit = limit;
 	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_stats[_request_id] = _callback;
+	vnx_queue_get_stats[_request_id] = std::make_pair(_callback, _error_callback);
 	vnx_num_pending++;
 	return _request_id;
 }
 
 std::vector<uint64_t> CrawlProcessorAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
-	for(const auto& entry : vnx_queue__page_process_callback) {
-		_list.push_back(entry.first);
-	}
 	for(const auto& entry : vnx_queue_get_stats) {
 		_list.push_back(entry.first);
 	}
 	return _list;
 }
 
-void CrawlProcessorAsyncClient::vnx_purge_request(uint64_t _request_id) {
-	vnx_num_pending -= vnx_queue__page_process_callback.erase(_request_id);
-	vnx_num_pending -= vnx_queue_get_stats.erase(_request_id);
+void CrawlProcessorAsyncClient::vnx_purge_request(uint64_t _request_id, const std::exception& _ex) {
+	{
+		const auto _iter = vnx_queue_get_stats.find(_request_id);
+		if(_iter != vnx_queue_get_stats.end()) {
+			if(_iter->second.second) {
+				_iter->second.second(_ex);
+			}
+			vnx_queue_get_stats.erase(_iter);
+			vnx_num_pending--;
+		}
+	}
 }
 
 void CrawlProcessorAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
 	const auto _type_hash = _value->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x30187cdb874e7214ull)) {
-		const auto _iter = vnx_queue__page_process_callback.find(_request_id);
-		if(_iter != vnx_queue__page_process_callback.end()) {
-			const auto _callback = std::move(_iter->second);
-			vnx_queue__page_process_callback.erase(_iter);
-			vnx_num_pending--;
-			if(_callback) {
-				_callback();
-			}
-		}
-	}
-	else if(_type_hash == vnx::Hash64(0xb8530c2e4e418c47ull)) {
+	if(_type_hash == vnx::Hash64(0xb8530c2e4e418c47ull)) {
 		auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlProcessor_get_stats_return>(_value);
 		if(!_result) {
-			throw std::logic_error("AsyncClient: !_result");
+			throw std::logic_error("CrawlProcessorAsyncClient: !_result");
 		}
 		const auto _iter = vnx_queue_get_stats.find(_request_id);
 		if(_iter != vnx_queue_get_stats.end()) {
-			const auto _callback = std::move(_iter->second);
+			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_get_stats.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
+		} else {
+			throw std::runtime_error("CrawlProcessorAsyncClient: invalid return received");
 		}
 	}
 	else {
-		throw std::runtime_error("unknown return value");
+		throw std::runtime_error("CrawlProcessorAsyncClient: unknown return type");
 	}
 }
 

@@ -31,7 +31,7 @@ std::shared_ptr<const ::vnx::search::TextResponse> ContentParserClient::parse(co
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::ContentParser_parse_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("ContentParserClient: !_result");
 	}
 	return _result->_ret_0;
 }

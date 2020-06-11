@@ -51,7 +51,7 @@ SearchEngineClient::SearchEngineClient(vnx::Hash64 service_addr)
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }
@@ -63,7 +63,7 @@ std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const int32_t& li
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }
@@ -74,7 +74,7 @@ std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const int32_t& li
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }
@@ -88,7 +88,7 @@ std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(con
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_query_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }
@@ -99,7 +99,7 @@ std::vector<std::string> SearchEngineClient::reverse_domain_lookup(const std::st
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }
@@ -110,7 +110,7 @@ std::vector<std::string> SearchEngineClient::reverse_lookup(const std::string& u
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_lookup_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }
@@ -122,7 +122,7 @@ std::vector<std::string> SearchEngineClient::suggest_domains(const std::string& 
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }
@@ -134,7 +134,7 @@ std::vector<std::string> SearchEngineClient::suggest_words(const std::string& pr
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_words_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("SearchEngineClient: !_result");
 	}
 	return _result->_ret_0;
 }

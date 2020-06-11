@@ -9,7 +9,6 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
-#include <vnx/search/HttpResponse.hxx>
 
 
 namespace vnx {
@@ -54,15 +53,12 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual void _fetch_callback(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id) = 0;
-	virtual void fetch_async(const std::string& url, const std::function<void(const std::shared_ptr<const ::vnx::search::FetchResult>&)>& _callback, const vnx::request_id_t& _request_id) const = 0;
+	virtual void fetch_async(const std::string& url, const vnx::request_id_t& _request_id) const = 0;
+	void fetch_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::FetchResult>& _ret_0) const;
 	virtual void register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads) = 0;
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
-	
-private:
-	void fetch_async_callback(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::FetchResult>& _ret_0);
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;
 	
 };
 

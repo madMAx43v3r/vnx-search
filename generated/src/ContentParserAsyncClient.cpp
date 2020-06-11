@@ -25,11 +25,11 @@ ContentParserAsyncClient::ContentParserAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
-uint64_t ContentParserAsyncClient::parse(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::function<void(std::shared_ptr<const ::vnx::search::TextResponse>)>& _callback) {
+uint64_t ContentParserAsyncClient::parse(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::function<void(std::shared_ptr<const ::vnx::search::TextResponse>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::ContentParser_parse::create();
 	_method->response = response;
 	const auto _request_id = vnx_request(_method);
-	vnx_queue_parse[_request_id] = _callback;
+	vnx_queue_parse[_request_id] = std::make_pair(_callback, _error_callback);
 	vnx_num_pending++;
 	return _request_id;
 }
@@ -42,8 +42,17 @@ std::vector<uint64_t> ContentParserAsyncClient::vnx_get_pending_ids() const {
 	return _list;
 }
 
-void ContentParserAsyncClient::vnx_purge_request(uint64_t _request_id) {
-	vnx_num_pending -= vnx_queue_parse.erase(_request_id);
+void ContentParserAsyncClient::vnx_purge_request(uint64_t _request_id, const std::exception& _ex) {
+	{
+		const auto _iter = vnx_queue_parse.find(_request_id);
+		if(_iter != vnx_queue_parse.end()) {
+			if(_iter->second.second) {
+				_iter->second.second(_ex);
+			}
+			vnx_queue_parse.erase(_iter);
+			vnx_num_pending--;
+		}
+	}
 }
 
 void ContentParserAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
@@ -51,20 +60,22 @@ void ContentParserAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sh
 	if(_type_hash == vnx::Hash64(0xa4f19c7005e2d444ull)) {
 		auto _result = std::dynamic_pointer_cast<const ::vnx::search::ContentParser_parse_return>(_value);
 		if(!_result) {
-			throw std::logic_error("AsyncClient: !_result");
+			throw std::logic_error("ContentParserAsyncClient: !_result");
 		}
 		const auto _iter = vnx_queue_parse.find(_request_id);
 		if(_iter != vnx_queue_parse.end()) {
-			const auto _callback = std::move(_iter->second);
+			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_parse.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
+		} else {
+			throw std::runtime_error("ContentParserAsyncClient: invalid return received");
 		}
 	}
 	else {
-		throw std::runtime_error("unknown return value");
+		throw std::runtime_error("ContentParserAsyncClient: unknown return type");
 	}
 }
 

@@ -9,7 +9,6 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
-#include <vnx/search/HttpResponse.hxx>
 
 
 namespace vnx {
@@ -20,10 +19,6 @@ public:
 	CrawlFrontendClient(const std::string& service_name);
 	
 	CrawlFrontendClient(vnx::Hash64 service_addr);
-	
-	void _fetch_callback(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id);
-	
-	void _fetch_callback_async(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id);
 	
 	std::shared_ptr<const ::vnx::search::FetchResult> fetch(const std::string& url);
 	

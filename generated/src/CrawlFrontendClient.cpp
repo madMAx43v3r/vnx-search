@@ -7,14 +7,11 @@
 #include <vnx/Hash64.hpp>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/search/CrawlFrontend__fetch_callback.hxx>
-#include <vnx/search/CrawlFrontend__fetch_callback_return.hxx>
 #include <vnx/search/CrawlFrontend_fetch.hxx>
 #include <vnx/search/CrawlFrontend_fetch_return.hxx>
 #include <vnx/search/CrawlFrontend_register_parser.hxx>
 #include <vnx/search/CrawlFrontend_register_parser_return.hxx>
 #include <vnx/search/FetchResult.hxx>
-#include <vnx/search/HttpResponse.hxx>
 
 
 
@@ -31,25 +28,13 @@ CrawlFrontendClient::CrawlFrontendClient(vnx::Hash64 service_addr)
 {
 }
 
-void CrawlFrontendClient::_fetch_callback(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id) {
-	auto _method = ::vnx::search::CrawlFrontend__fetch_callback::create();
-	_method->response = response;
-	_method->request_id = request_id;
-	auto _return_value = vnx_request(_method);
-}
-
-void CrawlFrontendClient::_fetch_callback_async(const std::shared_ptr<const ::vnx::search::HttpResponse>& response, const std::pair<::vnx::Hash64, uint64_t>& request_id) {
-	vnx_is_async = true;
-	_fetch_callback(response, request_id);
-}
-
 std::shared_ptr<const ::vnx::search::FetchResult> CrawlFrontendClient::fetch(const std::string& url) {
 	auto _method = ::vnx::search::CrawlFrontend_fetch::create();
 	_method->url = url;
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlFrontend_fetch_return>(_return_value);
 	if(!_result) {
-		throw std::logic_error("Client: !_result");
+		throw std::logic_error("CrawlFrontendClient: !_result");
 	}
 	return _result->_ret_0;
 }

@@ -47,9 +47,7 @@ protected:
 	virtual std::shared_ptr<const ::vnx::search::TextResponse> parse(const std::shared_ptr<const ::vnx::search::HttpResponse>& response) const = 0;
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
-	
-private:
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;
 	
 };
 
