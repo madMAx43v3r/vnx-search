@@ -18,6 +18,8 @@
 #include <vnx/keyvalue/ServerClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
 
+#include <vnx/ThreadPool.h>
+
 #include <regex>
 
 namespace Url {
@@ -83,10 +85,9 @@ private:
 						const std::vector<std::string>& links,
 						const std::vector<std::string>& images,
 						std::shared_ptr<const PageContent> robots_txt,
-						bool is_reprocess,
-						CrawlProcessorClient& client) const;
+						bool is_reprocess);
 	
-	void _page_process_callback(const std::string& url_key,
+	void page_process_callback(	const std::string& url_key,
 								const std::shared_ptr<const PageIndex>& index,
 								const bool& is_reprocess);
 	
@@ -155,6 +156,7 @@ private:
 	
 private:
 	Hash64 private_addr;
+	std::shared_ptr<ThreadPool> work_threads;
 	std::map<uint64_t, std::string> pending_urls;
 	std::multimap<int64_t, std::string> waiting;
 	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
@@ -169,12 +171,6 @@ private:
 	
 	std::shared_ptr<googlebot::RobotsMatcher> matcher;
 	std::vector<std::regex> regex_blacklist_;
-	
-	mutable std::mutex work_mutex;
-	std::vector<std::thread> work_threads;
-	mutable std::condition_variable work_condition;
-	mutable std::condition_variable work_reverse_condition;
-	mutable std::queue<std::function<void(CrawlProcessorClient&)>> work_queue;
 	
 	int64_t fetch_counter = 0;
 	int64_t error_counter = 0;

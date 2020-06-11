@@ -87,19 +87,11 @@ void CrawlProcessor::main()
 		page_index_async->sync_all(input_page_index_sync);
 	}
 	
-	work_threads.resize(num_worker_threads);
-	for(int i = 0; i < num_worker_threads; ++i) {
-		work_threads[i] = std::thread(&CrawlProcessor::work_loop, this);
-	}
+	work_threads = std::make_shared<ThreadPool>(num_worker_threads, 100);
 	
 	Super::main();
 	
-	work_condition.notify_all();
-	for(auto& thread : work_threads) {
-		if(thread.joinable()) {
-			thread.join();
-		}
-	}
+	work_threads->close();
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
@@ -130,18 +122,12 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	auto index = PageIndex::create();
 	index->title = value->title;
 	index->last_modified = value->last_modified;
-	{
-		std::unique_lock lock(work_mutex);
-		while(work_queue.size() >= max_num_pending) {
-			work_reverse_condition.wait(lock);
-		}
-		work_queue.push(std::bind(&CrawlProcessor::process_page, this, value->url, index,
-									value->text, value->links, value->images, robots_txt, false, std::placeholders::_1));
-	}
-	work_condition.notify_one();
+	
+	work_threads->add_task(std::bind(&CrawlProcessor::process_page, this, value->url, index,
+									value->text, value->links, value->images, robots_txt, false));
 }
 
-void CrawlProcessor::_page_process_callback(const std::string& url_key,
+void CrawlProcessor::page_process_callback(	const std::string& url_key,
 											const std::shared_ptr<const ::vnx::search::PageIndex>& index,
 											const bool& is_reprocess)
 {
@@ -164,8 +150,7 @@ void CrawlProcessor::process_page(	const std::string& url,
 									const std::vector<std::string>& links,
 									const std::vector<std::string>& images,
 									std::shared_ptr<const PageContent> robots_txt,
-									bool is_reprocess,
-									CrawlProcessorClient& client) const
+									bool is_reprocess)
 {
 	std::map<std::string, size_t> word_set;
 	{
@@ -250,7 +235,7 @@ void CrawlProcessor::process_page(	const std::string& url,
 	index->word_count = std::min(word_count, size_t(0xFFFFFFFF));
 	index->version = index_version;
 	
-	client._page_process_callback_async(get_url_key(parent), index, is_reprocess);
+	add_task(std::bind(&CrawlProcessor::page_process_callback, this, get_url_key(parent), index, is_reprocess));
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> pair)
@@ -370,6 +355,7 @@ int CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time
 	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
 		return 0;
 	}
+	
 	const auto& host = parsed.host();
 	if(host.empty()) {
 		return 0;
@@ -638,15 +624,9 @@ void CrawlProcessor::reproc_page(	const std::string& url_key,
 	new_index->words.clear();
 	new_index->links.clear();
 	new_index->images.clear();
-	{
-		std::unique_lock lock(work_mutex);
-		while(work_queue.size() >= max_num_pending) {
-			work_reverse_condition.wait(lock);
-		}
-		work_queue.push(std::bind(&CrawlProcessor::process_page, this, url_key, new_index,
-									content->text, index->links, index->images, nullptr, true, std::placeholders::_1));
-	}
-	work_condition.notify_one();
+	
+	work_threads->add_task(std::bind(&CrawlProcessor::process_page, this, url_key, new_index,
+									content->text, index->links, index->images, nullptr, true));
 }
 
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key, bool is_fail)
@@ -882,37 +862,6 @@ void CrawlProcessor::print_stats()
 			<< found_robots_txt << " found";
 	if(do_reprocess) {
 		log(INFO).out << reproc_counter << " reprocessed, " << delete_counter << " deleted";
-	}
-}
-
-void CrawlProcessor::work_loop() const noexcept
-{
-	CrawlProcessorClient client(private_addr);
-	
-	while(vnx_do_run())
-	{
-		std::function<void(CrawlProcessorClient&)> func;
-		{
-			std::unique_lock<std::mutex> lock(work_mutex);
-			while(vnx_do_run() && work_queue.empty()) {
-				work_condition.wait(lock);
-			}
-			if(vnx_do_run()) {
-				func = std::move(work_queue.front());
-				work_queue.pop();
-			} else {
-				break;
-			}
-		}
-		work_reverse_condition.notify_one();
-		
-		if(func) {
-			try {
-				func(client);
-			} catch(const std::exception& ex) {
-				log(WARN).out << "work_loop(): " << ex.what();
-			}
-		}
 	}
 }
 

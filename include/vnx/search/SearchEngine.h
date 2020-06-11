@@ -81,7 +81,7 @@ protected:
 	};
 	
 	struct query_t : SearchEngine_query {
-		std::function<void(const std::shared_ptr<const SearchResult>&)> callback;
+		request_id_t req_id;
 	};
 	
 	void init() override;
@@ -91,8 +91,7 @@ protected:
 	void query_async(	const std::vector<std::string>& words,
 						const int32_t& limit, const uint32_t& offset,
 						const std::vector<search_flags_e>& flags,
-						const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
-						const vnx::request_id_t& _request_id) const override;
+						const request_id_t& req_id) const override;
 	
 	Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const;
 	

@@ -65,8 +65,6 @@ module CrawlProcessor {
 	
 	vnx.Object get_stats(int limit) const;
 	
-	void _page_process_callback(string url_key, PageIndex* index, bool is_reprocess);
-	
 	void handle(TextResponse sample);
 	
 	void handle(vnx.keyvalue.KeyValuePair sample);

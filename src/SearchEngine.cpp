@@ -98,15 +98,14 @@ void SearchEngine::main()
 void SearchEngine::query_async(	const std::vector<std::string>& words,
 								const int32_t& limit, const uint32_t& offset,
 								const std::vector<search_flags_e>& flags,
-								const std::function<void(const std::shared_ptr<const SearchResult>&)>& _callback,
-								const vnx::request_id_t& _request_id) const
+								const vnx::request_id_t& req_id) const
 {
 	auto request = std::make_shared<query_t>();
 	request->words = words;
 	request->limit = limit;
 	request->offset = offset;
 	request->flags = flags;
-	request->callback = _callback;
+	request->req_id = req_id;
 	{
 		std::lock_guard lock(query_mutex);
 		query_queue.push(request);
@@ -842,14 +841,14 @@ void SearchEngine::query_loop() const noexcept
 		}
 		catch(const std::exception& ex) {
 			result->error_msg = ex.what();
-			request->callback(result);
+			query_async_return(request->req_id, result);
 			continue;
 		}
 		const auto time_begin = vnx::get_wall_time_micros();
 		
 		const uint32_t num_words = context.size();
 		if(num_words == 0) {
-			request->callback(result);
+			query_async_return(request->req_id, result);
 			continue;
 		}
 		
@@ -964,7 +963,7 @@ void SearchEngine::query_loop() const noexcept
 		result->num_results_total = sorted.size();
 		result->compute_time_us = vnx::get_wall_time_micros() - time_begin;
 		result->is_fail = false;
-		request->callback(result);
+		query_async_return(request->req_id, result);
 		
 		query_counter++;
 	}

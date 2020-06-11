@@ -25,6 +25,4 @@ module CrawlFrontend {
 	
 	void register_parser(vnx.Hash64 address, vector<string> mime_types, int num_threads);
 	
-	void _fetch_callback(HttpResponse* response, pair<vnx.Hash64, ulong> request_id);
-	
 }

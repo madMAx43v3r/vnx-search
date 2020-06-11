@@ -55,24 +55,20 @@ int64_t parse_http_date(const std::string& date)
 CrawlFrontend::CrawlFrontend(const std::string& _vnx_name)
 	:	CrawlFrontendBase(_vnx_name)
 {
-	private_addr = Hash64::rand();
 	unique_service = Hash64::rand();
 }
 
 void CrawlFrontend::init()
 {
 	vnx::open_pipe(vnx_name, this, UNLIMITED);			// unlimited since clients control number of pending
-	vnx::open_pipe(private_addr, this, UNLIMITED);		// unlimited since clients control number of pending
 	vnx::open_pipe(unique_service, this, UNLIMITED);	// unlimited since clients control number of pending
 }
 
 void CrawlFrontend::main()
 {
-	subscribe(output_http, 1000);		// need to block here due to potential processing bottleneck
-	
-	work_threads.resize(num_threads);
+	work_threads = std::make_shared<ThreadPool>(-1);
 	for(int i = 0; i < num_threads; ++i) {
-		work_threads[i] = std::thread(&CrawlFrontend::fetch_loop, this);
+		work_threads->add_task(std::bind(&CrawlFrontend::fetch_loop, this));
 	}
 	
 	set_timer_millis(stats_interval_ms, std::bind(&CrawlFrontend::print_stats, this));
@@ -80,16 +76,11 @@ void CrawlFrontend::main()
 	Super::main();
 	
 	work_condition.notify_all();
-	for(auto& thread : work_threads) {
-		if(thread.joinable()) {
-			thread.join();
-		}
-	}
+	work_threads->close();
 }
 
-void CrawlFrontend::fetch_async(	const std::string& url,
-									const std::function<void(const std::shared_ptr<const FetchResult>&)>& _callback,
-									const vnx::request_id_t& _request_id) const
+void CrawlFrontend::fetch_async(const std::string& url,
+								const vnx::request_id_t& req_id) const
 {
 	auto request = std::make_shared<request_t>();
 	request->url = url;
@@ -103,9 +94,7 @@ void CrawlFrontend::fetch_async(	const std::string& url,
 			request->accept_content.push_back(type);
 		}
 	}
-	request->request_id = _request_id;
-	request->callback = _callback;
-	pending[_request_id] = request;
+	request->req_id = req_id;
 	{
 		std::lock_guard lock(work_mutex);
 		work_queue.push(request);
@@ -121,8 +110,8 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 	if(!entry.client) {
 		entry.address = address;
 		entry.client = std::make_shared<ContentParserAsyncClient>(address);
-		entry.client->vnx_set_error_callback(std::bind(&CrawlFrontend::parse_error, this, address, std::placeholders::_1, std::placeholders::_2));
 		add_async_client(entry.client);
+		
 		for(auto type : mime_types) {
 			entry.content_types.insert(type);
 			log(INFO).out << "Got a '" << type << "' parser with " << num_threads << " threads";
@@ -130,54 +119,50 @@ void CrawlFrontend::register_parser(const vnx::Hash64& address,
 	}
 }
 
-void CrawlFrontend::_fetch_callback(const std::shared_ptr<const HttpResponse>& value,
-									const std::pair<Hash64, uint64_t>& request_id)
+void CrawlFrontend::fetch_callback(	std::shared_ptr<const HttpResponse> response,
+									std::shared_ptr<request_t> request)
 {
-	auto request = pending[request_id];
-	if(!value) {
-		request->callback(request->result);
-		pending.erase(request_id);
+	if(!response) {
+		fetch_async_return(request->req_id, request->result);
 		return;
 	}
-	log(INFO).out << "Fetched '" << value->url << "': " << value->payload.size() << " bytes in " << value->fetch_duration_us/1000
-			<< " ms (" << float(value->payload.size() / (value->fetch_duration_us * 1e-6) / 1024.) << " KB/s)";
+	log(INFO).out << "Fetched '" << response->url << "': " << response->payload.size() << " bytes in " << response->fetch_duration_us/1000
+			<< " ms (" << float(response->payload.size() / (response->fetch_duration_us * 1e-6) / 1024.) << " KB/s)";
 	
 	std::multimap<size_t, parser_t*> parser_list;
 	for(auto& entry : parser_map) {
 		auto& parser = entry.second;
-		if(parser.content_types.count(value->content_type)) {
+		if(parser.content_types.count(response->content_type)) {
 			parser_list.emplace(parser.client->vnx_get_num_pending(), &parser);
 		}
 	}
 	if(!parser_list.empty()) {
 		auto parser = parser_list.begin()->second;
-		request->parse_id = parser->client->parse(value,
-					std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1, request_id));
+		request->parse_id = parser->client->parse(response,
+					std::bind(&CrawlFrontend::parse_callback, this, std::placeholders::_1, request),
+					std::bind(&CrawlFrontend::parse_error, this, parser->address, request, std::placeholders::_1));
 	} else {
-		request->callback(request->result);
-		pending.erase(request_id);
-		log(WARN).out << "Cannot parse content type: '" << value->content_type << "'";
+		fetch_async_return(request->req_id, request->result);
+		log(WARN).out << "Cannot parse content type: '" << response->content_type << "'";
 	}
-	publish(value, output_http);
-	num_bytes_fetched += value->payload.size();
+	publish(response, output_http);
+	num_bytes_fetched += response->payload.size();
 }
 
-void CrawlFrontend::parse_callback(	std::shared_ptr<const TextResponse> value,
-									const std::pair<Hash64, uint64_t>& request_id)
+void CrawlFrontend::parse_callback(	std::shared_ptr<const TextResponse> response,
+									std::shared_ptr<request_t> request)
 {
-	log(INFO).out << "Parsed '" << value->url << "': " << value->text.size() << " bytes, "
-			<< value->links.size() << " links, " << value->images.size() << " images";
+	log(INFO).out << "Parsed '" << response->url << "': " << response->text.size() << " bytes, "
+			<< response->links.size() << " links, " << response->images.size() << " images";
 	
-	auto request = pending[request_id];
-	request->result->response = value;
-	request->callback(request->result);
-	pending.erase(request_id);
+	request->result->response = response;
+	fetch_async_return(request->req_id, request->result);
 	
-	publish(value, output_text);
-	num_bytes_parsed += value->text.size();
+	publish(response, output_text);
+	num_bytes_parsed += response->text.size();
 }
 
-void CrawlFrontend::parse_error(Hash64 address, uint64_t request_id, const std::exception& ex)
+void CrawlFrontend::parse_error(Hash64 address, std::shared_ptr<request_t> request, const std::exception& ex)
 {
 	// check error and remove parser if connection error
 	auto vnx_except = dynamic_cast<const vnx::exception*>(&ex);
@@ -186,15 +171,7 @@ void CrawlFrontend::parse_error(Hash64 address, uint64_t request_id, const std::
 			parser_map.erase(address);
 		}
 	}
-	for(auto iter = pending.begin(); iter != pending.end(); ++iter)
-	{
-		const auto& request = iter->second;
-		if(request->parse_id == request_id) {
-			request->callback(request->result);
-			pending.erase(iter);
-			break;
-		}
-	}
+	fetch_async_return(request->req_id, request->result);
 	parse_failed_counter++;
 }
 
@@ -311,10 +288,8 @@ size_t CrawlFrontend::write_callback(char* buf, size_t size, size_t len, void* u
 	return len;
 }
 
-void CrawlFrontend::fetch_loop() const noexcept
+void CrawlFrontend::fetch_loop() noexcept
 {
-	CrawlFrontendClient frontend(private_addr);
-	
 	::signal(SIGPIPE, SIG_IGN);
 	
 	while(vnx_do_run())
@@ -464,17 +439,8 @@ void CrawlFrontend::fetch_loop() const noexcept
 		if(result->is_fail) {
 			http = 0;
 		}
-		
-		try {
-			request->result = result;
-			request->response = http;
-			frontend._fetch_callback_async(http, request->request_id);
-		}
-		catch(...) {
-			auto ex = Exception::create();
-			ex->what = "module shutdown";
-			vnx_async_callback(request->request_id, ex);
-		}
+		request->result = result;
+		add_task(std::bind(&CrawlFrontend::fetch_callback, this, http, request));
 	}
 }
 

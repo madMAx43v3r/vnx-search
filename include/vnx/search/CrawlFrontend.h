@@ -10,6 +10,7 @@
 
 #include <vnx/search/CrawlFrontendBase.hxx>
 #include <vnx/search/ContentParserAsyncClient.hxx>
+#include <vnx/ThreadPool.h>
 
 #include <url.h>
 
@@ -21,67 +22,61 @@ namespace search {
 
 class CrawlFrontend : public CrawlFrontendBase {
 public:
-	CrawlFrontend(const std::string& _vnx_name);
-	
-protected:
-	void init() override;
-	
-	void main() override;
-	
-	void fetch_async(	const std::string& url,
-						const std::function<void(const std::shared_ptr<const FetchResult>&)>& _callback,
-						const vnx::request_id_t& _request_id) const override;
-	
-	void register_parser(	const vnx::Hash64& address,
-							const std::vector<std::string>& mime_types,
-							const int32_t& num_threads) override;
-	
-	void _fetch_callback(	const std::shared_ptr<const HttpResponse>& response,
-							const std::pair<Hash64, uint64_t>& request_id);
-	
-public:
 	struct request_t {
 		std::string url;
 		Url::Url parsed_url = Url::Url("");
 		std::vector<std::string> accept_content;
+		vnx::request_id_t req_id;
 		uint64_t parse_id = 0;
-		vnx::request_id_t request_id;
 		std::shared_ptr<FetchResult> result;
-		std::shared_ptr<const HttpResponse> response;
-		std::function<void(const std::shared_ptr<const FetchResult>&)> callback;
 	};
 	
-private:
+	CrawlFrontend(const std::string& _vnx_name);
+	
+protected:
 	struct parser_t {
 		Hash64 address;
 		std::set<std::string> content_types;
 		std::shared_ptr<ContentParserAsyncClient> client;
 	};
 	
-	void parse_callback(std::shared_ptr<const TextResponse> value,
-						const std::pair<Hash64, uint64_t>& request_id);
+	void init() override;
 	
-	void parse_error(Hash64 address, uint64_t request_id, const std::exception& ex);
+	void main() override;
+	
+	void fetch_async(	const std::string& url,
+						const vnx::request_id_t& req_id) const override;
+	
+	void register_parser(	const vnx::Hash64& address,
+							const std::vector<std::string>& mime_types,
+							const int32_t& num_threads) override;
+	
+private:
+	void fetch_callback(std::shared_ptr<const HttpResponse> response,
+						std::shared_ptr<request_t> request);
+	
+	void parse_callback(std::shared_ptr<const TextResponse> response,
+						std::shared_ptr<request_t> request);
+	
+	void parse_error(Hash64 address, std::shared_ptr<request_t> request, const std::exception& ex);
 	
 	void print_stats();
 	
-	void fetch_loop() const noexcept;
+	void fetch_loop() noexcept;
 	
 	static size_t header_callback(char* buffer, size_t size, size_t len, void* userdata);
 	
 	static size_t write_callback(char* buf, size_t size, size_t len, void* userdata);
 	
 private:
-	Hash64 private_addr;
 	Hash64 unique_service;
-	std::vector<std::thread> work_threads;
+	std::shared_ptr<ThreadPool> work_threads;
 	
 	mutable std::mutex work_mutex;
 	mutable std::condition_variable work_condition;
 	mutable std::queue<std::shared_ptr<request_t>> work_queue;
 	
 	std::map<Hash64, parser_t> parser_map;
-	mutable std::map<request_id_t, std::shared_ptr<request_t>> pending;
 	
 	mutable std::atomic<uint64_t> fetch_counter {0};
 	mutable std::atomic<uint64_t> redirect_counter {0};
