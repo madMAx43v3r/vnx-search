@@ -59,7 +59,13 @@ add_executable(vnx_search_html_parser src/vnx_search_html_parser.cpp)
 target_link_libraries(vnx_search_html_parser vnx_search)
 
 add_executable(vnx_search_backend src/vnx_search_backend.cpp)
-target_link_libraries(vnx_search_backend vnx_search)
+target_link_libraries(vnx_search_backend vnx_keyvalue vnx_base)
+
+add_executable(vnx_search_crawl src/vnx_search_crawl.cpp)
+target_link_libraries(vnx_search_crawl vnx_search)
+
+add_executable(vnx_search_engine src/vnx_search_engine.cpp)
+target_link_libraries(vnx_search_engine vnx_search)
 
 add_executable(vnx_search_query src/vnx_search_query.cpp)
 target_link_libraries(vnx_search_query vnx_search)
@@ -69,9 +75,6 @@ target_link_libraries(vnx_search_browse vnx_search)
 
 add_executable(vnx_search_discover src/vnx_search_discover.cpp)
 target_link_libraries(vnx_search_discover vnx_search)
-
-add_executable(vnx_search_crawl src/vnx_search_crawl.cpp)
-target_link_libraries(vnx_search_crawl vnx_search)
 
 add_executable(test_url test/test_url.cpp)
 target_link_libraries(test_url vnx_search)

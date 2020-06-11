@@ -6,7 +6,6 @@
  */
 
 #include <vnx/keyvalue/Server.h>
-#include <vnx/search/SearchEngine.h>
 
 #include <vnx/vnx.h>
 #include <vnx/Terminal.h>
@@ -43,10 +42,6 @@ int main(int argc, char** argv)
 		vnx::Handle<vnx::keyvalue::Server> module = new vnx::keyvalue::Server("PageContent");
 		module->collection = "page_content";
 		module->update_topic = "backend.page_content.updates";
-		module.start_detached();
-	}
-	{
-		vnx::Handle<vnx::search::SearchEngine> module = new vnx::search::SearchEngine("SearchEngine");
 		module.start_detached();
 	}
 	
