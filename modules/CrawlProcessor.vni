@@ -36,9 +36,7 @@ module CrawlProcessor {
 	
 	int num_worker_threads = 4;
 	
-	int check_interval_ms = 500;			// queue check
-	
-	int update_interval_ms = 5000;			// queue update
+	int check_interval_ms = 500;			// queue check [ms]
 	
 	int robots_timeout = 1000;				// max time to wait for robots.txt [sec]
 	

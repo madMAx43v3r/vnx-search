@@ -71,7 +71,6 @@ void CrawlProcessor::main()
 	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
 	set_timer_millis(10 * 1000, std::bind(&CrawlProcessor::publish_stats, this));
 	set_timer_millis(check_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
-	set_timer_millis(update_interval_ms, std::bind(&CrawlProcessor::update_queue, this));
 	set_timer_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
 	for(const auto& url : root_urls)
@@ -385,7 +384,37 @@ void CrawlProcessor::check_queue()
 	queue_block_count = 0;
 	pending_robots_txt = 0;
 	const int64_t now_posix = std::time(0);
-	const int64_t now_wall = vnx::get_wall_time_micros();
+	const int64_t now_wall_us = vnx::get_wall_time_micros();
+	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
+	
+	while(!waiting.empty())
+	{
+		const auto entry = waiting.begin();
+		if(entry->first <= now_posix) {
+			auto url_iter = url_map.find(get_url_key(entry->second));
+			if(url_iter != url_map.end()) {
+				const url_t& url = url_iter->second;
+				get_domain(url.domain).queue.emplace(url.depth, entry->second);
+			}
+			waiting.erase(entry);
+		} else {
+			break;
+		}
+	}
+	for(auto iter = domain_map.begin(); iter != domain_map.end();)
+	{
+		auto& domain = iter->second;
+		if(!domain.queue.empty()) {
+			const auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
+			limited_emplace(queue, key, &domain, max_queue_size);
+			iter++;
+		} else if(domain.num_pending <= 0) {
+			iter = domain_map.erase(iter);
+		} else {
+			iter++;
+		}
+	}
+	active_domains = domain_map.size();
 	
 	for(const auto& entry : queue)
 	{
@@ -395,7 +424,7 @@ void CrawlProcessor::check_queue()
 		queue_block_count++;
 		
 		domain_t& domain = *entry.second;
-		const int64_t fetch_delta_ms = (now_wall - domain.last_fetch_us) / 1000;
+		const int64_t fetch_delta_ms = (now_wall_us - domain.last_fetch_us) / 1000;
 		
 		if(entry.first.first >= 0)
 		{
@@ -459,47 +488,13 @@ void CrawlProcessor::check_queue()
 			
 			domain.queue.erase(iter);
 			domain.num_pending++;
-			domain.last_fetch_us = now_wall;
+			domain.last_fetch_us = now_wall_us;
 			
 			if(url.depth >= 0) {
 				average_depth = url.depth * 0.01 + average_depth * 0.99;
 			}
 		}
 	}
-}
-
-void CrawlProcessor::update_queue()
-{
-	const int64_t now_posix = std::time(0);
-	while(!waiting.empty())
-	{
-		const auto entry = waiting.begin();
-		if(entry->first <= now_posix) {
-			auto url_iter = url_map.find(get_url_key(entry->second));
-			if(url_iter != url_map.end()) {
-				const url_t& url = url_iter->second;
-				get_domain(url.domain).queue.emplace(url.depth, entry->second);
-			}
-			waiting.erase(entry);
-		} else {
-			break;
-		}
-	}
-	queue.clear();
-	for(auto iter = domain_map.begin(); iter != domain_map.end();)
-	{
-		auto& domain = iter->second;
-		if(!domain.queue.empty()) {
-			const auto key = std::make_pair(domain.queue.begin()->first, domain.last_fetch_us);
-			limited_emplace(queue, key, &domain, max_queue_size);
-			iter++;
-		} else if(domain.num_pending <= 0) {
-			iter = domain_map.erase(iter);
-		} else {
-			iter++;
-		}
-	}
-	active_domains = domain_map.size();
 }
 
 void CrawlProcessor::check_all_urls()
@@ -685,6 +680,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	
 	try {
 		if(result->response) {
+			// TODO: check pause_map
 			handle(result->response);
 		}
 	}
@@ -723,6 +719,7 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 		index->first_seen = previous->first_seen ? previous->first_seen : info.last_fetched;
 		index->fetch_count = previous->fetch_count + 1;
 		index->depth = std::min(previous->depth, new_depth);
+		// TODO: detect cycles and update pause_map
 	} else {
 		index->first_seen = info.last_fetched;
 		index->fetch_count = 1;

@@ -103,8 +103,6 @@ private:
 	
 	void check_queue();
 	
-	void update_queue();
-	
 	void check_url(const Url::Url& url, int depth, std::shared_ptr<const Value> index);
 	
 	void check_all_urls();
@@ -159,10 +157,10 @@ private:
 	std::shared_ptr<ThreadPool> work_threads;
 	std::map<uint64_t, std::string> pending_urls;
 	std::multimap<int64_t, std::string> waiting;
-	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
 	
 	std::unordered_map<std::string, url_t> url_map;
 	std::unordered_map<std::string, domain_t> domain_map;
+	std::unordered_map<std::string, int64_t> pause_map;
 	
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> page_index_async;
