@@ -910,8 +910,9 @@ void SearchEngine::update_page(	const std::string& url_key,
 void SearchEngine::link_update()
 {
 	const auto now_us = vnx::get_wall_time_micros();
-	for(auto iter = link_queue.begin(); iter != link_queue.end();)
+	while(!link_queue.empty())
 	{
+		const auto iter = link_queue.begin();
 		if((now_us - iter->first) / 1000000 >= link_commit_interval)
 		{
 			const auto cache = link_cache[iter->second];
@@ -923,9 +924,9 @@ void SearchEngine::link_update()
 				page_info_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
 						std::bind(&SearchEngine::link_commit, this, url_key, std::placeholders::_1));
 			}
-			iter = link_queue.erase(iter);
+			link_queue.erase(iter);
 		} else {
-			iter++;
+			break;
 		}
 	}
 }
