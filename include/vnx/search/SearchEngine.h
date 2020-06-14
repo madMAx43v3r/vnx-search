@@ -59,9 +59,9 @@ protected:
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
 		stx::fstring<8> scheme;
-		stx::cstring url_key;
+		std::string url_key;
 		std::vector<uint32_t> reverse_domains;
-		std::string get_url() const { return scheme.str() + ":" + url_key.str(); }
+		std::string get_url() const { return scheme.str() + ":" + url_key; }
 	};
 	
 	struct page_cache_t {
@@ -130,10 +130,8 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::SyncInfo> value) override;
 	
 private:
-	template<typename T>
-	uint32_t find_url_id(const T& url_key) const;
-	template<typename T>
-	uint32_t get_url_id(const T& url_key);
+	uint32_t find_url_id(const std::string& url_key) const;
+	uint32_t get_url_id(const std::string& url_key);
 	
 	page_t* find_page(uint32_t url_id);
 	const page_t* find_page(uint32_t url_id) const;
@@ -146,8 +144,7 @@ private:
 	domain_t& get_domain(const T& host);
 	const domain_t* find_domain(uint32_t domain_id) const;
 	
-	template<typename T>
-	std::shared_ptr<link_cache_t> get_link_cache(const T& url_key);
+	std::shared_ptr<link_cache_t> get_link_cache(const std::string& url_key);
 	std::shared_ptr<link_cache_t> get_link_cache(uint32_t page_id);
 	
 	std::shared_ptr<word_cache_t> get_word_cache(uint32_t word_id);
@@ -210,7 +207,7 @@ private:
 	std::vector<uint32_t> free_url_ids;
 	std::map<stx::sstring, uint32_t, std::less<>> word_map;
 	std::map<stx::sstring, uint32_t, std::less<>> domain_map;
-	std::unordered_map<stx::cstring, uint32_t, std::hash<stx::cstring>, std::equal_to<>> url_map;
+	std::unordered_map<std::string, uint32_t> url_map;
 	std::unordered_map<uint32_t, word_t> word_index;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
@@ -221,9 +218,9 @@ private:
 	std::queue<std::pair<int64_t, uint32_t>> word_queue;
 	
 	// accessed by main thread only
-	std::unordered_map<stx::cstring, uint32_t, std::hash<stx::cstring>, std::equal_to<>> redirects;
-	std::unordered_map<stx::cstring, std::shared_ptr<link_cache_t>, std::hash<stx::cstring>, std::equal_to<>> link_cache;
-	std::multimap<int64_t, stx::cstring> link_queue;
+	std::unordered_map<std::string, uint32_t> redirects;
+	std::unordered_map<std::string, std::shared_ptr<link_cache_t>> link_cache;
+	std::multimap<int64_t, std::string> link_queue;
 	
 	mutable std::mutex query_mutex;
 	mutable std::condition_variable query_condition;

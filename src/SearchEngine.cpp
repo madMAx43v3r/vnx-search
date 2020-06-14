@@ -238,7 +238,7 @@ void SearchEngine::reverse_lookup_callback(	const std::string& url_key,
 		for(const auto link_id : page_info->reverse_links) {
 			const auto* parent = find_page(link_id);
 			if(parent) {
-				sorted.emplace_back(parent->url_key.str(), parent->reverse_domains.size());
+				sorted.emplace_back(parent->url_key, parent->reverse_domains.size());
 			}
 		}
 	}
@@ -307,8 +307,7 @@ std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix
 	return result;
 }
 
-template<typename T>
-uint32_t SearchEngine::find_url_id(const T& url_key) const
+uint32_t SearchEngine::find_url_id(const std::string& url_key) const
 {
 	auto iter = url_map.find(url_key);
 	if(iter != url_map.end()) {
@@ -317,8 +316,7 @@ uint32_t SearchEngine::find_url_id(const T& url_key) const
 	return 0;
 }
 
-template<typename T>
-uint32_t SearchEngine::get_url_id(const T& url_key)
+uint32_t SearchEngine::get_url_id(const std::string& url_key)
 {
 	uint32_t id = find_url_id(url_key);
 	if(id == 0) {
@@ -396,8 +394,7 @@ const SearchEngine::domain_t* SearchEngine::find_domain(uint32_t domain_id) cons
 	return 0;
 }
 
-template<typename T>
-std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const T& url_key)
+std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const std::string& url_key)
 {
 	auto& cache = link_cache[url_key];
 	if(!cache) {
@@ -534,7 +531,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		{
 			std::unique_lock lock(index_mutex);
 			
-			const stx::cstring url_key = pair->key.to_string_value();
+			const auto url_key = pair->key.to_string_value();
 			url_map[url_key] = info->id;
 			next_url_id = std::max(next_url_id, info->id + 1);
 			
@@ -666,7 +663,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 			for(const auto& entry : page_index) {
 				const auto& page = entry.second;
 				if(page.is_deleted) {
-					delete_page_async(page.url_key.str());
+					delete_page_async(page.url_key);
 					num_purged++;
 				}
 			}
@@ -922,7 +919,7 @@ void SearchEngine::link_update()
 				link_queue.emplace(cache->schedule_time_us, iter->second);
 				cache->schedule_time_us = 0;
 			} else {
-				const auto url_key = iter->second.str();
+				const auto url_key = iter->second;
 				page_info_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
 						std::bind(&SearchEngine::link_commit, this, url_key, std::placeholders::_1));
 			}
@@ -972,7 +969,7 @@ void SearchEngine::word_update_finished(const uint32_t& page_id)
 {
 	const auto* page = find_page(page_id);
 	if(page) {
-		const Variant url_key(page->url_key.str());
+		const Variant url_key(page->url_key);
 		page_info_async->get_value_locked(url_key, lock_timeout * 1000,
 			std::bind(&SearchEngine::word_update_callback, this, page_id, std::placeholders::_1));
 	}
