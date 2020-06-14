@@ -4,7 +4,7 @@ module CrawlProcessor {
 	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
 	
-	vnx.TopicPtr output_crawl_stats = "backend.crawl_stats";
+	vnx.TopicPtr output_crawl_stats = "crawl.stats";
 	
 	string url_index_server = "UrlIndex";
 	
