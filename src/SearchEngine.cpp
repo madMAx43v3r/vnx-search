@@ -307,7 +307,8 @@ std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix
 	return result;
 }
 
-uint32_t SearchEngine::find_url_id(const stx::cstring& url_key) const
+template<typename T>
+uint32_t SearchEngine::find_url_id(const T& url_key) const
 {
 	auto iter = url_map.find(url_key);
 	if(iter != url_map.end()) {
@@ -316,7 +317,8 @@ uint32_t SearchEngine::find_url_id(const stx::cstring& url_key) const
 	return 0;
 }
 
-uint32_t SearchEngine::get_url_id(const stx::cstring& url_key)
+template<typename T>
+uint32_t SearchEngine::get_url_id(const T& url_key)
 {
 	uint32_t id = find_url_id(url_key);
 	if(id == 0) {
@@ -349,7 +351,8 @@ const SearchEngine::page_t* SearchEngine::find_page(uint32_t url_id) const
 	return 0;
 }
 
-SearchEngine::word_t& SearchEngine::get_word(const stx::sstring& word)
+template<typename T>
+SearchEngine::word_t& SearchEngine::get_word(const T& word)
 {
 	const auto iter = word_map.find(word);
 	if(iter != word_map.end()) {
@@ -366,7 +369,8 @@ SearchEngine::word_t& SearchEngine::get_word(const stx::sstring& word)
 	}
 }
 
-SearchEngine::domain_t& SearchEngine::get_domain(const stx::sstring& host)
+template<typename T>
+SearchEngine::domain_t& SearchEngine::get_domain(const T& host)
 {
 	const auto iter = domain_map.find(host);
 	if(iter != domain_map.end()) {
@@ -392,7 +396,8 @@ const SearchEngine::domain_t* SearchEngine::find_domain(uint32_t domain_id) cons
 	return 0;
 }
 
-std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const stx::cstring& url_key)
+template<typename T>
+std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const T& url_key)
 {
 	auto& cache = link_cache[url_key];
 	if(!cache) {
