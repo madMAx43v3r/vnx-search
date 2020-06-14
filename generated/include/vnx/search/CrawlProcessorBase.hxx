@@ -19,7 +19,7 @@ class CrawlProcessorBase : public ::vnx::Module {
 public:
 	
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
-	::vnx::TopicPtr output_crawl_stats = "backend.crawl_stats";
+	::vnx::TopicPtr output_crawl_stats = "crawl.stats";
 	std::string url_index_server = "UrlIndex";
 	std::string page_index_server = "PageIndex";
 	std::string page_content_server = "PageContent";
@@ -36,7 +36,6 @@ public:
 	int32_t max_word_length = 64;
 	int32_t num_worker_threads = 4;
 	int32_t check_interval_ms = 500;
-	int32_t update_interval_ms = 5000;
 	int32_t robots_timeout = 1000;
 	int32_t robots_reload_interval = 2678400;
 	vnx::float32_t reload_power = 4;

@@ -31,7 +31,7 @@ public:
 	
 	std::shared_ptr<const ::vnx::search::SearchResult> query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags);
 	
-	std::vector<std::string> reverse_domain_lookup(const std::string& url_key);
+	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key);
 	
 	std::vector<std::string> reverse_lookup(const std::string& url_key);
 	

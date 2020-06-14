@@ -40,7 +40,7 @@ public:
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t reverse_domain_lookup(const std::string& url_key, 
-			const std::function<void(std::vector<std::string>)>& _callback = std::function<void(std::vector<std::string>)>(),
+			const std::function<void(std::vector<std::pair<std::string, uint32_t>>)>& _callback = std::function<void(std::vector<std::pair<std::string, uint32_t>>)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t reverse_lookup(const std::string& url_key, 
@@ -67,7 +67,7 @@ private:
 	std::map<uint64_t, std::pair<std::function<void(std::vector<::vnx::Object>)>, std::function<void(const std::exception&)>>> vnx_queue_get_domain_list;
 	std::map<uint64_t, std::pair<std::function<void(::vnx::Object)>, std::function<void(const std::exception&)>>> vnx_queue_get_page_info;
 	std::map<uint64_t, std::pair<std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>, std::function<void(const std::exception&)>>> vnx_queue_query;
-	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_reverse_domain_lookup;
+	std::map<uint64_t, std::pair<std::function<void(std::vector<std::pair<std::string, uint32_t>>)>, std::function<void(const std::exception&)>>> vnx_queue_reverse_domain_lookup;
 	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_reverse_lookup;
 	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_suggest_domains;
 	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_suggest_words;

@@ -20,7 +20,7 @@ namespace search {
 
 
 const vnx::Hash64 CrawlProcessorBase::VNX_TYPE_HASH(0x508848d1f9d97d9full);
-const vnx::Hash64 CrawlProcessorBase::VNX_CODE_HASH(0xbaed36ad69f65350ull);
+const vnx::Hash64 CrawlProcessorBase::VNX_CODE_HASH(0x2cc42ba3218223bdull);
 
 CrawlProcessorBase::CrawlProcessorBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -52,7 +52,6 @@ CrawlProcessorBase::CrawlProcessorBase(const std::string& _vnx_name)
 	vnx::read_config(vnx_name + ".robots_timeout", robots_timeout);
 	vnx::read_config(vnx_name + ".root_urls", root_urls);
 	vnx::read_config(vnx_name + ".sync_interval", sync_interval);
-	vnx::read_config(vnx_name + ".update_interval_ms", update_interval_ms);
 	vnx::read_config(vnx_name + ".url_index_server", url_index_server);
 	vnx::read_config(vnx_name + ".user_agent", user_agent);
 }
@@ -89,18 +88,17 @@ void CrawlProcessorBase::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[15], 15); vnx::accept(_visitor, max_word_length);
 	_visitor.type_field(_type_code->fields[16], 16); vnx::accept(_visitor, num_worker_threads);
 	_visitor.type_field(_type_code->fields[17], 17); vnx::accept(_visitor, check_interval_ms);
-	_visitor.type_field(_type_code->fields[18], 18); vnx::accept(_visitor, update_interval_ms);
-	_visitor.type_field(_type_code->fields[19], 19); vnx::accept(_visitor, robots_timeout);
-	_visitor.type_field(_type_code->fields[20], 20); vnx::accept(_visitor, robots_reload_interval);
-	_visitor.type_field(_type_code->fields[21], 21); vnx::accept(_visitor, reload_power);
-	_visitor.type_field(_type_code->fields[22], 22); vnx::accept(_visitor, index_version);
-	_visitor.type_field(_type_code->fields[23], 23); vnx::accept(_visitor, do_reprocess);
-	_visitor.type_field(_type_code->fields[24], 24); vnx::accept(_visitor, user_agent);
-	_visitor.type_field(_type_code->fields[25], 25); vnx::accept(_visitor, protocols);
-	_visitor.type_field(_type_code->fields[26], 26); vnx::accept(_visitor, root_urls);
-	_visitor.type_field(_type_code->fields[27], 27); vnx::accept(_visitor, domain_blacklist);
-	_visitor.type_field(_type_code->fields[28], 28); vnx::accept(_visitor, path_blacklist);
-	_visitor.type_field(_type_code->fields[29], 29); vnx::accept(_visitor, regex_blacklist);
+	_visitor.type_field(_type_code->fields[18], 18); vnx::accept(_visitor, robots_timeout);
+	_visitor.type_field(_type_code->fields[19], 19); vnx::accept(_visitor, robots_reload_interval);
+	_visitor.type_field(_type_code->fields[20], 20); vnx::accept(_visitor, reload_power);
+	_visitor.type_field(_type_code->fields[21], 21); vnx::accept(_visitor, index_version);
+	_visitor.type_field(_type_code->fields[22], 22); vnx::accept(_visitor, do_reprocess);
+	_visitor.type_field(_type_code->fields[23], 23); vnx::accept(_visitor, user_agent);
+	_visitor.type_field(_type_code->fields[24], 24); vnx::accept(_visitor, protocols);
+	_visitor.type_field(_type_code->fields[25], 25); vnx::accept(_visitor, root_urls);
+	_visitor.type_field(_type_code->fields[26], 26); vnx::accept(_visitor, domain_blacklist);
+	_visitor.type_field(_type_code->fields[27], 27); vnx::accept(_visitor, path_blacklist);
+	_visitor.type_field(_type_code->fields[28], 28); vnx::accept(_visitor, regex_blacklist);
 	_visitor.type_end(*_type_code);
 }
 
@@ -124,7 +122,6 @@ void CrawlProcessorBase::write(std::ostream& _out) const {
 	_out << ", \"max_word_length\": "; vnx::write(_out, max_word_length);
 	_out << ", \"num_worker_threads\": "; vnx::write(_out, num_worker_threads);
 	_out << ", \"check_interval_ms\": "; vnx::write(_out, check_interval_ms);
-	_out << ", \"update_interval_ms\": "; vnx::write(_out, update_interval_ms);
 	_out << ", \"robots_timeout\": "; vnx::write(_out, robots_timeout);
 	_out << ", \"robots_reload_interval\": "; vnx::write(_out, robots_reload_interval);
 	_out << ", \"reload_power\": "; vnx::write(_out, reload_power);
@@ -197,8 +194,6 @@ void CrawlProcessorBase::read(std::istream& _in) {
 			vnx::from_string(_entry.second, root_urls);
 		} else if(_entry.first == "sync_interval") {
 			vnx::from_string(_entry.second, sync_interval);
-		} else if(_entry.first == "update_interval_ms") {
-			vnx::from_string(_entry.second, update_interval_ms);
 		} else if(_entry.first == "url_index_server") {
 			vnx::from_string(_entry.second, url_index_server);
 		} else if(_entry.first == "user_agent") {
@@ -228,7 +223,6 @@ vnx::Object CrawlProcessorBase::to_object() const {
 	_object["max_word_length"] = max_word_length;
 	_object["num_worker_threads"] = num_worker_threads;
 	_object["check_interval_ms"] = check_interval_ms;
-	_object["update_interval_ms"] = update_interval_ms;
 	_object["robots_timeout"] = robots_timeout;
 	_object["robots_reload_interval"] = robots_reload_interval;
 	_object["reload_power"] = reload_power;
@@ -299,8 +293,6 @@ void CrawlProcessorBase::from_object(const vnx::Object& _object) {
 			_entry.second.to(root_urls);
 		} else if(_entry.first == "sync_interval") {
 			_entry.second.to(sync_interval);
-		} else if(_entry.first == "update_interval_ms") {
-			_entry.second.to(update_interval_ms);
 		} else if(_entry.first == "url_index_server") {
 			_entry.second.to(url_index_server);
 		} else if(_entry.first == "user_agent") {
@@ -333,11 +325,11 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.CrawlProcessor";
 	type_code->type_hash = vnx::Hash64(0x508848d1f9d97d9full);
-	type_code->code_hash = vnx::Hash64(0xbaed36ad69f65350ull);
+	type_code->code_hash = vnx::Hash64(0x2cc42ba3218223bdull);
 	type_code->is_native = true;
 	type_code->methods.resize(1);
 	type_code->methods[0] = ::vnx::search::CrawlProcessor_get_stats::static_get_type_code();
-	type_code->fields.resize(30);
+	type_code->fields.resize(29);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -349,7 +341,7 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "output_crawl_stats";
-		field.value = vnx::to_string("backend.crawl_stats");
+		field.value = vnx::to_string("crawl.stats");
 		field.code = {12, 5};
 	}
 	{
@@ -454,73 +446,67 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[18];
-		field.name = "update_interval_ms";
-		field.value = vnx::to_string(5000);
-		field.code = {7};
-	}
-	{
-		vnx::TypeField& field = type_code->fields[19];
 		field.name = "robots_timeout";
 		field.value = vnx::to_string(1000);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[20];
+		vnx::TypeField& field = type_code->fields[19];
 		field.name = "robots_reload_interval";
 		field.value = vnx::to_string(2678400);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[21];
+		vnx::TypeField& field = type_code->fields[20];
 		field.name = "reload_power";
 		field.value = vnx::to_string(4);
 		field.code = {9};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[22];
+		vnx::TypeField& field = type_code->fields[21];
 		field.name = "index_version";
 		field.value = vnx::to_string(0);
 		field.code = {3};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[23];
+		vnx::TypeField& field = type_code->fields[22];
 		field.name = "do_reprocess";
 		field.value = vnx::to_string(false);
 		field.code = {1};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[24];
+		vnx::TypeField& field = type_code->fields[23];
 		field.is_extended = true;
 		field.name = "user_agent";
 		field.value = vnx::to_string("Googlebot");
 		field.code = {12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[25];
+		vnx::TypeField& field = type_code->fields[24];
 		field.is_extended = true;
 		field.name = "protocols";
 		field.code = {12, 12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[26];
+		vnx::TypeField& field = type_code->fields[25];
 		field.is_extended = true;
 		field.name = "root_urls";
 		field.code = {12, 12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[27];
+		vnx::TypeField& field = type_code->fields[26];
 		field.is_extended = true;
 		field.name = "domain_blacklist";
 		field.code = {12, 12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[28];
+		vnx::TypeField& field = type_code->fields[27];
 		field.is_extended = true;
 		field.name = "path_blacklist";
 		field.code = {12, 12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[29];
+		vnx::TypeField& field = type_code->fields[28];
 		field.is_extended = true;
 		field.name = "regex_blacklist";
 		field.code = {12, 12, 5};
@@ -656,35 +642,29 @@ void read(TypeInput& in, ::vnx::search::CrawlProcessorBase& value, const TypeCod
 		{
 			const vnx::TypeField* const _field = type_code->field_map[18];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.update_interval_ms, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.robots_timeout, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[19];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.robots_timeout, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.robots_reload_interval, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[20];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.robots_reload_interval, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.reload_power, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[21];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.reload_power, _field->code.data());
-			}
-		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[22];
-			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.index_version, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[23];
+			const vnx::TypeField* const _field = type_code->field_map[22];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.do_reprocess, _field->code.data());
 			}
@@ -698,12 +678,12 @@ void read(TypeInput& in, ::vnx::search::CrawlProcessorBase& value, const TypeCod
 			case 3: vnx::read(in, value.page_index_server, type_code, _field->code.data()); break;
 			case 4: vnx::read(in, value.page_content_server, type_code, _field->code.data()); break;
 			case 5: vnx::read(in, value.crawl_frontend_server, type_code, _field->code.data()); break;
-			case 24: vnx::read(in, value.user_agent, type_code, _field->code.data()); break;
-			case 25: vnx::read(in, value.protocols, type_code, _field->code.data()); break;
-			case 26: vnx::read(in, value.root_urls, type_code, _field->code.data()); break;
-			case 27: vnx::read(in, value.domain_blacklist, type_code, _field->code.data()); break;
-			case 28: vnx::read(in, value.path_blacklist, type_code, _field->code.data()); break;
-			case 29: vnx::read(in, value.regex_blacklist, type_code, _field->code.data()); break;
+			case 23: vnx::read(in, value.user_agent, type_code, _field->code.data()); break;
+			case 24: vnx::read(in, value.protocols, type_code, _field->code.data()); break;
+			case 25: vnx::read(in, value.root_urls, type_code, _field->code.data()); break;
+			case 26: vnx::read(in, value.domain_blacklist, type_code, _field->code.data()); break;
+			case 27: vnx::read(in, value.path_blacklist, type_code, _field->code.data()); break;
+			case 28: vnx::read(in, value.regex_blacklist, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -718,7 +698,7 @@ void write(TypeOutput& out, const ::vnx::search::CrawlProcessorBase& value, cons
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(69);
+	char* const _buf = out.write(65);
 	vnx::write_value(_buf + 0, value.jump_cost);
 	vnx::write_value(_buf + 4, value.max_depth);
 	vnx::write_value(_buf + 8, value.reload_interval);
@@ -731,24 +711,23 @@ void write(TypeOutput& out, const ::vnx::search::CrawlProcessorBase& value, cons
 	vnx::write_value(_buf + 36, value.max_word_length);
 	vnx::write_value(_buf + 40, value.num_worker_threads);
 	vnx::write_value(_buf + 44, value.check_interval_ms);
-	vnx::write_value(_buf + 48, value.update_interval_ms);
-	vnx::write_value(_buf + 52, value.robots_timeout);
-	vnx::write_value(_buf + 56, value.robots_reload_interval);
-	vnx::write_value(_buf + 60, value.reload_power);
-	vnx::write_value(_buf + 64, value.index_version);
-	vnx::write_value(_buf + 68, value.do_reprocess);
+	vnx::write_value(_buf + 48, value.robots_timeout);
+	vnx::write_value(_buf + 52, value.robots_reload_interval);
+	vnx::write_value(_buf + 56, value.reload_power);
+	vnx::write_value(_buf + 60, value.index_version);
+	vnx::write_value(_buf + 64, value.do_reprocess);
 	vnx::write(out, value.input_url_index, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.output_crawl_stats, type_code, type_code->fields[1].code.data());
 	vnx::write(out, value.url_index_server, type_code, type_code->fields[2].code.data());
 	vnx::write(out, value.page_index_server, type_code, type_code->fields[3].code.data());
 	vnx::write(out, value.page_content_server, type_code, type_code->fields[4].code.data());
 	vnx::write(out, value.crawl_frontend_server, type_code, type_code->fields[5].code.data());
-	vnx::write(out, value.user_agent, type_code, type_code->fields[24].code.data());
-	vnx::write(out, value.protocols, type_code, type_code->fields[25].code.data());
-	vnx::write(out, value.root_urls, type_code, type_code->fields[26].code.data());
-	vnx::write(out, value.domain_blacklist, type_code, type_code->fields[27].code.data());
-	vnx::write(out, value.path_blacklist, type_code, type_code->fields[28].code.data());
-	vnx::write(out, value.regex_blacklist, type_code, type_code->fields[29].code.data());
+	vnx::write(out, value.user_agent, type_code, type_code->fields[23].code.data());
+	vnx::write(out, value.protocols, type_code, type_code->fields[24].code.data());
+	vnx::write(out, value.root_urls, type_code, type_code->fields[25].code.data());
+	vnx::write(out, value.domain_blacklist, type_code, type_code->fields[26].code.data());
+	vnx::write(out, value.path_blacklist, type_code, type_code->fields[27].code.data());
+	vnx::write(out, value.regex_blacklist, type_code, type_code->fields[28].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::CrawlProcessorBase& value) {

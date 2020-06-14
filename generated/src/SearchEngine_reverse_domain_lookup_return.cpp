@@ -13,7 +13,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchEngine_reverse_domain_lookup_return::VNX_TYPE_HASH(0x8f0160842cd83465ull);
-const vnx::Hash64 SearchEngine_reverse_domain_lookup_return::VNX_CODE_HASH(0x3ce4514f7b5b4ad7ull);
+const vnx::Hash64 SearchEngine_reverse_domain_lookup_return::VNX_CODE_HASH(0x246b319aef73dcaull);
 
 vnx::Hash64 SearchEngine_reverse_domain_lookup_return::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -104,7 +104,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_reverse_domain_lookup_return::static
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchEngine.reverse_domain_lookup.return";
 	type_code->type_hash = vnx::Hash64(0x8f0160842cd83465ull);
-	type_code->code_hash = vnx::Hash64(0x3ce4514f7b5b4ad7ull);
+	type_code->code_hash = vnx::Hash64(0x246b319aef73dcaull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_return = true;
@@ -114,7 +114,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_reverse_domain_lookup_return::static
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "_ret_0";
-		field.code = {12, 12, 5};
+		field.code = {12, 23, 2, 4, 6, 12, 5, 3};
 	}
 	type_code->build();
 	return type_code;

@@ -93,7 +93,7 @@ std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(con
 	return _result->_ret_0;
 }
 
-std::vector<std::string> SearchEngineClient::reverse_domain_lookup(const std::string& url_key) {
+std::vector<std::pair<std::string, uint32_t>> SearchEngineClient::reverse_domain_lookup(const std::string& url_key) {
 	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
 	_method->url_key = url_key;
 	auto _return_value = vnx_request(_method);

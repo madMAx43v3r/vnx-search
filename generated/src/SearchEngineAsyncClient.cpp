@@ -85,7 +85,7 @@ uint64_t SearchEngineAsyncClient::query(const std::vector<std::string>& words, c
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::reverse_domain_lookup(const std::string& url_key, const std::function<void(std::vector<std::string>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+uint64_t SearchEngineAsyncClient::reverse_domain_lookup(const std::string& url_key, const std::function<void(std::vector<std::pair<std::string, uint32_t>>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
 	_method->url_key = url_key;
 	const auto _request_id = vnx_request(_method);
