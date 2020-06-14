@@ -1132,7 +1132,6 @@ void SearchEngine::query_loop() const noexcept
 		
 		struct result_t : result_item_t {
 			uint32_t domain_id = 0;
-			stx::cstring url_key;
 		};
 		
 		std::vector<result_t> results;
@@ -1148,7 +1147,6 @@ void SearchEngine::query_loop() const noexcept
 					results.push_back(result_t());
 					result_t& item = results.back();
 					item.url = page->get_url();
-					item.url_key = page->url_key;
 					item.domain_id = page->domain_id;
 					item.last_modified = page->last_modified;
 					item.score = entry.second * page->reverse_domains.size();
@@ -1185,14 +1183,14 @@ void SearchEngine::query_loop() const noexcept
 		result->compute_time_us = time_mid - time_begin;
 		
 		result->items.clear();
-		std::vector<Variant> url_keys;
-		for(uint32_t i = 0; i < uint32_t(request->limit) && request->offset + i < sorted.size(); ++i)
-		{
-			const auto* item = sorted[request->offset + i].second;
-			url_keys.push_back(Variant(item->url_key.str()));
-			result->items.push_back(*item);
-		}
 		try {
+			std::vector<Variant> url_keys;
+			for(uint32_t i = 0; i < uint32_t(request->limit) && request->offset + i < sorted.size(); ++i)
+			{
+				const auto* item = sorted[request->offset + i].second;
+				url_keys.push_back(Variant(get_url_key(item->url)));
+				result->items.push_back(*item);
+			}
 			const auto values = page_info_sync.get_values(url_keys);
 			for(size_t i = 0; i < values.size(); ++i) {
 				auto page_info = std::dynamic_pointer_cast<const PageInfo>(values[i]);
