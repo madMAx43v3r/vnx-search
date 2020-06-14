@@ -1,7 +1,9 @@
 # vnx-search
 
 # Dependencies
-libcurl4-openssl-dev libicu-dev libxml2-dev libglibmm-2.4-dev mm-common
+vnx-keyvalue (>=1.2.0)
+
+> libcurl4-openssl-dev libicu-dev libxml2-dev libglibmm-2.4-dev mm-common
 
 # Notes
 Increase max open file limit in /etc/sysctl.conf:

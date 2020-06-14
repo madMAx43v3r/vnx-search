@@ -11,6 +11,7 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include <url.h>
 
@@ -97,10 +98,34 @@ Url::Url process_link(const Url::Url& link, const Url::Url& parent)
 }
 
 template<typename T>
-std::vector<T> get_unique(std::vector<T> in)
+std::vector<T> get_unique(const std::vector<T>& in)
 {
 	std::set<T> tmp(in.begin(), in.end());
 	return std::vector<T>(tmp.begin(), tmp.end());
+}
+
+template<typename T>
+std::vector<T>& append(std::vector<T>& vector, const std::vector<T>& new_elements)
+{
+	vector.insert(vector.end(), new_elements.begin(), new_elements.end());
+	return vector;
+}
+
+template<typename T>
+std::vector<T> concat(const std::vector<T>& A, const std::vector<T>& B)
+{
+	std::vector<T> vector;
+	vector.reserve(A.size() + B.size());
+	vector.insert(vector.end(), A.begin(), A.end());
+	vector.insert(vector.end(), B.begin(), B.end());
+	return vector;
+}
+
+template<typename T>
+std::vector<T>& remove(std::vector<T>& vector, const T& element)
+{
+	std::remove(vector.begin(), vector.end(), element);
+	return vector;
 }
 
 template<typename T>

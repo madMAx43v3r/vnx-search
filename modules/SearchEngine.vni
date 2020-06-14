@@ -21,7 +21,11 @@ module SearchEngine {
 	
 	int num_update_threads = 4;
 	
-	int commit_interval = 3600;				// [sec]
+	int link_commit_interval = 60;			// [sec]
+	
+	int word_commit_interval = 3600;		// [sec]
+	
+	int lock_timeout = 100;					// [sec]
 	
 	int stats_interval_ms = 10000;
 	
@@ -36,13 +40,13 @@ module SearchEngine {
 	
 	Object get_domain_info(string host, int limit, uint offset) const;
 	
-	Object get_page_info(string url_key) const;
+	Object get_page_info(string url_key) const async;
 	
 	vector<Object> get_domain_list(int limit, uint offset) const;
 	
-	vector<string> reverse_lookup(string url_key) const;
+	vector<string> reverse_lookup(string url_key) const async;
 	
-	vector<string> reverse_domain_lookup(string url_key) const;
+	vector<pair<string, uint>> reverse_domain_lookup(string url_key) const async;
 	
 	vector<string> suggest_words(string prefix, int limit) const;
 	

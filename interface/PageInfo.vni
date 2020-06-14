@@ -2,10 +2,22 @@ package vnx.search;
 
 class PageInfo {
 	
-	uint id;						// page id
+	uint id;						// page id (0 = not loaded yet)
 	
-	ulong version;					// word context version
+	ulong version;					// version regarding title, etc
+	
+	ulong link_version;				// version regarding links
+	
+	ulong word_version;				// word context version
+	
+	string scheme;
+	
+	string title;
 	
 	vector<uint> words;
+	
+	vector<uint> links;
+	
+	vector<uint> reverse_links;
 	
 }

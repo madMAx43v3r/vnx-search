@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 	
 	vnx::init("vnx_search_browse", argc, argv, options);
 	
-	std::string server = ".vnx_search_backend.sock";
+	std::string server = ".vnx_search_engine.sock";
 	std::string key;
 	int32_t limit = 10;
 	uint32_t page = 0;
