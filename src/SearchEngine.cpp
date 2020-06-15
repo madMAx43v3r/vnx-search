@@ -653,7 +653,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		}
 		if(init_sync_count == 3)
 		{
-			subscribe(input_page_index, 100);
+			subscribe(input_page_index, 10);
 			page_index_sync->sync_all(input_page_index_sync);
 			log(INFO).out << "Starting PageIndex sync ...";
 		}
