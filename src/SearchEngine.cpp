@@ -429,10 +429,11 @@ std::shared_ptr<SearchEngine::word_cache_t> SearchEngine::get_word_cache(uint32_
 void SearchEngine::delete_page_async(const std::string& url_key)
 {
 	page_info_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
-			std::bind(&SearchEngine::delete_page_callback, this, std::placeholders::_1));
+			std::bind(&SearchEngine::delete_page_callback, this, url_key, std::placeholders::_1));
 }
 
-void SearchEngine::delete_page_callback(std::pair<Variant, std::shared_ptr<const Value>> pair)
+void SearchEngine::delete_page_callback(const std::string& url_key,
+										std::pair<Variant, std::shared_ptr<const Value>> pair)
 {
 	check_load_queue();
 	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(pair.second);
@@ -473,6 +474,7 @@ void SearchEngine::delete_page_callback(std::pair<Variant, std::shared_ptr<const
 		
 		auto& r_page_cache = page_cache[page_info->id];
 		r_page_cache.version = 0;
+		r_page_cache.url_key = url_key;
 		r_page_cache.words.clear();
 		
 		for(const auto word_id : page_info->words)
@@ -882,6 +884,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 		
 		page_cache_t& r_page_cache = page_cache[page_id];
 		r_page_cache.version = version;
+		r_page_cache.url_key = url_key;
 		
 		for(const auto& entry : words)
 		{
@@ -974,14 +977,10 @@ void SearchEngine::link_update(	const std::string& url_key,
 	page_update_counter++;
 }
 
-void SearchEngine::word_update_finished(const uint32_t& page_id)
+void SearchEngine::word_update_finished(const uint32_t& page_id, const std::string& url_key)
 {
-	const auto* page = find_page(page_id);
-	if(page) {
-		const Variant url_key(page->url_key);
-		page_info_async->get_value_locked(url_key, lock_timeout * 1000,
-			std::bind(&SearchEngine::word_update_callback, this, page_id, std::placeholders::_1));
-	}
+	page_info_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
+		std::bind(&SearchEngine::word_update_callback, this, page_id, std::placeholders::_1));
 }
 
 void SearchEngine::word_update_callback(const uint32_t& page_id,
@@ -1367,7 +1366,7 @@ void SearchEngine::update_loop() noexcept
 							r_page_cache.words_pending--;
 						}
 						if(r_page_cache.words_pending == 0) {
-							add_task(std::bind(&SearchEngine::word_update_finished, this, page_id));
+							add_task(std::bind(&SearchEngine::word_update_finished, this, page_id, r_page_cache.url_key));
 						}
 					}
 				}

@@ -151,7 +151,8 @@ private:
 	
 	void delete_page_async(const std::string& url_key);
 	
-	void delete_page_callback(std::pair<Variant, std::shared_ptr<const Value>> pair);
+	void delete_page_callback(	const std::string& url_key,
+								std::pair<Variant, std::shared_ptr<const Value>> pair);
 	
 	void redirect_callback(	const std::string& org_url_key,
 							const std::string& new_url_key,
@@ -185,7 +186,7 @@ private:
 	void link_update(	const std::string& url_key,
 						std::pair<Variant, std::shared_ptr<const Value>> pair);
 	
-	void word_update_finished(const uint32_t& page_id);
+	void word_update_finished(const uint32_t& page_id, const std::string& url_key);
 	
 	void word_update_callback(	const uint32_t& page_id,
 								std::pair<Variant, std::shared_ptr<const Value>> pair);
