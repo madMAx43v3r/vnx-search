@@ -39,8 +39,8 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 void CrawlProcessor::main()
 {
 	subscribe(input_url_index, 100);			// publisher runs in a separate thread so we can block here
-	subscribe(input_url_index_sync, 100);		// sync runs in a separate thread so we can block here
-	subscribe(input_page_index_sync, 100);		// sync runs in a separate thread so we can block here
+	subscribe(input_url_index_sync, 10);		// sync runs in a separate thread so we can block here
+	subscribe(input_page_index_sync, 10);		// sync runs in a separate thread so we can block here
 	
 	vnx::open_pipe(private_addr, this, UNLIMITED);
 	
