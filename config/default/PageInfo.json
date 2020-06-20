@@ -1,5 +1,6 @@
 {
-	"rewrite_threshold": 0.2,
+	"rewrite_threshold": 0.3,
 	"rewrite_chunk_count": 5000,
+	"idle_rewrite_interval": 300,
 	"num_read_threads": 16
 }
