@@ -20,6 +20,7 @@
 #include <stx/cstring.h>
 #include <stx/sstring.h>
 #include <stx/fstring.h>
+#include <stx/pstring.h>
 
 #include <atomic>
 #include <shared_mutex>
@@ -59,9 +60,9 @@ protected:
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
 		stx::fstring<8> scheme;
-		std::string url_key;
+		stx::pstring url_key;
 		std::vector<uint32_t> reverse_domains;
-		std::string get_url() const { return scheme.str() + ":" + url_key; }
+		std::string get_url() const { return scheme.str() + ":" + url_key.str(); }
 	};
 	
 	struct page_cache_t {
@@ -131,8 +132,12 @@ protected:
 	void handle(std::shared_ptr<const keyvalue::SyncInfo> value) override;
 	
 private:
-	uint32_t find_url_id(const std::string& url_key) const;
-	uint32_t get_url_id(const std::string& url_key);
+	template<typename T>
+	uint32_t find_url_id(const T& url_key) const;
+	template<typename T>
+	uint32_t get_url_id(const T& url_key);
+	template<typename T>
+	stx::pstring get_url_key_str(const T& url_key) const;
 	
 	page_t* find_page(uint32_t url_id);
 	const page_t* find_page(uint32_t url_id) const;
@@ -216,7 +221,7 @@ private:
 	std::vector<uint32_t> free_url_ids;
 	std::map<stx::sstring, uint32_t, std::less<>> word_map;
 	std::map<stx::sstring, uint32_t, std::less<>> domain_map;
-	std::unordered_map<std::string, uint32_t> url_map;
+	std::map<stx::pstring, uint32_t, std::less<>> url_map;
 	std::unordered_map<uint32_t, word_t> word_index;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;

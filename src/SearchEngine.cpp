@@ -239,7 +239,7 @@ void SearchEngine::reverse_lookup_callback(	const std::string& url_key,
 		for(const auto link_id : page_info->reverse_links) {
 			const auto* parent = find_page(link_id);
 			if(parent) {
-				sorted.emplace_back(parent->url_key, parent->reverse_domains.size());
+				sorted.emplace_back(parent->url_key.str(), parent->reverse_domains.size());
 			}
 		}
 	}
@@ -304,16 +304,18 @@ std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix
 	return result;
 }
 
-uint32_t SearchEngine::find_url_id(const std::string& url_key) const
+template<typename T>
+uint32_t SearchEngine::find_url_id(const T& url_key) const
 {
-	auto iter = url_map.find(url_key);
+	const auto iter = url_map.find(url_key);
 	if(iter != url_map.end()) {
 		return iter->second;
 	}
 	return 0;
 }
 
-uint32_t SearchEngine::get_url_id(const std::string& url_key)
+template<typename T>
+uint32_t SearchEngine::get_url_id(const T& url_key)
 {
 	uint32_t id = find_url_id(url_key);
 	if(id == 0) {
@@ -326,6 +328,16 @@ uint32_t SearchEngine::get_url_id(const std::string& url_key)
 		url_map[url_key] = id;
 	}
 	return id;
+}
+
+template<typename T>
+stx::pstring SearchEngine::get_url_key_str(const T& url_key) const
+{
+	const auto iter = url_map.find(url_key);
+	if(iter != url_map.end()) {
+		return iter->first;
+	}
+	return url_key;
 }
 
 SearchEngine::page_t* SearchEngine::find_page(uint32_t url_id)
@@ -405,7 +417,7 @@ std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(uint32_
 {
 	const auto* page = find_page(page_id);
 	if(page) {
-		return get_link_cache(page->url_key);
+		return get_link_cache(page->url_key.str());
 	}
 	return 0;
 }
@@ -748,7 +760,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 	page.version = version;
 	page.link_version = version;
 	page.word_version = version;
-	page.url_key = url_key;
+	page.url_key = get_url_key_str(url_key);
 	page.scheme = url_index->scheme;
 	page.first_seen = url_index->first_seen;
 	page.last_modified = url_index->last_modified;
