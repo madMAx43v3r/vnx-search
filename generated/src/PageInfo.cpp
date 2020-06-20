@@ -13,7 +13,7 @@ namespace search {
 
 
 const vnx::Hash64 PageInfo::VNX_TYPE_HASH(0x547cfd9b2bb19c80ull);
-const vnx::Hash64 PageInfo::VNX_CODE_HASH(0x1f7131f8682dcbd5ull);
+const vnx::Hash64 PageInfo::VNX_CODE_HASH(0x3dd68bef6c68ba55ull);
 
 vnx::Hash64 PageInfo::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -46,10 +46,10 @@ void PageInfo::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_PageInfo;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, id);
-	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, version);
-	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, link_version);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, word_version);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, scheme);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, is_deleted);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, version);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, link_version);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, word_version);
 	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, title);
 	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, words);
 	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, links);
@@ -60,10 +60,10 @@ void PageInfo::accept(vnx::Visitor& _visitor) const {
 void PageInfo::write(std::ostream& _out) const {
 	_out << "{\"__type\": \"vnx.search.PageInfo\"";
 	_out << ", \"id\": "; vnx::write(_out, id);
+	_out << ", \"is_deleted\": "; vnx::write(_out, is_deleted);
 	_out << ", \"version\": "; vnx::write(_out, version);
 	_out << ", \"link_version\": "; vnx::write(_out, link_version);
 	_out << ", \"word_version\": "; vnx::write(_out, word_version);
-	_out << ", \"scheme\": "; vnx::write(_out, scheme);
 	_out << ", \"title\": "; vnx::write(_out, title);
 	_out << ", \"words\": "; vnx::write(_out, words);
 	_out << ", \"links\": "; vnx::write(_out, links);
@@ -77,14 +77,14 @@ void PageInfo::read(std::istream& _in) {
 	for(const auto& _entry : _object) {
 		if(_entry.first == "id") {
 			vnx::from_string(_entry.second, id);
+		} else if(_entry.first == "is_deleted") {
+			vnx::from_string(_entry.second, is_deleted);
 		} else if(_entry.first == "link_version") {
 			vnx::from_string(_entry.second, link_version);
 		} else if(_entry.first == "links") {
 			vnx::from_string(_entry.second, links);
 		} else if(_entry.first == "reverse_links") {
 			vnx::from_string(_entry.second, reverse_links);
-		} else if(_entry.first == "scheme") {
-			vnx::from_string(_entry.second, scheme);
 		} else if(_entry.first == "title") {
 			vnx::from_string(_entry.second, title);
 		} else if(_entry.first == "version") {
@@ -101,10 +101,10 @@ vnx::Object PageInfo::to_object() const {
 	vnx::Object _object;
 	_object["__type"] = "vnx.search.PageInfo";
 	_object["id"] = id;
+	_object["is_deleted"] = is_deleted;
 	_object["version"] = version;
 	_object["link_version"] = link_version;
 	_object["word_version"] = word_version;
-	_object["scheme"] = scheme;
 	_object["title"] = title;
 	_object["words"] = words;
 	_object["links"] = links;
@@ -116,14 +116,14 @@ void PageInfo::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
 		if(_entry.first == "id") {
 			_entry.second.to(id);
+		} else if(_entry.first == "is_deleted") {
+			_entry.second.to(is_deleted);
 		} else if(_entry.first == "link_version") {
 			_entry.second.to(link_version);
 		} else if(_entry.first == "links") {
 			_entry.second.to(links);
 		} else if(_entry.first == "reverse_links") {
 			_entry.second.to(reverse_links);
-		} else if(_entry.first == "scheme") {
-			_entry.second.to(scheme);
 		} else if(_entry.first == "title") {
 			_entry.second.to(title);
 		} else if(_entry.first == "version") {
@@ -160,7 +160,7 @@ std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.PageInfo";
 	type_code->type_hash = vnx::Hash64(0x547cfd9b2bb19c80ull);
-	type_code->code_hash = vnx::Hash64(0x1f7131f8682dcbd5ull);
+	type_code->code_hash = vnx::Hash64(0x3dd68bef6c68ba55ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageInfo>(); };
@@ -172,24 +172,23 @@ std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];
+		field.name = "is_deleted";
+		field.code = {1};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[2];
 		field.name = "version";
 		field.code = {4};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		vnx::TypeField& field = type_code->fields[3];
 		field.name = "link_version";
 		field.code = {4};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[3];
+		vnx::TypeField& field = type_code->fields[4];
 		field.name = "word_version";
 		field.code = {4};
-	}
-	{
-		vnx::TypeField& field = type_code->fields[4];
-		field.is_extended = true;
-		field.name = "scheme";
-		field.code = {12, 5};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[5];
@@ -248,17 +247,23 @@ void read(TypeInput& in, ::vnx::search::PageInfo& value, const TypeCode* type_co
 		{
 			const vnx::TypeField* const _field = type_code->field_map[1];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.version, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.is_deleted, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[2];
 			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.link_version, _field->code.data());
+				vnx::read_value(_buf + _field->offset, value.version, _field->code.data());
 			}
 		}
 		{
 			const vnx::TypeField* const _field = type_code->field_map[3];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.link_version, _field->code.data());
+			}
+		}
+		{
+			const vnx::TypeField* const _field = type_code->field_map[4];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.word_version, _field->code.data());
 			}
@@ -266,7 +271,6 @@ void read(TypeInput& in, ::vnx::search::PageInfo& value, const TypeCode* type_co
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 4: vnx::read(in, value.scheme, type_code, _field->code.data()); break;
 			case 5: vnx::read(in, value.title, type_code, _field->code.data()); break;
 			case 6: vnx::read(in, value.words, type_code, _field->code.data()); break;
 			case 7: vnx::read(in, value.links, type_code, _field->code.data()); break;
@@ -285,12 +289,12 @@ void write(TypeOutput& out, const ::vnx::search::PageInfo& value, const TypeCode
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(28);
+	char* const _buf = out.write(29);
 	vnx::write_value(_buf + 0, value.id);
-	vnx::write_value(_buf + 4, value.version);
-	vnx::write_value(_buf + 12, value.link_version);
-	vnx::write_value(_buf + 20, value.word_version);
-	vnx::write(out, value.scheme, type_code, type_code->fields[4].code.data());
+	vnx::write_value(_buf + 4, value.is_deleted);
+	vnx::write_value(_buf + 5, value.version);
+	vnx::write_value(_buf + 13, value.link_version);
+	vnx::write_value(_buf + 21, value.word_version);
 	vnx::write(out, value.title, type_code, type_code->fields[5].code.data());
 	vnx::write(out, value.words, type_code, type_code->fields[6].code.data());
 	vnx::write(out, value.links, type_code, type_code->fields[7].code.data());

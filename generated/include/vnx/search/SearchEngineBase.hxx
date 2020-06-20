@@ -21,7 +21,7 @@ class SearchEngineBase : public ::vnx::Module {
 public:
 	
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
-	::vnx::TopicPtr input_page_index = "backend.page_index.updates";
+	::vnx::TopicPtr input_page_index = "backend.page_index.key_updates";
 	std::string url_index_server = "UrlIndex";
 	std::string page_index_server = "PageIndex";
 	std::string page_content_server = "PageContent";

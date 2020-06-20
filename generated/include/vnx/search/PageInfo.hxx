@@ -15,10 +15,10 @@ class PageInfo : public ::vnx::Value {
 public:
 	
 	uint32_t id = 0;
+	vnx::bool_t is_deleted = 0;
 	uint64_t version = 0;
 	uint64_t link_version = 0;
 	uint64_t word_version = 0;
-	std::string scheme;
 	std::string title;
 	std::vector<uint32_t> words;
 	std::vector<uint32_t> links;
