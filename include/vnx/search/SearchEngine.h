@@ -67,6 +67,7 @@ protected:
 	struct page_cache_t {
 		int32_t words_pending = 0;
 		uint64_t version = 0;
+		std::string url_key;
 		std::vector<uint32_t> words;
 	};
 	
