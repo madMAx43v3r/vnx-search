@@ -422,6 +422,14 @@ std::shared_ptr<SearchEngine::word_cache_t> SearchEngine::get_word_cache(uint32_
 	return cache;
 }
 
+SearchEngine::page_cache_t& SearchEngine::get_page_cache(uint32_t page_id, uint64_t version, const std::string& url_key)
+{
+	auto& cache = page_cache[page_id];
+	cache.version = version;
+	cache.url_key = url_key;
+	return cache;
+}
+
 void SearchEngine::delete_page_async(const std::string& url_key)
 {
 	page_info_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
@@ -470,9 +478,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 		
 		if(!page_cache.count(page_info->id))
 		{
-			auto& r_page_cache = page_cache[page_info->id];
-			r_page_cache.version = 0;
-			r_page_cache.url_key = url_key;
+			auto& r_page_cache = get_page_cache(page_info->id, 0, url_key);
 			
 			for(const auto word_id : page_info->words)
 			{
@@ -885,9 +891,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 			}
 		}
 		
-		page_cache_t& r_page_cache = page_cache[page_id];
-		r_page_cache.version = version;
-		r_page_cache.url_key = url_key;
+		page_cache_t& r_page_cache = get_page_cache(page_id, version, url_key);
 		
 		for(const auto& entry : words)
 		{

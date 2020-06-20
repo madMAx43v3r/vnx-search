@@ -150,6 +150,8 @@ private:
 	
 	std::shared_ptr<word_cache_t> get_word_cache(uint32_t word_id);
 	
+	page_cache_t& get_page_cache(uint32_t page_id, uint64_t version, const std::string& url_key);
+	
 	void delete_page_async(const std::string& url_key);
 	
 	void delete_page_callback(	const std::string& url_key,
