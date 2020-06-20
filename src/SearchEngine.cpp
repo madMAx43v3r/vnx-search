@@ -459,7 +459,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 	}
 	if(page_info->link_version)
 	{
-		const auto p_link_cache = get_link_cache(page_info->id);
+		const auto p_link_cache = get_link_cache(url_key);
 		if(p_link_cache)
 		{
 			p_link_cache->version = 0;
