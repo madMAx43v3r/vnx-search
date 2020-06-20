@@ -703,10 +703,10 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 											const std::string& new_scheme,
 											const int new_depth,
 											const UrlInfo& info,
-											std::shared_ptr<const Value> previous_)
+											std::pair<Variant, std::shared_ptr<const Value>> pair)
 {
 	std::shared_ptr<UrlIndex> index;
-	auto previous = std::dynamic_pointer_cast<const UrlIndex>(previous_);
+	auto previous = std::dynamic_pointer_cast<const UrlIndex>(pair.second);
 	if(previous) {
 		index = vnx::clone(previous);
 	} else {
@@ -725,7 +725,7 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 		index->fetch_count = 1;
 		index->depth = new_depth;
 	}
-	url_index_async->store_value(Variant(url_key), index);
+	url_index_async->store_value(pair.first, index);
 	
 	if(info.is_fail) {
 		error_counter++;

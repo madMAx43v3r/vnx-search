@@ -134,7 +134,7 @@ private:
 								const std::string& new_scheme,
 								const int new_depth,
 								const UrlInfo& info,
-								std::shared_ptr<const Value> previous);
+								std::pair<Variant, std::shared_ptr<const Value>> pair);
 	
 	void robots_txt_callback(const std::string& url_key, robots_txt_state_e missing_state, std::shared_ptr<const Value> value);
 	
