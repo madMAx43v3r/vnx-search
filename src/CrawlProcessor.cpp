@@ -694,7 +694,7 @@ void CrawlProcessor::url_update(	const std::string& url_key,
 									const int new_depth,
 									const UrlInfo& info)
 {
-	url_index_async->get_value(Variant(url_key),
+	url_index_async->get_value_locked(Variant(url_key), 100 * 1000,
 						std::bind(&CrawlProcessor::url_update_callback, this,
 								url_key, new_scheme, new_depth, info, std::placeholders::_1));
 }
