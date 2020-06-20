@@ -482,6 +482,9 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 					r_page_cache.words_pending++;
 				}
 			}
+			if(r_page_cache.words_pending == 0) {
+				word_update_finished(page_info->id, url_key);
+			}
 		}
 	}
 	{
@@ -897,6 +900,9 @@ void SearchEngine::update_page(	const std::string& url_key,
 				r_page_cache.words_pending++;
 			}
 		}
+		if(r_page_cache.words_pending == 0) {
+			word_update_finished(page_id, url_key);
+		}
 	}
 }
 
@@ -1015,7 +1021,7 @@ void SearchEngine::print_stats()
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
 			<< domain_index.size() << " domains, "
-			<< load_queue.size() << " / " << link_cache.size() << " / " << page_index.size() << " pages, "
+			<< load_queue.size() << " / " << link_cache.size() << " / " << page_cache.size() << " / " << page_index.size() << " pages, "
 			<< word_cache.size() << " / " << word_map.size() << " words, "
 			<< redirects.size() << " redirects";
 	
