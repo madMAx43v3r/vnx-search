@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 	
 	vnx::init("vnx_search_discover", argc, argv, options);
 	
-	std::string server = ".vnx_search_backend.sock";
+	std::string server = ".vnx_search_engine.sock";
 	int32_t limit = 100;
 	uint32_t page = 0;
 	
