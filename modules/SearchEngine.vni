@@ -5,7 +5,7 @@ import vnx.Object;
 module SearchEngine {
 	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
-	vnx.TopicPtr input_page_index = "backend.page_index.updates";
+	vnx.TopicPtr input_page_index = "backend.page_index.key_updates";
 	
 	string url_index_server = "UrlIndex";
 	

@@ -53,9 +53,9 @@ protected:
 	struct page_t {
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
-		bool is_loaded = false;
-		bool is_deleted = true;
 		uint64_t version = 0;
+		uint64_t link_version = 0;
+		uint64_t word_version = 0;
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
 		stx::fstring<8> scheme;
@@ -151,16 +151,19 @@ private:
 	
 	void delete_page_async(const std::string& url_key);
 	
+	void delete_page_callback(std::pair<Variant, std::shared_ptr<const Value>> pair);
+	
 	void redirect_callback(	const std::string& org_url_key,
 							const std::string& new_url_key,
 							std::shared_ptr<const Value> value);
 	
-	void delete_page_callback(	const std::string& url_key,
+	void update_page_callback_0(const std::string& url_key,
+								const uint64_t version,
 								std::shared_ptr<const Value> value);
 	
 	void update_page_callback_1(const std::string& url_key,
 								const uint64_t version,
-								std::shared_ptr<const PageIndex> index,
+								std::shared_ptr<const UrlIndex> url_index,
 								std::shared_ptr<const Value> value);
 	
 	void update_page_callback_2(const std::string& url_key,
@@ -175,9 +178,11 @@ private:
 						std::shared_ptr<const PageInfo> page_info,
 						std::shared_ptr<const UrlIndex> url_index);
 	
-	void link_update();
+	void check_load_queue();
 	
-	void link_commit(	const std::string& url_key,
+	void check_link_queue();
+	
+	void link_update(	const std::string& url_key,
 						std::pair<Variant, std::shared_ptr<const Value>> pair);
 	
 	void word_update_finished(const uint32_t& page_id);
@@ -201,7 +206,7 @@ private:
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> page_info_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> word_context_async;
-	std::shared_ptr<keyvalue::ServerClient> page_index_sync;
+	std::shared_ptr<keyvalue::ServerAsyncClient> page_index_async;
 	
 	// protected by index_mutex (only main thread may modify)
 	std::vector<uint32_t> free_url_ids;
@@ -221,6 +226,7 @@ private:
 	std::unordered_map<std::string, uint32_t> redirects;
 	std::unordered_map<std::string, std::shared_ptr<link_cache_t>> link_cache;
 	std::multimap<int64_t, std::string> link_queue;
+	std::queue<std::pair<uint64_t, std::string>> load_queue;
 	
 	mutable std::mutex query_mutex;
 	mutable std::condition_variable query_condition;

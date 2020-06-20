@@ -36,6 +36,7 @@ int main(int argc, char** argv)
 		vnx::Handle<vnx::keyvalue::Server> module = new vnx::keyvalue::Server("PageIndex");
 		module->collection = "page_index";
 		module->update_topic = "backend.page_index.updates";
+		module->update_topic_keys = "backend.page_index.key_updates";
 		module.start_detached();
 	}
 	{

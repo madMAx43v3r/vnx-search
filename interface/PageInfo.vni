@@ -4,13 +4,13 @@ class PageInfo {
 	
 	uint id;						// page id (0 = not loaded yet)
 	
+	bool is_deleted;
+	
 	ulong version;					// version regarding title, etc
 	
 	ulong link_version;				// version regarding links
 	
 	ulong word_version;				// word context version
-	
-	string scheme;
 	
 	string title;
 	
