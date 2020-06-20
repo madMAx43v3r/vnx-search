@@ -433,7 +433,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 {
 	check_load_queue();
 	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(pair.second);
-	if(!page_info || page_info->id == 0) {
+	if(!page_info) {
 		page_info_async->unlock(pair.first);
 		return;
 	}
@@ -487,11 +487,13 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 			}
 		}
 	}
+	if(page_info->id)
 	{
 		std::unique_lock lock(index_mutex);
 		page_index.erase(page_info->id);
 	}
-	if(!page_info->is_deleted) {
+	if(!page_info->is_deleted)
+	{
 		auto copy = vnx::clone(page_info);
 		copy->is_deleted = true;
 		page_info_async->store_value(pair.first, copy);
@@ -509,7 +511,7 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(value);
 	const auto new_page_id = get_url_id(new_url_key);
 	
-	if(page_info)
+	if(page_info && !page_info->is_deleted)
 	{
 		auto* new_page = find_page(new_page_id);
 		const auto p_new_cache = get_link_cache(new_url_key);
