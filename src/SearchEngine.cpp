@@ -288,8 +288,6 @@ void SearchEngine::reverse_domain_lookup_callback(	const std::string& url_key,
 
 std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
 {
-	std::shared_lock lock(index_mutex);
-	
 	std::vector<std::string> result;
 	for(auto it = word_map.lower_bound(prefix); it != word_map.end() && result.size() < size_t(limit); ++it) {
 		result.push_back(it->first.str());
@@ -299,8 +297,6 @@ std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, 
 
 std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix, const int32_t& limit) const
 {
-	std::shared_lock lock(index_mutex);
-	
 	std::vector<std::string> result;
 	for(auto it = domain_map.lower_bound(prefix); it != domain_map.end() && result.size() < size_t(limit); ++it) {
 		result.push_back(it->first.str());
