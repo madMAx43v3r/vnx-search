@@ -468,17 +468,19 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 	{
 		std::lock_guard lock(update_mutex);
 		
-		auto& r_page_cache = page_cache[page_info->id];
-		r_page_cache.version = 0;
-		r_page_cache.url_key = url_key;
-		r_page_cache.words.clear();
-		
-		for(const auto word_id : page_info->words)
+		if(!page_cache.count(page_info->id))
 		{
-			const auto cache = get_word_cache(word_id);
-			if(cache) {
-				cache->rem_pages.push_back(page_info->id);
-				r_page_cache.words_pending++;
+			auto& r_page_cache = page_cache[page_info->id];
+			r_page_cache.version = 0;
+			r_page_cache.url_key = url_key;
+			
+			for(const auto word_id : page_info->words)
+			{
+				const auto cache = get_word_cache(word_id);
+				if(cache) {
+					cache->rem_pages.push_back(page_info->id);
+					r_page_cache.words_pending++;
+				}
 			}
 		}
 	}
@@ -779,7 +781,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 					}
 				}
 				if(link_id) {
-					if(link_id != page.id) {
+					if(link_id != page_id) {
 						// link to existing page
 						new_links.insert(link_id);
 					}
@@ -787,7 +789,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 					// link to not yet loaded page
 					const auto cached = get_link_cache(link_url_key);
 					if(cached) {
-						cached->add_reverse_links.push_back(page.id);
+						cached->add_reverse_links.push_back(page_id);
 					}
 				}
 			} catch(...) {
@@ -807,7 +809,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 					// link was removed
 					const auto cached = get_link_cache(link_id);
 					if(cached) {
-						cached->rem_reverse_links.push_back(page.id);
+						cached->rem_reverse_links.push_back(page_id);
 					}
 					p_link_cache->rem_links.push_back(link_id);
 				}
@@ -818,7 +820,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 			// make new links
 			const auto cached = get_link_cache(link_id);
 			if(cached) {
-				cached->add_reverse_links.push_back(page.id);
+				cached->add_reverse_links.push_back(page_id);
 			}
 			auto* child = find_page(link_id);
 			if(child) {
@@ -841,7 +843,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 				}
 				const auto cached = get_link_cache(parent_id);
 				if(cached) {
-					cached->add_links.push_back(page.id);
+					cached->add_links.push_back(page_id);
 				}
 			}
 		}
@@ -853,7 +855,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 	std::lock_guard lock_1(update_mutex);
 	
 	// update word index if version is greater and previous update has finished
-	if((!page_info || version > page_info->word_version) && !page_cache.count(page.id))
+	if((!page_info || version > page_info->word_version) && !page_cache.count(page_id))
 	{
 		struct word_info_t {
 			short mode = 0;
@@ -1336,32 +1338,29 @@ void SearchEngine::update_loop() noexcept
 			}
 			word_context_sync.store_value(Variant(word), value);
 			
-			std::unordered_map<uint32_t, int> page_mode;
-			for(const auto& entry : p_word_cache->add_pages) {
-				page_mode[entry.first]++;
-			}
-			for(const auto page_id : p_word_cache->rem_pages) {
-				page_mode[page_id]--;
-			}
-			
 			{
 				std::lock_guard lock(update_mutex);
 				
-				for(const auto& entry : page_mode)
+				for(const auto& entry : p_word_cache->add_pages)
 				{
 					const auto page_id = entry.first;
 					const auto iter = page_cache.find(page_id);
 					if(iter != page_cache.end())
 					{
 						auto& r_page_cache = iter->second;
-						if(entry.second >= 0) {
-							r_page_cache.words.push_back(word_id);
-							r_page_cache.words_pending--;
+						unique_push_back(r_page_cache.words, word_id);
+						if(--(r_page_cache.words_pending) == 0) {
+							add_task(std::bind(&SearchEngine::word_update_finished, this, page_id, r_page_cache.url_key));
 						}
-						if(entry.second <= 0) {
-							r_page_cache.words_pending--;
-						}
-						if(r_page_cache.words_pending == 0) {
+					}
+				}
+				for(const auto page_id : p_word_cache->rem_pages)
+				{
+					const auto iter = page_cache.find(page_id);
+					if(iter != page_cache.end())
+					{
+						auto& r_page_cache = iter->second;
+						if(--(r_page_cache.words_pending) == 0) {
 							add_task(std::bind(&SearchEngine::word_update_finished, this, page_id, r_page_cache.url_key));
 						}
 					}
