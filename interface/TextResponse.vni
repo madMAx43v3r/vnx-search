@@ -6,6 +6,8 @@ class TextResponse extends Response {
 	
 	string text;
 	
+	string base_url;				// HTML base url for all relative links
+	
 	vector<string> links;
 	
 	vector<string> images;

@@ -16,6 +16,7 @@ public:
 	
 	std::string title;
 	std::string text;
+	std::string base_url;
 	std::vector<std::string> links;
 	std::vector<std::string> images;
 	

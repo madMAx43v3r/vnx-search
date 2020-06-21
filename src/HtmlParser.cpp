@@ -93,6 +93,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 {
 	auto result = TextResponse::create();
 	result->Response::operator=(*response);
+	result->base_url = response->url;
 	
 	const std::string payload((const char*)response->payload.data(), response->payload.size());
 	
@@ -110,7 +111,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 		throw std::runtime_error("get_root_node() failed");
 	}
 	
-	auto meta = root->find("//head/meta");
+	const auto meta = root->find("//head/meta");
 	for(auto node : meta) {
 		auto element = dynamic_cast<const xmlpp::Element*>(node);
 		if(element) {
@@ -124,7 +125,7 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 		}
 	}
 	
-	auto title = root->find("//head/title");
+	const auto title = root->find("//head/title");
 	if(!title.empty()) {
 		auto element = dynamic_cast<const xmlpp::Element*>(title[0]);
 		if(element) {
@@ -139,7 +140,18 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 		}
 	}
 	
-	auto body = root->find("//body");
+	const auto base = root->find("//head/base");
+	if(!base.empty()) {
+		auto element = dynamic_cast<const xmlpp::Element*>(base[0]);
+		if(element) {
+			auto href = element->get_attribute("href");
+			if(href) {
+				result->base_url = href->get_value();
+			}
+		}
+	}
+	
+	const auto body = root->find("//body");
 	if(!body.empty()) {
 		parse_node(body[0], result);
 	}

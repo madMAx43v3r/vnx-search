@@ -82,6 +82,7 @@ private:
 	void process_page(	const std::string& url,
 						std::shared_ptr<PageIndex> index,
 						const std::string& content,
+						const std::string& base_url,
 						const std::vector<std::string>& links,
 						const std::vector<std::string>& images,
 						std::shared_ptr<const PageContent> robots_txt,

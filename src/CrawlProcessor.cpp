@@ -123,7 +123,7 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	index->last_modified = value->last_modified;
 	
 	work_threads->add_task(std::bind(&CrawlProcessor::process_page, this, value->url, index,
-									value->text, value->links, value->images, robots_txt, false));
+									value->text, value->base_url, value->links, value->images, robots_txt, false));
 }
 
 void CrawlProcessor::page_process_callback(	const std::string& url_key,
@@ -146,6 +146,7 @@ void CrawlProcessor::page_process_callback(	const std::string& url_key,
 void CrawlProcessor::process_page(	const std::string& url,
 									std::shared_ptr<PageIndex> index,
 									const std::string& content,
+									const std::string& base_url,
 									const std::vector<std::string>& links,
 									const std::vector<std::string>& images,
 									std::shared_ptr<const PageContent> robots_txt,
@@ -179,6 +180,7 @@ void CrawlProcessor::process_page(	const std::string& url,
     }
 	
 	const Url::Url parent(url);
+	const Url::Url base(base_url);
 	googlebot::RobotsMatcher matcher;
 	
 	size_t word_count = 0;
@@ -193,7 +195,7 @@ void CrawlProcessor::process_page(	const std::string& url,
 	for(const auto& link : links)
 	{
 		try {
-			const auto parsed = process_link(Url::Url(link), parent);
+			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
 			if(full_link.size() <= max_url_length) {
 				if(filter_url(parsed)) {
@@ -212,7 +214,7 @@ void CrawlProcessor::process_page(	const std::string& url,
 	for(const auto& link : images)
 	{
 		try {
-			const auto parsed = process_link(Url::Url(link), parent);
+			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
 			if(full_link.size() <= max_url_length) {
 				if(filter_url(parsed)) {
@@ -234,7 +236,7 @@ void CrawlProcessor::process_page(	const std::string& url,
 	index->word_count = std::min(word_count, size_t(0xFFFFFFFF));
 	index->version = index_version;
 	
-	add_task(std::bind(&CrawlProcessor::page_process_callback, this, get_url_key(parent), index, is_reprocess));
+	add_task(std::bind(&CrawlProcessor::page_process_callback, this, get_url_key(url), index, is_reprocess));
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> pair)
@@ -621,7 +623,7 @@ void CrawlProcessor::reproc_page(	const std::string& url_key,
 	new_index->images.clear();
 	
 	work_threads->add_task(std::bind(&CrawlProcessor::process_page, this, url_key, new_index,
-									content->text, index->links, index->images, nullptr, true));
+									content->text, "", index->links, index->images, nullptr, true));
 }
 
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key, bool is_fail)
