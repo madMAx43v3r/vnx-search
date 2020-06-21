@@ -92,7 +92,7 @@ private:
 								const std::shared_ptr<const PageIndex>& index,
 								const bool& is_reprocess);
 	
-	void delete_url(const std::string& url_key);
+	void delete_page(const std::string& url_key);
 	
 	domain_t& get_domain(const std::string& host);
 	

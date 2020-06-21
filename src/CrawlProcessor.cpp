@@ -250,7 +250,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 			if(filter_url(parsed)) {
 				check_url(parsed, index->depth, index);
 			} else if(!is_robots_txt(parsed)) {
-				delete_url(url_key);
+				delete_page(url_key);
 			}
 			return;
 		}
@@ -268,7 +268,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 								std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
 					}
 				} else {
-					delete_url(url_key);
+					delete_page(url_key);
 				}
 			}
 			return;
@@ -276,7 +276,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 	}
 }
 
-void CrawlProcessor::delete_url(const std::string& url_key)
+void CrawlProcessor::delete_page(const std::string& url_key)
 {
 	url_index_async->delete_value(Variant(url_key));
 	page_index_async->delete_value(Variant(url_key));
@@ -466,7 +466,7 @@ void CrawlProcessor::check_queue()
 				if(matcher->OneAgentAllowedByRobots(domain.robots_txt->text, user_agent, iter->second)) {
 					break;
 				}
-				delete_url(get_url_key(iter->second));
+				delete_page(get_url_key(iter->second));
 				iter = domain.queue.erase(iter);
 				domain.num_disallowed++;
 			}
@@ -558,7 +558,7 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 				url_index_async->store_value(Variant(url_key), copy);
 			}
 		} else {
-			delete_url(url_key);
+			delete_page(url_key);
 		}
 	} else {
 		auto index = UrlIndex::create();
