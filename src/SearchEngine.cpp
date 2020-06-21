@@ -716,7 +716,7 @@ void SearchEngine::update_page_callback_0(	const std::string& url_key,
 		page_index_async->get_value(Variant(url_key),
 				std::bind(&SearchEngine::update_page_callback_1, this, url_key, version, url_index, std::placeholders::_1));
 	} else {
-		check_load_queue();
+		delete_page_async(url_key);
 	}
 }
 
