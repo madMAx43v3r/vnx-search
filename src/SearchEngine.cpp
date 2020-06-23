@@ -765,6 +765,13 @@ void SearchEngine::update_page(	const std::string& url_key,
 	page.first_seen = url_index->first_seen;
 	page.last_modified = url_index->last_modified;
 	
+	if(!page.domain_id)
+	{
+		auto& domain = get_domain(Url::Url(url_key).host());
+		page.domain_id = domain.id;
+		domain.pages.push_back(page.id);
+	}
+	
 	if(!page_info || version > page_info->version)
 	{
 		// initialize or update page_info
