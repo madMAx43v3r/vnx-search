@@ -610,15 +610,22 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		return;
 	}
 	
-	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
-	if(url_index) {
+	if(pair->collection == "url_index")
+	{
+		const auto org_url_key = pair->key.to_string_value();
+		
+		auto url_index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
+		if(!url_index) {
+			std::unique_lock lock(index_mutex);
+			redirects.erase(org_url_key);
+			return;
+		}
 		if(url_index->fetch_count == 0) {
 			return;
 		}
 		std::unique_lock lock(index_mutex);
 		
 		bool is_redirect = false;
-		const auto org_url_key = pair->key.to_string_value();
 		
 		if(!url_index->redirect.empty())
 		{
