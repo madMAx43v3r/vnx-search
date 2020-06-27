@@ -74,6 +74,7 @@ protected:
 	
 	struct word_cache_t {
 		uint32_t word_id = 0;
+		std::string word;
 		std::vector<uint32_t> rem_pages;
 		std::vector<std::pair<uint32_t, float>> add_pages;
 	};

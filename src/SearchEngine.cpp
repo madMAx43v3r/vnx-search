@@ -376,6 +376,15 @@ SearchEngine::word_t& SearchEngine::get_word(const T& word)
 	}
 }
 
+const SearchEngine::word_t* SearchEngine::find_word(uint32_t word_id) const
+{
+	const auto iter = word_index.find(word_id);
+	if(iter != word_index.end()) {
+		return &iter->second;
+	}
+	return 0;
+}
+
 template<typename T>
 SearchEngine::domain_t& SearchEngine::get_domain(const T& host)
 {
@@ -429,6 +438,14 @@ std::shared_ptr<SearchEngine::word_cache_t> SearchEngine::get_word_cache(uint32_
 	if(!cache) {
 		cache = std::make_shared<word_cache_t>();
 		cache->word_id = word_id;
+		{
+			auto* word = find_word(word_id);
+			if(word) {
+				cache->word = word->value.str();
+			} else {
+				throw std::logic_error("invalid word_id: " + std::to_string(word_id));
+			}
+		}
 		word_queue.emplace(vnx::get_wall_time_micros(), word_id);
 	}
 	return cache;
@@ -1291,18 +1308,7 @@ void SearchEngine::update_loop() noexcept
 		}
 		do_wait = false;
 		
-		std::string word;
-		{
-			std::shared_lock lock(index_mutex);
-			
-			const auto iter = word_index.find(word_id);
-			if(iter != word_index.end()) {
-				word = iter->second.value.str();
-			} else {
-				log(WARN).out << "update_loop(): invalid word id: " << word_id;
-				continue;
-			}
-		}
+		const auto word = p_word_cache->word;
 		
 		std::shared_ptr<const WordContext> context;
 		try {
@@ -1332,8 +1338,7 @@ void SearchEngine::update_loop() noexcept
 			for(const auto& entry : context->pages)
 			{
 				const auto page_id = entry.first;
-				if(!rem_pages.count(page_id) && !new_pages.count(page_id))
-				{
+				if(!rem_pages.count(page_id) && !new_pages.count(page_id)) {
 					new_pages.emplace(entry);
 				}
 			}
