@@ -230,7 +230,7 @@ private:
 	// protected by update_mutex
 	std::unordered_map<uint32_t, page_cache_t> page_cache;
 	std::unordered_map<uint32_t, std::shared_ptr<word_cache_t>> word_cache;
-	std::queue<std::pair<int64_t, uint32_t>> word_queue;
+	std::multimap<int64_t, uint32_t> word_queue;
 	
 	// accessed by main thread only
 	std::unordered_map<std::string, uint32_t> redirects;

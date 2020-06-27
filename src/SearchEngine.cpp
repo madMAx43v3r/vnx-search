@@ -446,7 +446,8 @@ std::shared_ptr<SearchEngine::word_cache_t> SearchEngine::get_word_cache(uint32_
 				throw std::logic_error("invalid word_id: " + std::to_string(word_id));
 			}
 		}
-		word_queue.emplace(vnx::get_wall_time_micros(), word_id);
+		const int64_t rand_offset = (::rand() * int64_t(word_commit_interval)) / RAND_MAX;
+		word_queue.emplace(vnx::get_wall_time_seconds() + rand_offset, word_id);
 	}
 	return cache;
 }
@@ -1290,15 +1291,15 @@ void SearchEngine::update_loop() noexcept
 				if(word_queue.empty()) {
 					continue;
 				}
-				const auto& entry = word_queue.front();
-				const auto delta = (vnx::get_wall_time_micros() - entry.first) / 1000000;
+				const auto iter = word_queue.begin();
+				const auto delta = vnx::get_wall_time_seconds() - iter->first;
 				
 				if(delta > word_commit_interval || word_cache.size() > max_word_cache)
 				{
-					word_id = entry.second;
+					word_id = iter->second;
 					p_word_cache = word_cache[word_id];
 					word_cache.erase(word_id);
-					word_queue.pop();
+					word_queue.erase(iter);
 				} else {
 					continue;
 				}
