@@ -653,6 +653,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	if(!result) {
 		return;
 	}
+	bool is_redirect = false;
 	auto new_scheme = parsed.scheme();
 	
 	if(!result->redirect.empty())
@@ -662,6 +663,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		
 		if(url_key_redir != url_key)
 		{
+			is_redirect = true;
 			page_index_async->delete_value(Variant(url_key));
 			page_content_async->delete_value(Variant(url_key));
 			log(INFO).out << "Deleted obsolete '" << url_key << "'";
@@ -671,13 +673,13 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			{
 				UrlInfo info = *result;
 				info.redirect.clear();
-				url_update(url_key_redir, parsed_redir.scheme(), entry.depth, info);
+				url_update(url_key_redir, parsed_redir.scheme(), entry.depth, info, result->response);
 			}
 		} else {
 			new_scheme = parsed_redir.scheme();
 		}
 	}
-	url_update(url_key, new_scheme, entry.depth, *result, result->response);
+	url_update(url_key, new_scheme, entry.depth, *result, is_redirect ? nullptr : result->response);
 }
 
 void CrawlProcessor::url_update(	const std::string& url_key,
