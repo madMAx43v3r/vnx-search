@@ -98,7 +98,7 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	const Url::Url parent(value->url);
 	const auto url_key = get_url_key(parent);
 	
-	if(!filter_url(parent)) {
+	if(value->url.size() > max_url_length || !filter_url(parent)) {
 		return;
 	}
 	
@@ -653,7 +653,6 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	if(!result) {
 		return;
 	}
-	bool is_filtered = false;
 	auto new_scheme = parsed.scheme();
 	
 	if(!result->redirect.empty())
@@ -670,45 +669,33 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			if(		result->redirect.size() <= max_url_length
 				&&	filter_url(parsed_redir))
 			{
-				if(entry.depth >= 0)
-				{
-					UrlInfo info = *result;
-					info.redirect.clear();
-					url_update(url_key_redir, parsed_redir.scheme(), entry.depth, info);
-				}
-			} else {
-				is_filtered = true;
+				UrlInfo info = *result;
+				info.redirect.clear();
+				url_update(url_key_redir, parsed_redir.scheme(), entry.depth, info);
 			}
 		} else {
 			new_scheme = parsed_redir.scheme();
 		}
 	}
-	url_update(url_key, new_scheme, entry.depth, *result);
-	
-	try {
-		if(result->response && !is_filtered) {
-			// TODO: check last fetch and only process if more than reload_interval has elapsed
-			handle(result->response);
-		}
-	} catch(const std::exception& ex) {
-		log(WARN).out << ex.what();
-	}
+	url_update(url_key, new_scheme, entry.depth, *result, result->response);
 }
 
 void CrawlProcessor::url_update(	const std::string& url_key,
 									const std::string& new_scheme,
 									const int new_depth,
-									const UrlInfo& info)
+									const UrlInfo& info,
+									std::shared_ptr<const TextResponse> response)
 {
 	url_index_async->get_value_locked(Variant(url_key), 100 * 1000,
 						std::bind(&CrawlProcessor::url_update_callback, this,
-								url_key, new_scheme, new_depth, info, std::placeholders::_1));
+								url_key, new_scheme, new_depth, info, response, std::placeholders::_1));
 }
 
 void CrawlProcessor::url_update_callback(	const std::string& url_key,
 											const std::string& new_scheme,
 											const int new_depth,
 											const UrlInfo& info,
+											std::shared_ptr<const TextResponse> response,
 											std::pair<Variant, std::shared_ptr<const Value>> pair)
 {
 	std::shared_ptr<UrlIndex> index;
@@ -721,16 +708,29 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 	index->UrlInfo::operator=(info);
 	index->scheme = new_scheme;
 	
+	bool do_process = true;
+	
 	if(previous) {
 		index->first_seen = previous->first_seen ? previous->first_seen : info.last_fetched;
 		index->fetch_count = previous->fetch_count + 1;
 		index->depth = std::min(previous->depth, new_depth);
+		do_process = info.last_fetched > previous->last_fetched + reload_interval / 2;
 	} else {
 		index->first_seen = info.last_fetched;
 		index->fetch_count = 1;
 		index->depth = new_depth;
 	}
 	url_index_async->store_value(pair.first, index);
+	
+	if(do_process) {
+		try {
+			if(response) {
+				handle(response);
+			}
+		} catch(const std::exception& ex) {
+			log(WARN).out << ex.what();
+		}
+	}
 	
 	if(info.is_fail) {
 		error_counter++;
