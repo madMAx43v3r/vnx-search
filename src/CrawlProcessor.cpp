@@ -653,6 +653,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	if(!result) {
 		return;
 	}
+	bool is_filtered = false;
 	auto new_scheme = parsed.scheme();
 	
 	if(!result->redirect.empty())
@@ -666,13 +667,17 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			page_content_async->delete_value(Variant(url_key));
 			log(INFO).out << "Deleted obsolete '" << url_key << "'";
 			
-			if(		entry.depth >= 0
-				&&	result->redirect.size() <= max_url_length
+			if(		result->redirect.size() <= max_url_length
 				&&	filter_url(parsed_redir))
 			{
-				UrlInfo info = *result;
-				info.redirect.clear();
-				url_update(url_key_redir, parsed_redir.scheme(), entry.depth, info);
+				if(entry.depth >= 0)
+				{
+					UrlInfo info = *result;
+					info.redirect.clear();
+					url_update(url_key_redir, parsed_redir.scheme(), entry.depth, info);
+				}
+			} else {
+				is_filtered = true;
 			}
 		} else {
 			new_scheme = parsed_redir.scheme();
@@ -681,12 +686,11 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	url_update(url_key, new_scheme, entry.depth, *result);
 	
 	try {
-		if(result->response) {
-			// TODO: check pause_map
+		if(result->response && !is_filtered) {
+			// TODO: check last fetch and only process if more than reload_interval has elapsed
 			handle(result->response);
 		}
-	}
-	catch(const std::exception& ex) {
+	} catch(const std::exception& ex) {
 		log(WARN).out << ex.what();
 	}
 }
@@ -721,7 +725,6 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 		index->first_seen = previous->first_seen ? previous->first_seen : info.last_fetched;
 		index->fetch_count = previous->fetch_count + 1;
 		index->depth = std::min(previous->depth, new_depth);
-		// TODO: detect cycles and update pause_map
 	} else {
 		index->first_seen = info.last_fetched;
 		index->fetch_count = 1;
