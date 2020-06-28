@@ -197,13 +197,12 @@ void CrawlProcessor::process_page(	const std::string& url,
 		try {
 			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
-			if(full_link.size() <= max_url_length) {
-				if(filter_url(parsed)) {
-					if(parsed.host() != parent.host() || !robots_txt
-						|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
-					{
-						index->links.push_back(full_link);
-					}
+			if(full_link.size() <= max_url_length && filter_url(parsed))
+			{
+				if(parsed.host() != parent.host() || !robots_txt
+					|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
+				{
+					index->links.push_back(full_link);
 				}
 			}
 		} catch(...) {
@@ -216,13 +215,12 @@ void CrawlProcessor::process_page(	const std::string& url,
 		try {
 			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
-			if(full_link.size() <= max_url_length) {
-				if(filter_url(parsed)) {
-					if(parsed.host() != parent.host() || !robots_txt
-						|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
-					{
-						index->images.push_back(full_link);
-					}
+			if(full_link.size() <= max_url_length && filter_url(parsed))
+			{
+				if(parsed.host() != parent.host() || !robots_txt
+					|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
+				{
+					index->images.push_back(full_link);
 				}
 			}
 		} catch(...) {
