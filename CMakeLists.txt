@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
 project(vnx-search)
 
+add_subdirectory(addons)
+add_subdirectory(keyvalue)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -46,7 +49,7 @@ target_include_directories(vnx_search
 		${PC_GLIBMM_INCLUDE_DIRS}
 )
 target_link_libraries(vnx_search
-	vnx_keyvalue vnx_base
+	vnx_keyvalue vnx_addons vnx_base
 	xmlpp robotstxt curl
 	${LIBXML2_LIBRARIES}
 	${PC_GLIBMM_LIBRARIES}
