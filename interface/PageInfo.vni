@@ -12,6 +12,8 @@ class PageInfo {
 	
 	ulong word_version;				// word context version
 	
+	string redirect;				// redirect url key
+	
 	string title;
 	
 	vector<uint> words;
