@@ -225,6 +225,7 @@ private:
 	
 	// protected by index_mutex (only main thread may modify)
 	std::vector<uint32_t> free_page_ids;
+	std::unordered_map<uint32_t, uint64_t> page_map;				// page id => page info version
 	std::map<stx::sstring, uint32_t, std::less<>> word_map;
 	std::map<stx::sstring, uint32_t, std::less<>> domain_map;
 	std::unordered_map<uint32_t, word_t> word_index;
