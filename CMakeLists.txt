@@ -33,6 +33,7 @@ add_library(vnx_search SHARED
 	src/CrawlProcessor.cpp
 	src/SearchEngine.cpp
 	src/PlainTextParser.cpp
+	src/ArchiveProxy.cpp
 )
 
 target_include_directories(vnx_search
@@ -78,6 +79,9 @@ target_link_libraries(vnx_search_browse vnx_search)
 
 add_executable(vnx_search_discover src/vnx_search_discover.cpp)
 target_link_libraries(vnx_search_discover vnx_search)
+
+add_executable(vnx_search_archive src/vnx_search_archive.cpp)
+target_link_libraries(vnx_search_archive vnx_search)
 
 add_executable(test_url test/test_url.cpp)
 target_link_libraries(test_url vnx_search)
