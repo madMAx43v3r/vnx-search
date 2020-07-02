@@ -124,7 +124,8 @@ std::vector<T> concat(const std::vector<T>& A, const std::vector<T>& B)
 template<typename T>
 std::vector<T>& remove(std::vector<T>& vector, const T& element)
 {
-	std::remove(vector.begin(), vector.end(), element);
+	const auto end = std::remove(vector.begin(), vector.end(), element);
+	vector.erase(end, vector.end());
 	return vector;
 }
 
