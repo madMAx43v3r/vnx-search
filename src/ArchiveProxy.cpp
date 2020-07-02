@@ -23,6 +23,8 @@ void ArchiveProxy::main()
 	
 	client = std::make_shared<keyvalue::ServerClient>(server_name);
 	
+	set_timer_millis(1000, std::bind(&ArchiveProxy::flush, this));
+	
 	Super::main();
 	
 	flush();
