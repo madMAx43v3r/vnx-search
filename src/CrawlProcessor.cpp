@@ -27,8 +27,8 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 {
 	private_addr = Hash64::rand();
 	
-	input_url_index_sync = vnx_name + ".url_index.sync";
-	input_page_index_sync = vnx_name + ".page_index.sync";
+	input_url_index_sync = vnx_name + ".url_index.sync_" + std::to_string(vnx::rand64());
+	input_page_index_sync = vnx_name + ".page_index.sync_" + std::to_string(vnx::rand64());
 	
 	protocols.push_back("http");
 	protocols.push_back("https");

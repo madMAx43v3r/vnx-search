@@ -23,10 +23,10 @@ namespace search {
 SearchEngine::SearchEngine(const std::string& _vnx_name)
 	:	SearchEngineBase(_vnx_name)
 {
-	input_url_index_sync = vnx_name + ".url_index.sync";
-	input_page_info_sync = vnx_name + ".page_info.sync";
-	input_page_index_sync = vnx_name + ".page_index.sync";
-	input_word_context_sync = vnx_name + ".word_context.sync";
+	input_url_index_sync = vnx_name + ".url_index.sync_" + std::to_string(vnx::rand64());
+	input_page_info_sync = vnx_name + ".page_info.sync_" + std::to_string(vnx::rand64());
+	input_page_index_sync = vnx_name + ".page_index.sync_" + std::to_string(vnx::rand64());
+	input_word_context_sync = vnx_name + ".word_context.sync_" + std::to_string(vnx::rand64());
 	
 	protocols.push_back("http");
 	protocols.push_back("https");
