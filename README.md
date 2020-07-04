@@ -1,11 +1,12 @@
 # vnx-search
+An open-source Search Engine based on VNX middleware.
 
-# Dependencies
+## Dependencies
 vnx-base (>=1.6.7)
 
 `libcurl4-openssl-dev libicu-dev libxml2-dev libglibmm-2.4-dev mm-common`
 
-# Notes
+## Notes
 Increase max open file limit in /etc/sysctl.conf:
 ```
 fs.file-max = 262144
