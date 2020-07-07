@@ -39,10 +39,10 @@ void SearchEngine::init()
 
 void SearchEngine::main()
 {
-	subscribe(input_url_index_sync, 100);
-	subscribe(input_page_info_sync, 100);
-	subscribe(input_page_index_sync, 100);
-	subscribe(input_word_context_sync, 100);
+	subscribe(input_url_index_sync, 100, 100);
+	subscribe(input_page_info_sync, 100, 100);
+	subscribe(input_page_index_sync, 100, 10);
+	subscribe(input_word_context_sync, 100, 100);
 	
 	protocols = get_unique(protocols);
 	
