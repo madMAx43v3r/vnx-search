@@ -1,0 +1,14 @@
+package vnx.search;
+
+module ArchiveProxy {
+	
+	vnx.TopicPtr input_http;
+	
+	string server_name = "HttpArchive";
+	
+	int buffer_size = 100;
+	
+	
+	void handle(HttpResponse sample);
+	
+}

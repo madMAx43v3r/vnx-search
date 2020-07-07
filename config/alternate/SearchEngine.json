@@ -3,7 +3,7 @@
 	"num_update_threads": 8,
 	"num_query_threads": 8,
 	"link_commit_interval": 600,
-	"word_commit_interval": 5000,
+	"word_commit_interval": 7200,
 	"max_word_cache": 10000000,
 	"lock_timeout": 1000
 }
