@@ -156,7 +156,6 @@ private:
 	void work_loop() const noexcept;
 	
 private:
-	Hash64 private_addr;
 	std::shared_ptr<ThreadPool> work_threads;
 	std::map<uint64_t, std::string> pending_urls;
 	std::multimap<int64_t, std::string> waiting;
