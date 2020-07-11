@@ -4,9 +4,11 @@
 #include <vnx/search/package.hxx>
 #include <vnx/search/CrawlProcessorAsyncClient.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/CrawlProcessor_get_stats.hxx>
 #include <vnx/search/CrawlProcessor_get_stats_return.hxx>
 #include <vnx/search/TextResponse.hxx>
@@ -27,6 +29,14 @@ CrawlProcessorAsyncClient::CrawlProcessorAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
+uint64_t CrawlProcessorAsyncClient::vnx_get_type_code(const std::function<void(::vnx::TypeCode)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
+	const auto _request_id = vnx_request(_method);
+	vnx_queue_vnx_get_type_code[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_num_pending++;
+	return _request_id;
+}
+
 uint64_t CrawlProcessorAsyncClient::get_stats(const int32_t& limit, const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::CrawlProcessor_get_stats::create();
 	_method->limit = limit;
@@ -38,6 +48,9 @@ uint64_t CrawlProcessorAsyncClient::get_stats(const int32_t& limit, const std::f
 
 std::vector<uint64_t> CrawlProcessorAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
+	for(const auto& entry : vnx_queue_vnx_get_type_code) {
+		_list.push_back(entry.first);
+	}
 	for(const auto& entry : vnx_queue_get_stats) {
 		_list.push_back(entry.first);
 	}
@@ -45,6 +58,16 @@ std::vector<uint64_t> CrawlProcessorAsyncClient::vnx_get_pending_ids() const {
 }
 
 void CrawlProcessorAsyncClient::vnx_purge_request(uint64_t _request_id, const std::exception& _ex) {
+	{
+		const auto _iter = vnx_queue_vnx_get_type_code.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_type_code.end()) {
+			if(_iter->second.second) {
+				_iter->second.second(_ex);
+			}
+			vnx_queue_vnx_get_type_code.erase(_iter);
+			vnx_num_pending--;
+		}
+	}
 	{
 		const auto _iter = vnx_queue_get_stats.find(_request_id);
 		if(_iter != vnx_queue_get_stats.end()) {
@@ -59,7 +82,24 @@ void CrawlProcessorAsyncClient::vnx_purge_request(uint64_t _request_id, const st
 
 void CrawlProcessorAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
 	const auto _type_hash = _value->get_type_hash();
-	if(_type_hash == vnx::Hash64(0xb8530c2e4e418c47ull)) {
+	if(_type_hash == vnx::Hash64(0x9f4322ca83b0d1ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_value);
+		if(!_result) {
+			throw std::logic_error("CrawlProcessorAsyncClient: !_result");
+		}
+		const auto _iter = vnx_queue_vnx_get_type_code.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_type_code.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_vnx_get_type_code.erase(_iter);
+			vnx_num_pending--;
+			if(_callback) {
+				_callback(_result->_ret_0);
+			}
+		} else {
+			throw std::runtime_error("CrawlProcessorAsyncClient: invalid return received");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0xb8530c2e4e418c47ull)) {
 		auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlProcessor_get_stats_return>(_value);
 		if(!_result) {
 			throw std::logic_error("CrawlProcessorAsyncClient: !_result");

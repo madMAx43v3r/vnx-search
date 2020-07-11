@@ -5,9 +5,11 @@
 #include <vnx/search/CrawlProcessorBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/CrawlProcessor_get_stats.hxx>
 #include <vnx/search/CrawlProcessor_get_stats_return.hxx>
 #include <vnx/search/TextResponse.hxx>
@@ -327,8 +329,9 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0x508848d1f9d97d9full);
 	type_code->code_hash = vnx::Hash64(0x2cc42ba3218223bdull);
 	type_code->is_native = true;
-	type_code->methods.resize(1);
-	type_code->methods[0] = ::vnx::search::CrawlProcessor_get_stats::static_get_type_code();
+	type_code->methods.resize(2);
+	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
+	type_code->methods[1] = ::vnx::search::CrawlProcessor_get_stats::static_get_type_code();
 	type_code->fields.resize(29);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -516,23 +519,33 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 }
 
 void CrawlProcessorBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
-	const auto _type_hash = _sample->value->get_type_hash();
-	if(_type_hash == 0xf87436237449d8afull) {
-		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::KeyValuePair>(_sample->value);
-		if(_value) {
-			handle(_value, _sample);
-		}
-	} else if(_type_hash == 0x7cee1cd5b88ec569ull) {
+	{
 		auto _value = std::dynamic_pointer_cast<const ::vnx::search::TextResponse>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
+			return;
+		}
+	}
+	{
+		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::SyncUpdate>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+			return;
 		}
 	}
 }
 
 std::shared_ptr<vnx::Value> CrawlProcessorBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
 	const auto _type_hash = _method->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x7b8fefbbb0397a0dull)) {
+	if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
+		_return_value->_ret_0 = vnx_get_type_code();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x7b8fefbbb0397a0dull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::search::CrawlProcessor_get_stats>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");

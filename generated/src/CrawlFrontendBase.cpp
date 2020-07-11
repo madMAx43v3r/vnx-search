@@ -6,6 +6,8 @@
 #include <vnx/NoSuchMethod.hxx>
 #include <vnx/Hash64.hpp>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/CrawlFrontend_fetch.hxx>
 #include <vnx/search/CrawlFrontend_fetch_return.hxx>
@@ -168,9 +170,10 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0xd91536edf3f184e2ull);
 	type_code->code_hash = vnx::Hash64(0xf46b5bac48e265b1ull);
 	type_code->is_native = true;
-	type_code->methods.resize(2);
-	type_code->methods[0] = ::vnx::search::CrawlFrontend_fetch::static_get_type_code();
-	type_code->methods[1] = ::vnx::search::CrawlFrontend_register_parser::static_get_type_code();
+	type_code->methods.resize(3);
+	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
+	type_code->methods[1] = ::vnx::search::CrawlFrontend_fetch::static_get_type_code();
+	type_code->methods[2] = ::vnx::search::CrawlFrontend_register_parser::static_get_type_code();
 	type_code->fields.resize(9);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -239,7 +242,15 @@ void CrawlFrontendBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sa
 
 std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
 	const auto _type_hash = _method->get_type_hash();
-	if(_type_hash == vnx::Hash64(0xddf8de1011cf63d2ull)) {
+	if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
+		_return_value->_ret_0 = vnx_get_type_code();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0xddf8de1011cf63d2ull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::search::CrawlFrontend_fetch>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
@@ -264,7 +275,7 @@ std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(std::shared_ptr<c
 void CrawlFrontendBase::fetch_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::FetchResult>& _ret_0) const {
 	auto _return_value = ::vnx::search::CrawlFrontend_fetch_return::create();
 	_return_value->_ret_0 = _ret_0;
-	vnx_async_callback(_request_id, _return_value);
+	vnx_async_return(_request_id, _return_value);
 }
 
 

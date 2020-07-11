@@ -56,8 +56,6 @@ void CrawlFrontend_register_parser_return::write(std::ostream& _out) const {
 void CrawlFrontend_register_parser_return::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-	}
 }
 
 vnx::Object CrawlFrontend_register_parser_return::to_object() const {
@@ -67,8 +65,6 @@ vnx::Object CrawlFrontend_register_parser_return::to_object() const {
 }
 
 void CrawlFrontend_register_parser_return::from_object(const vnx::Object& _object) {
-	for(const auto& _entry : _object.field) {
-	}
 }
 
 /// \private
@@ -137,7 +133,8 @@ void read(TypeInput& in, ::vnx::search::CrawlFrontend_register_parser_return& va
 			default: vnx::skip(in, type_code, code); return;
 		}
 	}
-	const char* const _buf = in.read(type_code->total_field_size);
+	if(type_code->is_matched) {
+	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			default: vnx::skip(in, type_code, _field->code.data());

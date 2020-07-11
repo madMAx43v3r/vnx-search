@@ -5,6 +5,8 @@
 #include <vnx/search/CrawlFrontendClient.hxx>
 #include <vnx/Hash64.hpp>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/CrawlFrontend_fetch.hxx>
 #include <vnx/search/CrawlFrontend_fetch_return.hxx>
@@ -26,6 +28,16 @@ CrawlFrontendClient::CrawlFrontendClient(const std::string& service_name)
 CrawlFrontendClient::CrawlFrontendClient(vnx::Hash64 service_addr)
 	:	Client::Client(service_addr)
 {
+}
+
+::vnx::TypeCode CrawlFrontendClient::vnx_get_type_code() {
+	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("CrawlFrontendClient: !_result");
+	}
+	return _result->_ret_0;
 }
 
 std::shared_ptr<const ::vnx::search::FetchResult> CrawlFrontendClient::fetch(const std::string& url) {

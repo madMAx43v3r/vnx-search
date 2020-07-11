@@ -4,10 +4,12 @@
 #include <vnx/search/package.hxx>
 #include <vnx/search/SearchEngineClient.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/SearchEngine_get_domain_info.hxx>
 #include <vnx/search/SearchEngine_get_domain_info_return.hxx>
 #include <vnx/search/SearchEngine_get_domain_list.hxx>
@@ -43,36 +45,10 @@ SearchEngineClient::SearchEngineClient(vnx::Hash64 service_addr)
 {
 }
 
-::vnx::Object SearchEngineClient::get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) {
-	auto _method = ::vnx::search::SearchEngine_get_domain_info::create();
-	_method->host = host;
-	_method->limit = limit;
-	_method->offset = offset;
+::vnx::TypeCode SearchEngineClient::vnx_get_type_code() {
+	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
 	auto _return_value = vnx_request(_method);
-	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info_return>(_return_value);
-	if(!_result) {
-		throw std::logic_error("SearchEngineClient: !_result");
-	}
-	return _result->_ret_0;
-}
-
-std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const int32_t& limit, const uint32_t& offset) {
-	auto _method = ::vnx::search::SearchEngine_get_domain_list::create();
-	_method->limit = limit;
-	_method->offset = offset;
-	auto _return_value = vnx_request(_method);
-	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list_return>(_return_value);
-	if(!_result) {
-		throw std::logic_error("SearchEngineClient: !_result");
-	}
-	return _result->_ret_0;
-}
-
-::vnx::Object SearchEngineClient::get_page_info(const std::string& url_key) {
-	auto _method = ::vnx::search::SearchEngine_get_page_info::create();
-	_method->url_key = url_key;
-	auto _return_value = vnx_request(_method);
-	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_return_value);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
 	}
@@ -93,11 +69,36 @@ std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(con
 	return _result->_ret_0;
 }
 
-std::vector<std::pair<std::string, uint32_t>> SearchEngineClient::reverse_domain_lookup(const std::string& url_key) {
-	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
+::vnx::Object SearchEngineClient::get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_info::create();
+	_method->host = host;
+	_method->limit = limit;
+	_method->offset = offset;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("SearchEngineClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+::vnx::Object SearchEngineClient::get_page_info(const std::string& url_key) {
+	auto _method = ::vnx::search::SearchEngine_get_page_info::create();
 	_method->url_key = url_key;
 	auto _return_value = vnx_request(_method);
-	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup_return>(_return_value);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("SearchEngineClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const int32_t& limit, const uint32_t& offset) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_list::create();
+	_method->limit = limit;
+	_method->offset = offset;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
 	}
@@ -115,12 +116,11 @@ std::vector<std::string> SearchEngineClient::reverse_lookup(const std::string& u
 	return _result->_ret_0;
 }
 
-std::vector<std::string> SearchEngineClient::suggest_domains(const std::string& prefix, const int32_t& limit) {
-	auto _method = ::vnx::search::SearchEngine_suggest_domains::create();
-	_method->prefix = prefix;
-	_method->limit = limit;
+std::vector<std::pair<std::string, uint32_t>> SearchEngineClient::reverse_domain_lookup(const std::string& url_key) {
+	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
+	_method->url_key = url_key;
 	auto _return_value = vnx_request(_method);
-	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains_return>(_return_value);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
 	}
@@ -133,6 +133,18 @@ std::vector<std::string> SearchEngineClient::suggest_words(const std::string& pr
 	_method->limit = limit;
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_words_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("SearchEngineClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+std::vector<std::string> SearchEngineClient::suggest_domains(const std::string& prefix, const int32_t& limit) {
+	auto _method = ::vnx::search::SearchEngine_suggest_domains::create();
+	_method->prefix = prefix;
+	_method->limit = limit;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
 	}

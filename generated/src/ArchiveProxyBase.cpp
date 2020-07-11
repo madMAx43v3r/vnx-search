@@ -5,6 +5,8 @@
 #include <vnx/search/ArchiveProxyBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/HttpResponse.hxx>
 
@@ -115,7 +117,8 @@ std::shared_ptr<vnx::TypeCode> ArchiveProxyBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0x9e3c150e38d34ccaull);
 	type_code->code_hash = vnx::Hash64(0xbf49a785cf21606ull);
 	type_code->is_native = true;
-	type_code->methods.resize(0);
+	type_code->methods.resize(1);
+	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
 	type_code->fields.resize(3);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -141,16 +144,26 @@ std::shared_ptr<vnx::TypeCode> ArchiveProxyBase::static_create_type_code() {
 }
 
 void ArchiveProxyBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
-	const auto _type_hash = _sample->value->get_type_hash();
-	if(_type_hash == 0xd6552db423d70e21ull) {
+	{
 		auto _value = std::dynamic_pointer_cast<const ::vnx::search::HttpResponse>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
+			return;
 		}
 	}
 }
 
 std::shared_ptr<vnx::Value> ArchiveProxyBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
+	const auto _type_hash = _method->get_type_hash();
+	if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
+		_return_value->_ret_0 = vnx_get_type_code();
+		return _return_value;
+	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
 	_ex->method = _method->get_type_name();
