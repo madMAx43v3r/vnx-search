@@ -23,6 +23,7 @@ namespace search {
 SearchEngine::SearchEngine(const std::string& _vnx_name)
 	:	SearchEngineBase(_vnx_name)
 {
+	input_page_info = vnx_name + ".page_info.updates";
 	input_url_index_sync = vnx_name + ".url_index.sync_" + std::to_string(vnx::rand64());
 	input_page_info_sync = vnx_name + ".page_info.sync_" + std::to_string(vnx::rand64());
 	input_page_index_sync = vnx_name + ".page_index.sync_" + std::to_string(vnx::rand64());
@@ -34,11 +35,12 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 
 void SearchEngine::init()
 {
-	vnx::open_pipe(vnx_name, this, 1000);
+	vnx::open_pipe(vnx_name, this, 100);
 }
 
 void SearchEngine::main()
 {
+	subscribe(input_page_info, 100);
 	subscribe(input_url_index_sync, 100, 100);
 	subscribe(input_page_info_sync, 100, 100);
 	subscribe(input_page_index_sync, 100, 10);
@@ -48,6 +50,7 @@ void SearchEngine::main()
 	
 	module_page_info = new keyvalue::Server("PageInfo");
 	module_page_info->collection = "page_info";
+	module_page_info->update_topic = input_page_info;
 	module_page_info.start();
 	
 	module_word_context = new keyvalue::Server("WordContext");
@@ -64,38 +67,19 @@ void SearchEngine::main()
 	add_async_client(url_index_async);
 	add_async_client(page_index_async);
 	
-	set_timer_millis(100, std::bind(&SearchEngine::check_link_queue, this));
-	set_timer_millis(1000, std::bind(&SearchEngine::check_load_queue, this));
+	set_timer_millis(100, std::bind(&SearchEngine::check_queues, this));
 	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
 	
 	page_info_async->sync_all(input_page_info_sync);
 	word_context_async->sync_all(input_word_context_sync);
 	
-	query_threads.resize(num_query_threads);
-	for(int i = 0; i < num_query_threads; ++i) {
-		query_threads[i] = std::thread(&SearchEngine::query_loop, this);
-	}
-	
-	word_update_threads.resize(num_update_threads);
-	for(int i = 0; i < num_update_threads; ++i) {
-		word_update_threads[i] = std::thread(&SearchEngine::update_loop, this);
-	}
+	query_threads = std::make_shared<ThreadPool>(num_query_threads);
+	update_threads = std::make_shared<ThreadPool>(num_update_threads);
 	
 	Super::main();
 	
-	query_condition.notify_all();
-	for(auto& thread : query_threads) {
-		if(thread.joinable()) {
-			thread.join();
-		}
-	}
-	
-	update_condition.notify_all();
-	for(auto& thread : word_update_threads) {
-		if(thread.joinable()) {
-			thread.join();
-		}
-	}
+	query_threads->close();
+	update_threads->close();
 }
 
 void SearchEngine::query_async(	const std::vector<std::string>& words,
@@ -103,25 +87,104 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 								const std::vector<search_flags_e>& flags,
 								const vnx::request_id_t& req_id) const
 {
-	auto request = std::make_shared<query_t>();
-	request->words = words;
-	request->limit = limit;
-	request->offset = offset;
-	request->flags = flags;
-	request->req_id = req_id;
-	{
-		std::lock_guard lock(query_mutex);
-		query_queue.push(request);
+	auto job = std::make_shared<query_job_t>();
+	job->words = get_unique(words);
+	job->limit = limit;
+	job->offset = offset;
+	job->flags = flags;
+	job->req_id = req_id;
+	
+	auto result = SearchResult::create();
+	result->is_fail = true;
+	job->result = result;
+	job->time_begin = vnx::get_wall_time_micros();
+	
+	word_context_async->get_values(
+			std::vector<Variant>(job->words.begin(), job->words.end()),
+			std::bind(&SearchEngine::query_callback_0, this, job, std::placeholders::_1),
+			[this, job](const std::exception& ex) {
+				vnx_async_return(job->req_id, vnx::InternalError::from_what(ex.what()));
+			});
+	query_counter++;
+}
+
+void SearchEngine::query_callback_0(std::shared_ptr<query_job_t> job,
+									std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const
+{
+	for(auto entry : entries) {
+		auto context = std::dynamic_pointer_cast<const WordContext>(entry->value);
+		if(context) {
+			job->context.push_back(context);
+			job->result->words.push_back(entry->key.to_string_value());
+		}
 	}
-	query_condition.notify_one();
+	job->result->load_time_us = vnx::get_wall_time_micros() - job->time_begin;
+	
+	if(job->context.empty()) {
+		query_async_return(job->req_id, job->result);
+	} else {
+		query_threads->add_task(std::bind(&SearchEngine::query_task, this, job));
+	}
+}
+
+void SearchEngine::query_callback_1(std::shared_ptr<query_job_t> job) const
+{
+	std::shared_lock lock(index_mutex);
+	
+	std::vector<uint64_t> versions;
+	for(auto& item : job->result->items)
+	{
+		const auto* page = find_page(item.page_id);
+		if(page) {
+			item.url = page->scheme.str() + ":";
+			versions.push_back(page->info_version);
+		} else {
+			versions.push_back(0);
+		}
+	}
+	page_info_async->get_keys(versions,
+			std::bind(&SearchEngine::query_callback_2, this, job, std::placeholders::_1),
+			[this, job](const std::exception& ex) {
+				vnx_async_return(job->req_id, vnx::InternalError::from_what(ex.what()));
+			});
+}
+
+void SearchEngine::query_callback_2(std::shared_ptr<query_job_t> job,
+									std::vector<std::pair<uint64_t, Variant>> entries) const
+{
+	std::vector<Variant> keys;
+	for(size_t i = 0; i < entries.size(); ++i) {
+		const auto& key = entries[i].second;
+		keys.push_back(key);
+		job->result->items[i].url += key.to_string_value();
+	}
+	page_info_async->get_values(keys,
+			std::bind(&SearchEngine::query_callback_3, this, job, std::placeholders::_1),
+			[this, job](const std::exception& ex) {
+				vnx_async_return(job->req_id, vnx::InternalError::from_what(ex.what()));
+			});
+}
+
+void SearchEngine::query_callback_3(std::shared_ptr<query_job_t> job,
+									std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const
+{
+	for(size_t i = 0; i < entries.size(); ++i) {
+		auto info = std::dynamic_pointer_cast<const PageInfo>(entries[i]->value);
+		if(info) {
+			job->result->items[i].title = info->title;
+		}
+	}
+	query_async_return(job->req_id, job->result);
 }
 
 Object SearchEngine::get_domain_info(	const std::string& host,
 										const int32_t& limit,
 										const uint32_t& offset) const
 {
+	std::shared_lock lock(index_mutex);
+	
 	Object result;
-	const auto iter = domain_map.find(host);
+	/*const auto iter = domain_map.find(host);
 	if(iter != domain_map.end()) {
 		const auto* domain = find_domain(iter->second);
 		if(domain) {
@@ -143,7 +206,7 @@ Object SearchEngine::get_domain_info(	const std::string& host,
 			result["num_pages"] = sorted.size();
 			result["pages"] = pages;
 		}
-	}
+	}*/
 	return result;
 }
 
@@ -154,11 +217,13 @@ void SearchEngine::get_page_info_async(const std::string& url_key, const request
 }
 
 void SearchEngine::get_page_info_callback(	const std::string& url_key,
-											std::shared_ptr<const Value> value,
+											std::shared_ptr<const keyvalue::Entry> entry,
 											const request_id_t& req_id) const
 {
+	std::shared_lock lock(index_mutex);
+	
 	Object result;
-	const auto page_id = find_url_id(url_key);
+	/*const auto page_id = find_url_id(url_key);
 	const auto* page = find_page(page_id);
 	if(page) {
 		result["url"] = page->get_url();
@@ -198,7 +263,7 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 		}
 		result["links"] = links;
 		result["reverse_links"] = reverse_links;
-	}
+	}*/
 	get_page_info_async_return(req_id, result);
 }
 
@@ -230,16 +295,18 @@ void SearchEngine::reverse_lookup_async(const std::string& url_key,
 }
 
 void SearchEngine::reverse_lookup_callback(	const std::string& url_key,
-											std::shared_ptr<const Value> value,
+											std::shared_ptr<const keyvalue::Entry> entry,
 											const request_id_t& req_id) const
 {
+	std::shared_lock lock(index_mutex);
+	
 	std::vector<std::pair<std::string, size_t>> sorted;
-	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(value);
+	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	if(page_info) {
 		for(const auto link_id : page_info->reverse_links) {
 			const auto* parent = find_page(link_id);
 			if(parent) {
-				sorted.emplace_back(parent->url_key.str(), parent->reverse_domains.size());
+//				sorted.emplace_back(parent->url_key.str(), parent->reverse_domains.size());
 			}
 		}
 	}
@@ -262,11 +329,13 @@ void SearchEngine::reverse_domain_lookup_async(	const std::string& url_key,
 }
 
 void SearchEngine::reverse_domain_lookup_callback(	const std::string& url_key,
-													std::shared_ptr<const Value> value,
+													std::shared_ptr<const keyvalue::Entry> entry,
 													const request_id_t& req_id) const
 {
+	std::shared_lock lock(index_mutex);
+	
 	std::map<std::string, uint32_t> tmp;
-	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(value);
+	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	if(page_info) {
 		for(const auto link_id : page_info->reverse_links) {
 			const auto* parent = find_page(link_id);
@@ -376,23 +445,29 @@ const SearchEngine::domain_t* SearchEngine::find_domain(uint32_t domain_id) cons
 	return 0;
 }
 
-std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const std::string& url_key)
+std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(uint32_t page_id)
 {
-	auto& cache = link_cache[url_key];
+	if(page_id == 0) {
+		return nullptr;
+	}
+	auto& cache = link_cache[page_id];
 	if(!cache) {
 		cache = std::make_shared<link_cache_t>();
-		link_queue.emplace(vnx::get_wall_time_seconds(), url_key);
+		cache->page_id = page_id;
+		link_queue.emplace(vnx::get_wall_time_micros(), cache);
 	}
 	return cache;
 }
 
-std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(uint32_t page_id)
+std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const std::string& url_key)
 {
-	const auto* page = find_page(page_id);
-	if(page) {
-		return get_link_cache(page->url_key.str());
+	auto& cache = link_cache_2[url_key];
+	if(!cache) {
+		cache = std::make_shared<link_cache_t>();
+		cache->url_key = url_key;
+		link_queue.emplace(vnx::get_wall_time_micros(), cache);
 	}
-	return 0;
+	return cache;
 }
 
 std::shared_ptr<SearchEngine::word_cache_t> SearchEngine::get_word_cache(uint32_t word_id)
@@ -423,12 +498,12 @@ void SearchEngine::delete_page_async(const std::string& url_key)
 }
 
 void SearchEngine::delete_page_callback(const std::string& url_key,
-										std::pair<Variant, std::shared_ptr<const Value>> pair)
+										std::shared_ptr<const keyvalue::Entry> entry)
 {
 	check_load_queue();
-	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(pair.second);
+	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	if(!page_info) {
-		page_info_async->unlock(pair.first);
+		page_info_async->unlock(entry->key);
 		return;
 	}
 	if(page_info->link_version)
@@ -436,8 +511,8 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 		const auto p_link_cache = get_link_cache(url_key);
 		if(p_link_cache)
 		{
-			p_link_cache->version = 0;
-			p_link_cache->is_update = true;
+			p_link_cache->link_version = 0;
+			p_link_cache->is_page_update = true;
 			p_link_cache->add_links.clear();
 			p_link_cache->rem_links = page_info->links;
 			
@@ -475,7 +550,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 				}
 			}
 			if(p_page_cache->words_pending == 0) {
-				page_word_update_finished(page_info->id, url_key);
+				page_word_update_finished(page_info->id);
 			}
 		}
 	}
@@ -488,37 +563,37 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 	{
 		auto copy = vnx::clone(page_info);
 		copy->is_deleted = true;
-		page_info_async->store_value(pair.first, copy);
+		page_info_async->store_value(entry->key, copy);
 	} else {
-		page_info_async->unlock(pair.first);
+		page_info_async->unlock(entry->key);
 	}
 }
 
 void SearchEngine::redirect_callback(	const std::string& org_url_key,
 										const std::string& new_url_key,
-										std::shared_ptr<const Value> value)
+										std::vector<std::shared_ptr<const keyvalue::Entry>> entries)
 {
 	std::unique_lock lock(index_mutex);
 	
-	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(value);
-	const auto new_page_id = get_url_id(new_url_key);
+	const auto org_page_info = std::dynamic_pointer_cast<const PageInfo>(entries[0]->value);
+	const auto new_page_info = std::dynamic_pointer_cast<const PageInfo>(entries[1]->value);
 	
-	if(page_info && !page_info->is_deleted)
+	if(org_page_info && !org_page_info->is_deleted)
 	{
-		auto* new_page = find_page(new_page_id);
+		auto* new_page = new_page_info ? find_page(new_page_info->id) : nullptr;
 		const auto p_new_cache = get_link_cache(new_url_key);
 		
-		for(const auto parent_id : page_info->reverse_links)
+		for(const auto parent_id : org_page_info->reverse_links)
 		{
 			if(new_page) {
 				auto* parent = find_page(parent_id);
 				if(parent) {
 					unique_push_back(new_page->reverse_domains, parent->domain_id);
 				}
-			}
-			const auto cache = get_link_cache(parent_id);
-			if(cache) {
-				cache->add_links.push_back(new_page_id);
+				const auto cache = get_link_cache(parent_id);
+				if(cache) {
+					cache->add_links.push_back(new_page->id);
+				}
 			}
 			p_new_cache->add_reverse_links.push_back(parent_id);
 		}
@@ -526,10 +601,9 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 		
 		delete_page_async(org_url_key);
 	}
-	redirects[org_url_key] = new_page_id;
 }
 
-void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
+void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> pair)
 {
 	auto info = std::dynamic_pointer_cast<const PageInfo>(pair->value);
 	if(info) {
@@ -537,30 +611,32 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 		{
 			std::unique_lock lock(index_mutex);
 			
-			const auto url_key = pair->key.to_string_value();
-			const Url::Url parsed_url_key(url_key);
-			
-			url_map[url_key] = info->id;
-			next_page_id = std::max(next_page_id, info->id + 1);
-			
 			auto& page = page_index[info->id];
-			page.id = info->id;
-			page.version = info->version;
-			page.link_version = info->link_version;
-			page.word_version = info->word_version;
-			page.url_key = url_key;
+			page.info_version = pair->version;
 			
-			if(!page.domain_id) {
+			if(page.id != info->id)
+			{
+				page.id = info->id;
+				page.index_version = info->index_version;
+				page.link_version = info->link_version;
+				page.word_version = info->word_version;
+				page.scheme = info->scheme;
+				page.last_modified = info->last_modified;
+				
+				const auto url_key = pair->key.to_string_value();
+				const Url::Url parsed_url_key(url_key);
+				
 				auto& domain = get_domain(parsed_url_key.host());
 				page.domain_id = domain.id;
 				domain.pages.push_back(page.id);
-			}
-			
-			// populate reverse_domains
-			for(const auto child_id : info->links)
-			{
-				auto& child = page_index[child_id];
-				unique_push_back(child.reverse_domains, page.domain_id);
+				
+				// populate reverse_domains
+				for(const auto child_id : info->links)
+				{
+					auto& child = page_index[child_id];
+					unique_push_back(child.reverse_domains, page.domain_id);
+				}
+				next_page_id = std::max(next_page_id, info->id + 1);
 			}
 		}
 		return;
@@ -568,45 +644,25 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 	
 	if(pair->collection == "url_index")
 	{
-		const auto org_url_key = pair->key.to_string_value();
-		
 		auto url_index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
-		if(!url_index) {
-			std::unique_lock lock(index_mutex);
-			redirects.erase(org_url_key);
+		if(!url_index || url_index->fetch_count == 0) {
 			return;
 		}
-		if(url_index->fetch_count == 0) {
-			return;
-		}
-		std::unique_lock lock(index_mutex);
-		
 		bool is_redirect = false;
+		const auto org_url_key = pair->key.to_string_value();
 		
 		if(!url_index->redirect.empty())
 		{
 			const auto new_url_key = get_url_key(url_index->redirect);
-			
 			if(new_url_key != org_url_key)
 			{
-				page_info_async->get_value(Variant(org_url_key),
+				std::vector<Variant> keys;
+				keys.push_back(Variant(org_url_key));
+				keys.push_back(Variant(new_url_key));
+				page_info_async->get_values(keys,
 						std::bind(&SearchEngine::redirect_callback, this, org_url_key, new_url_key, std::placeholders::_1));
-				
 				is_redirect = true;
 			}
-		}
-		if(!is_redirect)
-		{
-			const auto page_id = find_url_id(org_url_key);
-			if(page_id) {
-				auto* page = find_page(page_id);
-				if(page) {
-					page->scheme = url_index->scheme;
-					page->first_seen = url_index->first_seen;
-					page->last_modified = url_index->last_modified;
-				}
-			}
-			redirects.erase(org_url_key);
 		}
 		return;
 	}
@@ -629,41 +685,26 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::KeyValuePair> pair)
 	
 	if(pair->collection == "page_index")
 	{
-		const auto url_key = pair->key.to_string_value();
-		const auto page_id = find_url_id(url_key);
-		auto* page = find_page(page_id);
+		auto job = std::make_shared<page_update_job_t>();
+		job->url_key = pair->key.to_string_value();
+		job->index_version = pair->version;
 		
-		if(!page
-			|| pair->version > page->word_version
-			|| pair->version > page->link_version
-			|| pair->version > page->word_version)
-		{
-			load_queue.emplace(pair->version, url_key);
-			check_load_queue();
-		}
+		page_info_async->get_value(Variant(job->url_key),
+				std::bind(&SearchEngine::check_page_callback, this, job, std::placeholders::_1));
 		return;
 	}
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 {
-	std::unique_lock lock(index_mutex);
+	std::shared_lock lock(index_mutex);
 	
 	if(value->code == keyvalue::SyncInfo::END)
 	{
 		init_sync_count++;
 		if(value->collection == "page_info")
 		{
-			std::vector<bool> is_used(next_page_id);
-			for(const auto& entry : url_map) {
-				is_used[entry.second] = true;
-			}
-			for(uint32_t i = next_page_id - 1; i >= 1; --i) {
-				if(!is_used[i]) {
-					free_page_ids.push_back(i);
-				}
-			}
-			log(INFO).out << "Found " << free_page_ids.size() << " free IDs";
+			log(INFO).out << "Loaded " << page_index.size() << " page infos.";
 		}
 		if(init_sync_count == 2)
 		{
@@ -681,85 +722,159 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		{
 			is_initialized = true;
 			
-			log(INFO).out << "Initialized with " << url_map.size() << " urls, " << domain_map.size() << " domains, "
+			log(INFO).out << "Initialized with " << domain_map.size() << " domains, "
 					<< page_index.size() << " pages and " << word_map.size() << " words.";
 		}
 	}
 }
 
-void SearchEngine::update_page_callback_0(	const std::string& url_key,
-											const uint64_t version,
-											std::shared_ptr<const Value> value)
+void SearchEngine::check_page_callback(	std::shared_ptr<page_update_job_t> job,
+										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(value);
+	std::shared_lock lock(index_mutex);
+	
+	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
+	auto* page = info ? find_page(info->id) : nullptr;
+	
+	if(!page
+		|| job->index_version > page->index_version
+		|| job->index_version > page->link_version
+		|| job->index_version > page->word_version)
+	{
+		job->info = info;
+		load_queue.emplace(job);
+		check_load_queue();
+	}
+}
+
+void SearchEngine::update_page_callback_0(	std::shared_ptr<page_update_job_t> job,
+											std::shared_ptr<const keyvalue::Entry> entry)
+{
+	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 	if(url_index && url_index->depth >= 0)
 	{
-		page_index_async->get_value(Variant(url_key),
-				std::bind(&SearchEngine::update_page_callback_1, this, url_key, version, url_index, std::placeholders::_1));
+		job->url_index = url_index;
+		page_index_async->get_value(Variant(job->url_key),
+				std::bind(&SearchEngine::update_page_callback_1, this, job, std::placeholders::_1));
 	} else {
-		delete_page_async(url_key);
+		delete_page_async(job->url_key);
 	}
 }
 
-void SearchEngine::update_page_callback_1(	const std::string& url_key,
-											const uint64_t version,
-											std::shared_ptr<const UrlIndex> url_index,
-											std::shared_ptr<const Value> value)
+void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> job,
+											std::shared_ptr<const keyvalue::Entry> entry)
 {
-	auto index = std::dynamic_pointer_cast<const PageIndex>(value);
+	auto index = std::dynamic_pointer_cast<const PageIndex>(entry->value);
 	if(index) {
-		page_info_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
-				std::bind(&SearchEngine::update_page_callback_2, this, url_key, version, index, url_index, std::placeholders::_1));
+		job->index = index;
+		job->index_version = entry->version;
+		
+		std::vector<Variant> link_keys;
+		for(const auto& link_url : index->links) {
+			try {
+				const Url::Url parsed(link_url);
+				if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
+					continue;
+				}
+				const auto url_key = get_url_key(parsed);
+				job->links.push_back(url_key);
+				link_keys.push_back(Variant(url_key));
+			} catch(...) {
+				// ignore
+			}
+		}
+		url_index_async->get_values(link_keys,
+				std::bind(&SearchEngine::update_page_callback_2, this, job, std::placeholders::_1));
 	} else {
-		delete_page_async(url_key);
+		delete_page_async(job->url_key);
 	}
 }
 
-void SearchEngine::update_page_callback_2(	const std::string& url_key,
-											const uint64_t version,
-											std::shared_ptr<const PageIndex> index,
-											std::shared_ptr<const UrlIndex> url_index,
-											std::pair<Variant, std::shared_ptr<const Value>> pair)
+void SearchEngine::update_page_callback_2(	std::shared_ptr<page_update_job_t> job,
+											std::vector<std::shared_ptr<const keyvalue::Entry>> entries)
 {
-	check_load_queue();
-	auto page_info = std::dynamic_pointer_cast<const PageInfo>(pair.second);
-	update_page(url_key, version, index, page_info, url_index);
+	for(auto entry : entries) {
+		auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
+		if(url_index) {
+			try {
+				if(!url_index->redirect.empty()) {
+					const auto org_url_key = entry->key.to_string_value();
+					const auto new_url_key = get_url_key(url_index->redirect);
+					if(new_url_key != org_url_key) {
+						job->redirects[org_url_key] = new_url_key;
+					}
+				}
+			} catch(...) {
+				// ignore
+			}
+		}
+	}
+	std::vector<Variant> link_keys;
+	for(const auto& url_key : job->links) {
+		auto iter = job->redirects.find(url_key);
+		if(iter != job->redirects.end()) {
+			link_keys.push_back(Variant(iter->second));
+		} else {
+			link_keys.push_back(Variant(url_key));
+		}
+	}
+	page_info_async->get_values(link_keys,
+			std::bind(&SearchEngine::update_page_callback_3, this, job, std::placeholders::_1));
 }
 
-void SearchEngine::update_page(	const std::string& url_key,
-								const uint64_t version,
-								std::shared_ptr<const PageIndex> index,
-								std::shared_ptr<const PageInfo> page_info,
-								std::shared_ptr<const UrlIndex> url_index)
+void SearchEngine::update_page_callback_3(	std::shared_ptr<page_update_job_t> job,
+											std::vector<std::shared_ptr<const keyvalue::Entry>> entries)
+{
+	for(auto entry : entries) {
+		auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
+		job->link_map[entry->key.to_string_value()] = info ? info->id : 0;
+	}
+	page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
+			std::bind(&SearchEngine::update_page_callback_4, this, job, std::placeholders::_1));
+}
+
+void SearchEngine::update_page_callback_4(	std::shared_ptr<page_update_job_t> job,
+											std::shared_ptr<const keyvalue::Entry> entry)
+{
+	job->info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
+	update_page(job);
+	check_load_queue();
+}
+
+void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 {
 	std::unique_lock lock(index_mutex);
 	
-	const auto page_id = get_url_id(url_key);
+	const auto info = job->info;
+	const auto index = job->index;
+	const auto url_key = job->url_key;
+	const auto url_index = job->url_index;
+	const auto page_id = (info && info->id) ? info->id : next_page_id++;
 	
 	auto& page = page_index[page_id];
 	page.id = page_id;
-	page.word_version = version;
-	page.link_version = version;
-	page.word_version = version;
-	page.url_key = get_url_key_str(url_key);
+	page.index_version = job->index_version;
+	page.link_version = job->index_version;
+	page.word_version = job->index_version;
 	page.scheme = url_index->scheme;
-	page.first_seen = url_index->first_seen;
 	page.last_modified = url_index->last_modified;
 	
-	if(!page.domain_id)
-	{
+	if(!page.domain_id) {
 		auto& domain = get_domain(Url::Url(url_key).host());
 		page.domain_id = domain.id;
 		domain.pages.push_back(page.id);
 	}
 	
-	if(!page_info || version > page_info->version)
+	if(!info || job->index_version > info->index_version)
 	{
 		// initialize or update page_info
-		auto copy = page_info ? vnx::clone(page_info) : PageInfo::create();
+		auto copy = info ? vnx::clone(info) : PageInfo::create();
 		copy->id = page_id;
 		copy->is_deleted = false;
-		copy->version = version;
+		copy->index_version = job->index_version;
+		copy->first_seen = url_index->first_seen;
+		copy->last_modified = url_index->last_modified;
+		copy->scheme = url_index->scheme;
 		copy->title = index->title;
 		page_info_async->store_value(Variant(url_key), copy);
 	}
@@ -767,50 +882,32 @@ void SearchEngine::update_page(	const std::string& url_key,
 		page_info_async->unlock(Variant(url_key));
 	}
 	
-	if(!page_info || version > page_info->link_version)
+	if(!info || job->index_version > info->link_version)
 	{
 		std::unordered_set<uint32_t> new_links;
-		const auto p_link_cache = get_link_cache(url_key);
-		p_link_cache->version = version;
-		p_link_cache->is_update = true;
+		auto p_link_cache = get_link_cache(url_key);
+		p_link_cache->link_version = job->index_version;
+		p_link_cache->is_page_update = true;
 		
-		for(const auto& link_url : index->links) {
-			try {
-				const Url::Url parsed_link(link_url);
-				const auto link_url_key = get_url_key(parsed_link);
-				
-				if(std::find(protocols.begin(), protocols.end(), parsed_link.scheme()) == protocols.end()) {
-					continue;
+		for(const auto& entry : job->link_map)
+		{
+			const auto link_id = entry.second;
+			if(link_id) {
+				if(link_id != page_id) {
+					// link to existing page
+					new_links.insert(link_id);
 				}
-				uint32_t link_id = 0;
-				{
-					const auto iter = redirects.find(link_url_key);
-					if(iter != redirects.end()) {
-						link_id = iter->second;
-					} else {
-						link_id = find_url_id(link_url_key);
-					}
+			} else {
+				// link to not yet loaded page
+				const auto cached = get_link_cache(entry.first);
+				if(cached) {
+					cached->add_reverse_links.push_back(page_id);
 				}
-				if(link_id) {
-					if(link_id != page_id) {
-						// link to existing page
-						new_links.insert(link_id);
-					}
-				} else {
-					// link to not yet loaded page
-					const auto cached = get_link_cache(link_url_key);
-					if(cached) {
-						cached->add_reverse_links.push_back(page_id);
-					}
-				}
-			} catch(...) {
-				// ignore bad links
 			}
 		}
-		if(page_info)
-		{
+		if(info) {
 			// check for new or removed links
-			for(const auto link_id : page_info->links)
+			for(const auto link_id : info->links)
 			{
 				const auto iter = new_links.find(link_id);
 				if(iter != new_links.end()) {
@@ -829,7 +926,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 		for(const auto link_id : new_links)
 		{
 			// make new links
-			const auto cached = get_link_cache(link_id);
+			auto cached = get_link_cache(link_id);
 			if(cached) {
 				cached->add_reverse_links.push_back(page_id);
 			}
@@ -839,12 +936,12 @@ void SearchEngine::update_page(	const std::string& url_key,
 			}
 			p_link_cache->add_links.push_back(link_id);
 		}
-		if(!page_info || page_info->id == 0)
+		if(!info || info->id == 0)
 		{
 			// new page was loaded
 			auto reverse_links = p_link_cache->add_reverse_links;
-			if(page_info) {
-				append(reverse_links, page_info->reverse_links);
+			if(info) {
+				append(reverse_links, info->reverse_links);
 			}
 			for(const auto parent_id : reverse_links)
 			{
@@ -852,7 +949,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 				if(parent) {
 					unique_push_back(page.reverse_domains, parent->domain_id);
 				}
-				const auto cached = get_link_cache(parent_id);
+				auto cached = get_link_cache(parent_id);
 				if(cached) {
 					cached->add_links.push_back(page_id);
 				}
@@ -863,7 +960,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 	}
 	
 	// update word index if version is greater and previous update has finished
-	if((!page_info || version > page_info->word_version) && !page_cache.count(page_id))
+	if((!info || job->index_version > info->word_version) && !page_cache.count(page_id))
 	{
 		struct word_info_t {
 			short mode = 0;
@@ -880,8 +977,8 @@ void SearchEngine::update_page(	const std::string& url_key,
 			info.mode++;
 			info.count = entry.second;
 		}
-		if(page_info) {
-			for(const auto word_id : page_info->words) {
+		if(info) {
+			for(const auto word_id : info->words) {
 				if(word_index.count(word_id)) {
 					words[word_id].mode--;
 				}
@@ -893,7 +990,7 @@ void SearchEngine::update_page(	const std::string& url_key,
 			throw std::logic_error("p_page_cache not null");
 		}
 		p_page_cache = std::make_shared<page_cache_t>();
-		p_page_cache->word_version = version;
+		p_page_cache->word_version = job->index_version;
 		p_page_cache->url_key = url_key;
 		
 		for(const auto& entry : words)
@@ -915,6 +1012,13 @@ void SearchEngine::update_page(	const std::string& url_key,
 	}
 }
 
+void SearchEngine::check_queues()
+{
+	check_link_queue();
+	check_word_queue();
+	check_load_queue();
+}
+
 void SearchEngine::check_load_queue()
 {
 	static const size_t max_num_pending = 100;
@@ -924,29 +1028,41 @@ void SearchEngine::check_load_queue()
 			&& page_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_info_async->vnx_get_num_pending() < max_num_pending)
 	{
-		const auto entry = load_queue.front();
-		url_index_async->get_value(Variant(entry.second),
-						std::bind(&SearchEngine::update_page_callback_0, this, entry.second, entry.first, std::placeholders::_1));
+		const auto job = load_queue.front();
+		url_index_async->get_value(Variant(job->url_key),
+						std::bind(&SearchEngine::update_page_callback_0, this, job, std::placeholders::_1));
 		load_queue.pop();
 	}
 }
 
 void SearchEngine::check_link_queue()
 {
-	const auto now = vnx::get_wall_time_seconds();
-	while(!link_queue.empty())
+	std::shared_lock lock(index_mutex);
+	static const size_t max_num_pending = 100;
+	
+	const auto now = vnx::get_wall_time_micros();
+	while(!link_queue.empty()
+			&& page_info_async->vnx_get_num_pending() < max_num_pending)
 	{
 		const auto iter = link_queue.begin();
-		if(now - iter->first >= link_commit_interval)
+		if(now - iter->first >= int64_t(link_commit_interval) * 1000000)
 		{
-			const auto cache = link_cache[iter->second];
+			const auto cache = iter->second;
 			if(cache->schedule_time_us) {
-				link_queue.emplace(cache->schedule_time_us, iter->second);
+				link_queue.emplace(cache->schedule_time_us, cache);
 				cache->schedule_time_us = 0;
 			} else {
-				const auto url_key = iter->second;
-				page_info_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
-						std::bind(&SearchEngine::link_update, this, url_key, std::placeholders::_1));
+				if(cache->url_key.empty()) {
+					const auto* page = find_page(cache->page_id);
+					if(page) {
+						page_info_async->get_key(page->info_version,
+								std::bind(&SearchEngine::link_update_callback, this, cache, std::placeholders::_1));
+					}
+					link_cache.erase(cache->page_id);
+				} else {
+					link_update_callback(cache, Variant(cache->url_key));
+					link_cache_2.erase(cache->url_key);
+				}
 			}
 			link_queue.erase(iter);
 		} else {
@@ -957,8 +1073,11 @@ void SearchEngine::check_link_queue()
 
 void SearchEngine::check_word_queue()
 {
+	static const size_t max_num_pending = 100;
+	
 	const auto now = vnx::get_wall_time_seconds();
-	while(!word_queue.empty())
+	while(!word_queue.empty()
+			&& word_context_async->vnx_get_num_pending() < max_num_pending)
 	{
 		const auto iter = word_queue.begin();
 		if(now - iter->first >= word_commit_interval || word_cache.size() > max_word_cache)
@@ -980,22 +1099,26 @@ void SearchEngine::check_word_queue()
 	}
 }
 
-void SearchEngine::link_update(	const std::string& url_key,
-								std::pair<Variant, std::shared_ptr<const Value>> pair)
+void SearchEngine::link_update_callback(std::shared_ptr<link_cache_t> cache, Variant url_key)
 {
-	const auto iter = link_cache.find(url_key);
-	if(iter == link_cache.end()) {
-		page_info_async->unlock(pair.first);
-		return;
+	if(!url_key.is_null()) {
+		page_info_async->get_value_locked(url_key, lock_timeout * 1000,
+				std::bind(&SearchEngine::link_update, this, cache, std::placeholders::_1));
+	} else {
+		link_queue.emplace(vnx::get_wall_time_micros(), cache);
+		log(WARN) << "Key not found for page id " << cache->page_id;
 	}
-	const auto cache = iter->second;
-	
-	auto page_info = std::dynamic_pointer_cast<PageInfo>(vnx::clone(pair.second));
+}
+
+void SearchEngine::link_update(	std::shared_ptr<link_cache_t> cache,
+								std::shared_ptr<const keyvalue::Entry> entry)
+{
+	auto page_info = std::dynamic_pointer_cast<PageInfo>(vnx::clone(entry->value));
 	if(!page_info) {
 		page_info = PageInfo::create();
 	}
-	if(cache->is_update) {
-		page_info->link_version = cache->version;
+	if(cache->is_page_update) {
+		page_info->link_version = cache->link_version;
 	}
 	for(const auto link_id : cache->rem_links) {
 		remove(page_info->links, link_id);
@@ -1009,16 +1132,16 @@ void SearchEngine::link_update(	const std::string& url_key,
 	for(const auto page_id : cache->add_reverse_links) {
 		unique_push_back(page_info->reverse_links, page_id);
 	}
-	link_cache.erase(iter);
-	
-	page_info_async->store_value(pair.first, page_info);
+	page_info_async->store_value(entry->key, page_info);
 	page_update_counter++;
+	check_link_queue();
 }
 
-void SearchEngine::word_update_callback(std::shared_ptr<word_update_job_t> job, std::shared_ptr<const Value> value)
+void SearchEngine::word_update_callback(std::shared_ptr<word_update_job_t> job,
+										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	job->context = std::dynamic_pointer_cast<const WordContext>(value);
-	word_update_threads->add_task(std::bind(&SearchEngine::word_update_task, this, job));
+	job->context = std::dynamic_pointer_cast<const WordContext>(entry->value);
+	update_threads->add_task(std::bind(&SearchEngine::word_update_task, this, job));
 }
 
 void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
@@ -1050,6 +1173,7 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 			}
 		}
 	}
+	check_word_queue();
 }
 
 void SearchEngine::page_word_update_finished(uint32_t page_id)
@@ -1068,26 +1192,29 @@ void SearchEngine::page_word_update_finished(uint32_t page_id)
 }
 
 void SearchEngine::page_word_update_callback(	std::shared_ptr<page_cache_t> cached,
-												std::pair<Variant, std::shared_ptr<const Value>> pair)
+												std::shared_ptr<const keyvalue::Entry> entry)
 {
-	const auto info = std::dynamic_pointer_cast<PageInfo>(vnx::clone(pair.second));
+	const auto info = std::dynamic_pointer_cast<PageInfo>(vnx::clone(entry->value));
 	if(info) {
 		info->word_version = cached->word_version;
 		info->words = cached->words;
-		page_info_async->store_value(pair.first, info);
+		page_info_async->store_value(entry->key, info);
 		page_update_counter++;
 	} else {
-		page_info_async->unlock(pair.first);
+		page_info_async->unlock(entry->key);
 	}
 }
 
 void SearchEngine::print_stats()
 {
+	std::shared_lock lock(index_mutex);
+	
 	log(INFO).out << (60000 * word_update_counter) / stats_interval_ms << " words/min, "
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
 			<< domain_index.size() << " domains, "
-			<< load_queue.size() << " / " << link_cache.size() << " / " << page_cache.size() << " / " << page_index.size() << " pages, "
+			<< load_queue.size() << " / " << link_cache.size() << " / " << link_cache_2.size()
+			<< " / " << page_cache.size() << " / " << page_index.size() << " pages, "
 			<< word_cache.size() << " / " << word_map.size() << " words";
 	
 	word_update_counter = 0;
@@ -1101,198 +1228,126 @@ bool has_flag(const std::vector<search_flags_e>& flags, search_flags_e flag)
 	return std::find(flags.begin(), flags.end(), flag) != flags.end();
 }
 
-void SearchEngine::query_loop() const noexcept
+void SearchEngine::query_task(std::shared_ptr<query_job_t> job) const noexcept
 {
-	keyvalue::ServerClient page_info_sync("PageInfo");
-	keyvalue::ServerClient word_context_sync("WordContext");
+	const auto time_begin = vnx::get_wall_time_micros();
+	const auto result = job->result;
+	const uint32_t num_words = job->context.size();
 	
-	while(vnx_do_run())
+	size_t num_found = 0;
+	std::vector<std::pair<uint32_t, uint32_t>> found(max_query_pages);
+	
+	if(num_words > 1)
 	{
-		std::shared_ptr<query_t> request;
+		std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> page_hits;
+		std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> iter(num_words);
+		std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> end(num_words);
+		for(uint32_t i = 0; i < num_words; ++i) {
+			iter[i] = job->context[i]->pages.begin();
+			end[i] = job->context[i]->pages.end();
+		}
+		uint32_t k = 0;
+		uint32_t num_iter = num_words;
+		
+		while(num_iter > 0 && num_found < found.size())
 		{
-			std::unique_lock<std::mutex> lock(query_mutex);
-			while(vnx_do_run() && query_queue.empty()) {
-				query_condition.wait(lock);
-			}
-			if(vnx_do_run()) {
-				request = query_queue.front();
-				query_queue.pop();
-			} else {
-				break;
-			}
-		}
-		
-		auto result = SearchResult::create();
-		result->is_fail = true;
-		
-		std::vector<std::shared_ptr<const WordContext>> context;
-		try {
-			const auto time_begin = vnx::get_wall_time_micros();
-			const auto words = get_unique(request->words);
-			const std::vector<Variant> keys(words.begin(), words.end());
-			const auto values = word_context_sync.get_values(keys);
-			int i = 0;
-			for(auto value : values) {
-				auto word_context = std::dynamic_pointer_cast<const WordContext>(value);
-				if(word_context) {
-					context.push_back(word_context);
-					result->words.push_back(words.at(i));
-				}
-				i++;
-			}
-			result->load_time_us = vnx::get_wall_time_micros() - time_begin;
-		}
-		catch(const std::exception& ex) {
-			result->error_msg = ex.what();
-			query_async_return(request->req_id, result);
-			continue;
-		}
-		const auto time_begin = vnx::get_wall_time_micros();
-		
-		const uint32_t num_words = context.size();
-		if(num_words == 0) {
-			query_async_return(request->req_id, result);
-			continue;
-		}
-		
-		size_t num_found = 0;
-		std::vector<std::pair<uint32_t, uint32_t>> found(max_query_pages);
-		
-		if(num_words > 1)
-		{
-			std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> page_hits;
-			std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> iter(num_words);
-			std::vector<std::vector<std::pair<uint32_t, uint16_t>>::const_iterator> end(num_words);
-			for(uint32_t i = 0; i < num_words; ++i) {
-				iter[i] = context[i]->pages.begin();
-				end[i] = context[i]->pages.end();
-			}
-			uint32_t k = 0;
-			uint32_t num_iter = num_words;
-			
-			while(num_iter > 0 && num_found < found.size())
+			for(int i = 0; iter[k] != end[k] && i < 10; ++iter[k], ++i)
 			{
-				for(int i = 0; iter[k] != end[k] && i < 10; ++iter[k], ++i)
-				{
-					const auto page_id = iter[k]->first;
-					const uint32_t weight = iter[k]->second;
-					auto& entry = page_hits[page_id];
-					if(entry.first == 0) {
-						entry.second = weight;
-					} else {
-						entry.second = std::min(weight, entry.second);
-					}
-					if(++entry.first == num_words) {
-						const auto index = num_found++;
-						if(index < found.size()) {
-							found[index] = std::make_pair(page_id, entry.second);
-						}
-					}
-				}
-				if(iter[k] == end[k]) {
-					iter.erase(iter.begin() + k);
-					end.erase(end.begin() + k);
-					num_iter--;
+				const auto page_id = iter[k]->first;
+				const uint32_t weight = iter[k]->second;
+				auto& entry = page_hits[page_id];
+				if(entry.first == 0) {
+					entry.second = weight;
 				} else {
-					k++;
+					entry.second = std::min(weight, entry.second);
 				}
-				if(k >= num_iter) {
-					k = 0;
-				}
-			}
-		}
-		else {
-			const auto& list = context[0]->pages;
-			num_found = std::min(found.size(), list.size());
-			for(size_t i = 0; i < num_found; ++i) {
-				found[i] = list[i];
-			}
-		}
-		
-		struct result_t : result_item_t {
-			uint32_t domain_id = 0;
-		};
-		
-		std::vector<result_t> results;
-		{
-			std::shared_lock lock(index_mutex);
-			
-			for(size_t i = 0; i < std::min(num_found, found.size()); ++i)
-			{
-				const auto& entry = found[i];
-				const auto* page = find_page(entry.first);
-				if(page)
-				{
-					results.push_back(result_t());
-					result_t& item = results.back();
-					item.url = page->get_url();
-					item.domain_id = page->domain_id;
-					item.last_modified = page->last_modified;
-					item.score = entry.second * page->reverse_domains.size();
+				if(++entry.first == num_words) {
+					const auto index = num_found++;
+					if(index < found.size()) {
+						found[index] = std::make_pair(page_id, entry.second);
+					}
 				}
 			}
-		}
-		
-		std::vector<std::pair<int64_t, const result_t*>> sorted;
-		
-		if(has_flag(request->flags, search_flags_e::GROUP_BY_DOMAIN))
-		{
-			std::unordered_map<uint32_t, std::pair<int64_t, const result_t*>> best_of;
-			
-			for(const auto& item : results) {
-				auto& current = best_of[item.domain_id];
-				if(!current.second || item.score > current.first) {
-					current.first = item.score;
-					current.second = &item;
-				}
+			if(iter[k] == end[k]) {
+				iter.erase(iter.begin() + k);
+				end.erase(end.begin() + k);
+				num_iter--;
+			} else {
+				k++;
 			}
-			for(const auto& entry : best_of) {
-				sorted.emplace_back(entry.second.first, entry.second.second);
+			if(k >= num_iter) {
+				k = 0;
 			}
 		}
-		else {
-			for(const auto& result : results) {
-				sorted.emplace_back(result.score, &result);
-			}
-		}
-		
-		std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<int64_t, const result_t*>>());
-		
-		const auto time_mid = vnx::get_wall_time_micros();
-		result->compute_time_us = time_mid - time_begin;
-		
-		result->items.clear();
-		try {
-			std::vector<Variant> url_keys;
-			for(uint32_t i = 0; i < uint32_t(request->limit) && request->offset + i < sorted.size(); ++i)
-			{
-				const auto* item = sorted[request->offset + i].second;
-				url_keys.push_back(Variant(get_url_key(item->url)));
-				result->items.push_back(*item);
-			}
-			const auto values = page_info_sync.get_values(url_keys);
-			for(size_t i = 0; i < values.size(); ++i) {
-				auto page_info = std::dynamic_pointer_cast<const PageInfo>(values[i]);
-				if(page_info) {
-					result->items[i].title = page_info->title;
-				}
-			}
-		}
-		catch(const std::exception& ex) {
-			log(WARN).out << "query(): " << ex.what();
-		}
-		const auto time_end = vnx::get_wall_time_micros();
-		
-		result->num_results_total = sorted.size();
-		result->load_time_us += time_end - time_mid;
-		result->is_fail = false;
-		query_async_return(request->req_id, result);
-		
-		query_counter++;
 	}
+	else {
+		const auto& list = job->context[0]->pages;
+		num_found = std::min(found.size(), list.size());
+		for(size_t i = 0; i < num_found; ++i) {
+			found[i] = list[i];
+		}
+	}
+	
+	struct result_t : result_item_t {
+		uint32_t domain_id = 0;
+	};
+	
+	std::vector<result_t> results;
+	{
+		std::shared_lock lock(index_mutex);
+		
+		for(size_t i = 0; i < std::min(num_found, found.size()); ++i)
+		{
+			const auto& entry = found[i];
+			const auto* page = find_page(entry.first);
+			if(page) {
+				result_t item;
+				item.page_id = page->id;
+				item.domain_id = page->domain_id;
+				item.last_modified = page->last_modified;
+				item.score = entry.second * page->reverse_domains.size();
+				results.push_back(item);
+			}
+		}
+	}
+	
+	std::vector<std::pair<int64_t, const result_t*>> sorted;
+	
+	if(has_flag(job->flags, search_flags_e::GROUP_BY_DOMAIN))
+	{
+		std::unordered_map<uint32_t, std::pair<int64_t, const result_t*>> best_of;
+		
+		for(const auto& item : results) {
+			auto& current = best_of[item.domain_id];
+			if(!current.second || item.score > current.first) {
+				current.first = item.score;
+				current.second = &item;
+			}
+		}
+		for(const auto& entry : best_of) {
+			sorted.emplace_back(entry.second.first, entry.second.second);
+		}
+	}
+	else {
+		for(const auto& result : results) {
+			sorted.emplace_back(result.score, &result);
+		}
+	}
+	std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<int64_t, const result_t*>>());
+	
+	for(uint32_t i = 0; i < uint32_t(job->limit) && job->offset + i < sorted.size(); ++i)
+	{
+		result->items.push_back(*sorted[job->offset + i].second);
+	}
+	const auto time_mid = vnx::get_wall_time_micros();
+	result->compute_time_us = time_mid - time_begin;
+	result->num_results_total = sorted.size();
+	result->is_fail = false;
+	
+	add_task(std::bind(&SearchEngine::query_callback_1, this, job));
 }
 
-void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) const noexcept
+void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noexcept
 {
 	const auto word_id = job->cached->word_id;
 	
@@ -1332,7 +1387,6 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) cons
 				list.emplace_back(uint64_t(weight) * page->reverse_domains.size(), entry);
 			}
 		}
-		
 		const auto iter = word_index.find(word_id);
 		if(iter != word_index.end()) {
 			iter->second.num_pages = list.size();
@@ -1347,8 +1401,8 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) cons
 	for(const auto& entry : list) {
 		result->pages.emplace_back(entry.second);
 	}
-	
 	job->result = result;
+	
 	add_task(std::bind(&SearchEngine::word_update_finished, this, job));
 }
 

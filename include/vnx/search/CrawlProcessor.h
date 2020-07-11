@@ -76,7 +76,7 @@ protected:
 	
 	void handle(std::shared_ptr<const TextResponse> value) override;
 	
-	void handle(std::shared_ptr<const keyvalue::KeyValuePair> value) override;
+	void handle(std::shared_ptr<const keyvalue::SyncUpdate> value) override;
 	
 private:
 	void process_page(	const std::string& url,
@@ -89,7 +89,7 @@ private:
 						bool is_reprocess);
 	
 	void page_process_callback(	const std::string& url_key,
-								const std::shared_ptr<const PageIndex>& index,
+								std::shared_ptr<const PageIndex> index,
 								const bool& is_reprocess);
 	
 	void delete_page(const std::string& url_key);
@@ -104,16 +104,16 @@ private:
 	
 	void check_queue();
 	
-	void check_url(const Url::Url& url, int depth, std::shared_ptr<const Value> index);
+	void check_url(const Url::Url& url, int depth, std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void check_all_urls();
 	
 	void check_page_callback(	const std::string& url_key,
-								std::shared_ptr<const Value> url_index,
+								std::shared_ptr<const keyvalue::Entry> entry,
 								std::shared_ptr<const PageIndex> page_index);
 	
 	void reproc_page_callback(	const std::string& url_key,
-								std::shared_ptr<const Value> page_content_,
+								std::shared_ptr<const keyvalue::Entry> entry,
 								std::shared_ptr<const PageIndex> page_index_);
 	
 	void check_page(const std::string& url_key, int depth, std::shared_ptr<const PageIndex> index);
@@ -137,9 +137,11 @@ private:
 								const int new_depth,
 								const UrlInfo& info,
 								std::shared_ptr<const TextResponse> response,
-								std::pair<Variant, std::shared_ptr<const Value>> pair);
+								std::shared_ptr<const keyvalue::Entry> entry);
 	
-	void robots_txt_callback(const std::string& url_key, robots_txt_state_e missing_state, std::shared_ptr<const Value> value);
+	void robots_txt_callback(	const std::string& url_key,
+								robots_txt_state_e missing_state,
+								std::shared_ptr<const keyvalue::Entry> value);
 	
 	void url_fetch_error(uint64_t request_id, const std::exception& ex);
 	

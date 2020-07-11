@@ -65,6 +65,6 @@ module CrawlProcessor {
 	
 	void handle(TextResponse sample);
 	
-	void handle(vnx.keyvalue.KeyValuePair sample);
+	void handle(vnx.keyvalue.SyncUpdate sample);
 	
 }

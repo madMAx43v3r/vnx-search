@@ -6,18 +6,18 @@ class PageInfo {
 	
 	bool is_deleted;
 	
-	ulong version;					// version regarding title, etc
-	
+	ulong index_version;			// version regarding title, etc
 	ulong link_version;				// version regarding links
-	
 	ulong word_version;				// word context version
 	
+	long first_seen;
+	long last_modified;
+	
+	string scheme;
 	string title;
 	
 	vector<uint> words;
-	
 	vector<uint> links;
-	
 	vector<uint> reverse_links;
 	
 }

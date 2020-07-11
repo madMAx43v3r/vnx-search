@@ -53,7 +53,7 @@ module SearchEngine {
 	vector<string> suggest_domains(string prefix, int limit) const;
 	
 	
-	void handle(vnx.keyvalue.KeyValuePair sample);
+	void handle(vnx.keyvalue.SyncUpdate sample);
 	
 	void handle(vnx.keyvalue.SyncInfo sample);
 	

@@ -97,14 +97,16 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 	if(value->url.size() > max_url_length || !filter_url(parent)) {
 		return;
 	}
-	
 	auto content = PageContent::create();
 	content->text = value->text;
 	
 	page_content_async->store_value(Variant(url_key), content);
 	
 	if(is_robots_txt(parent)) {
-		robots_txt_callback(url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, content);
+		auto entry = keyvalue::Entry::create();
+		entry->key = Variant(url_key);
+		entry->value = content;
+		robots_txt_callback(url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, entry);
 		return;
 	}
 	
@@ -123,7 +125,7 @@ void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
 }
 
 void CrawlProcessor::page_process_callback(	const std::string& url_key,
-											const std::shared_ptr<const ::vnx::search::PageIndex>& index,
+											std::shared_ptr<const PageIndex> index,
 											const bool& is_reprocess)
 {
 	page_index_async->store_value(Variant(url_key), index);
@@ -233,16 +235,16 @@ void CrawlProcessor::process_page(	const std::string& url,
 	add_task(std::bind(&CrawlProcessor::page_process_callback, this, get_url_key(url), index, is_reprocess));
 }
 
-void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> pair)
+void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::SyncUpdate> entry)
 {
-	const std::string url_key = pair->key.to_string_value();
+	const std::string url_key = entry->key.to_string_value();
 	{
-		auto index = std::dynamic_pointer_cast<const UrlIndex>(pair->value);
+		auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 		if(index) {
 			const auto url = index->scheme + ":" + url_key;
 			const Url::Url parsed(url);
 			if(filter_url(parsed)) {
-				check_url(parsed, index->depth, index);
+				check_url(parsed, index->depth, entry);
 			} else if(!is_robots_txt(parsed)) {
 				delete_page(url_key);
 			}
@@ -250,7 +252,7 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::KeyValuePair> p
 		}
 	}
 	{
-		auto index = std::dynamic_pointer_cast<const PageIndex>(pair->value);
+		auto index = std::dynamic_pointer_cast<const PageIndex>(entry->value);
 		if(index) {
 			if(do_reprocess) {
 				const Url::Url parsed(url_key);
@@ -498,13 +500,13 @@ void CrawlProcessor::check_all_urls()
 	url_index_async->sync_all(input_url_index_sync);
 }
 
-void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_ptr<const Value> index_)
+void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_ptr<const keyvalue::Entry> entry)
 {
 	const auto url = parsed.str();
 	const auto url_key = get_url_key(parsed);
 	const bool is_robots = is_robots_txt(parsed);
 	
-	auto index = std::dynamic_pointer_cast<const UrlIndex>(index_);
+	auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 	if(index) {
 		depth = std::min(depth, index->depth);
 		if(is_robots) {
@@ -565,20 +567,20 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 }
 
 void CrawlProcessor::check_page_callback(	const std::string& url_key,
-											std::shared_ptr<const Value> url_index_,
+											std::shared_ptr<const keyvalue::Entry> entry,
 											std::shared_ptr<const PageIndex> page_index_)
 {
-	auto index = std::dynamic_pointer_cast<const UrlIndex>(url_index_);
+	auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 	if(index) {
 		check_page(url_key, index->depth, page_index_);
 	}
 }
 
 void CrawlProcessor::reproc_page_callback(	const std::string& url_key,
-											std::shared_ptr<const Value> page_content_,
+											std::shared_ptr<const keyvalue::Entry> entry,
 											std::shared_ptr<const PageIndex> page_index_)
 {
-	auto content = std::dynamic_pointer_cast<const PageContent>(page_content_);
+	auto content = std::dynamic_pointer_cast<const PageContent>(entry->value);
 	if(content) {
 		reproc_page(url_key, page_index_, content);
 	}
@@ -692,10 +694,10 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 											const int new_depth,
 											const UrlInfo& info,
 											std::shared_ptr<const TextResponse> response,
-											std::pair<Variant, std::shared_ptr<const Value>> pair)
+											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	std::shared_ptr<UrlIndex> index;
-	auto previous = std::dynamic_pointer_cast<const UrlIndex>(pair.second);
+	auto previous = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 	if(previous) {
 		index = vnx::clone(previous);
 	} else {
@@ -716,7 +718,7 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 		index->fetch_count = 1;
 		index->depth = new_depth;
 	}
-	url_index_async->store_value(pair.first, index);
+	url_index_async->store_value(entry->key, index);
 	
 	if(do_process) {
 		try {
@@ -763,14 +765,14 @@ void CrawlProcessor::url_fetch_error(uint64_t request_id, const std::exception& 
 
 void CrawlProcessor::robots_txt_callback(	const std::string& url_key,
 											robots_txt_state_e missing_state,
-											std::shared_ptr<const Value> value)
+											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	const Url::Url parsed(url_key);
 	auto* domain = find_domain(parsed.host());
 	if(!domain) {
 		return;
 	}
-	auto content = std::dynamic_pointer_cast<const PageContent>(value);
+	auto content = std::dynamic_pointer_cast<const PageContent>(entry->value);
 	if(content) {
 		if(!domain->robots_txt) {
 			found_robots_txt++;
