@@ -446,24 +446,6 @@ const SearchEngine::page_t* SearchEngine::find_page(uint32_t page_id) const
 	return 0;
 }
 
-template<typename T>
-SearchEngine::word_t& SearchEngine::get_word(const T& word)
-{
-	const auto iter = word_map.find(word);
-	if(iter != word_map.end()) {
-		return word_index[iter->second];
-	}
-	else {
-		const auto id = next_word_id++;
-		word_map[word] = id;
-		
-		auto& entry = word_index[id];
-		entry.id = id;
-		entry.value = word;
-		return entry;
-	}
-}
-
 const SearchEngine::word_t* SearchEngine::find_word(uint32_t word_id) const
 {
 	const auto iter = word_index.find(word_id);
@@ -879,11 +861,16 @@ void SearchEngine::update_page_callback_3(	std::shared_ptr<page_update_job_t> jo
 		auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 		job->links.emplace_back(entry->key.to_string_value(), info ? info->id : 0);
 	}
-	page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
-			std::bind(&SearchEngine::update_page_callback_4, this, job, std::placeholders::_1));
+	update_threads->add_task(std::bind(&SearchEngine::word_collect_task, this, job));
 }
 
-void SearchEngine::update_page_callback_4(	std::shared_ptr<page_update_job_t> job,
+void SearchEngine::update_page_callback_4(	std::shared_ptr<page_update_job_t> job)
+{
+	page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
+			std::bind(&SearchEngine::update_page_callback_5, this, job, std::placeholders::_1));
+}
+
+void SearchEngine::update_page_callback_5(	std::shared_ptr<page_update_job_t> job,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	job->info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
@@ -1012,27 +999,20 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	// update word index if version is greater and previous update has finished
 	if((!info || job->index_version > info->word_version) && !page_cache.count(page_id))
 	{
-		struct word_info_t {
-			short mode = 0;
-			uint16_t count = 0;
-		};
-		
-		std::unordered_map<uint32_t, word_info_t> words;
 		const float inv_word_count = 1.f / index->word_count;
 		
-		for(const auto& entry : index->words)
+		for(const auto& entry : job->new_words)
 		{
-			const auto word_id = get_word(entry.first).id;
-			auto& info = words[word_id];
+			const auto id = next_word_id++;
+			word_map[entry.first] = id;
+			
+			auto& index = word_index[id];
+			index.id = id;
+			index.value = entry.first;
+			
+			auto& info = job->words[id];
 			info.mode++;
 			info.count = entry.second;
-		}
-		if(info) {
-			for(const auto word_id : info->words) {
-				if(word_index.count(word_id)) {
-					words[word_id].mode--;
-				}
-			}
 		}
 		
 		auto& p_page_cache = page_cache[page_id];
@@ -1043,7 +1023,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		p_page_cache->word_version = job->index_version;
 		p_page_cache->url_key = url_key;
 		
-		for(const auto& entry : words)
+		for(const auto& entry : job->words)
 		{
 			const auto word_id = entry.first;
 			const auto p_word_cache = get_word_cache(word_id);
@@ -1075,6 +1055,7 @@ void SearchEngine::check_load_queue()
 			&& url_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_info_async->vnx_get_num_pending() < max_num_pending
+			&& update_threads->get_num_pending() < max_num_pending
 			&& word_cache.size() < max_word_cache)
 	{
 		const auto job = load_queue.front();
@@ -1258,7 +1239,7 @@ void SearchEngine::print_stats()
 			<< domain_index.size() << " domains, "
 			<< load_queue.size() << " / " << link_cache.size() << " / " << link_cache_2.size()
 			<< " / " << page_cache.size() << " / " << page_index.size() << " pages, "
-			<< word_cache.size() << " / " << word_map.size() << " words";
+			<< word_cache.size() << " / " << word_index.size() << " words";
 	
 	word_update_counter = 0;
 	page_update_counter = 0;
@@ -1388,6 +1369,32 @@ void SearchEngine::query_task(std::shared_ptr<query_job_t> job) const noexcept
 	result->is_fail = false;
 	
 	add_task(std::bind(&SearchEngine::query_callback_1, this, job));
+}
+
+void SearchEngine::word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept
+{
+	std::shared_lock lock(index_mutex);
+	
+	for(const auto& entry : job->index->words)
+	{
+		const auto iter = word_map.find(entry.first);
+		if(iter != word_map.end()) {
+			auto& info = job->words[iter->second];
+			info.mode++;
+			info.count = entry.second;
+		} else {
+			job->new_words.push_back(entry);
+		}
+	}
+	if(job->info) {
+		for(const auto word_id : job->info->words) {
+			if(word_index.count(word_id)) {
+				job->words[word_id].mode--;
+			}
+		}
+	}
+	
+	add_task(std::bind(&SearchEngine::update_page_callback_4, this, job));
 }
 
 void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noexcept

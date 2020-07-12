@@ -96,6 +96,10 @@ protected:
 	};
 	
 	struct page_update_job_t {
+		struct word_info_t {
+			short mode = 0;
+			uint16_t count = 0;
+		};
 		uint64_t index_version = 0;
 		std::string url_key;
 		std::shared_ptr<const PageInfo> info;
@@ -104,6 +108,8 @@ protected:
 		std::vector<std::string> org_links;
 		std::vector<std::pair<std::string, uint32_t>> links;
 		std::map<std::string, std::string> redirects;
+		std::map<uint32_t, word_info_t> words;
+		std::vector<std::pair<std::string, uint16_t>> new_words;
 	};
 	
 	struct word_update_job_t {
@@ -159,8 +165,6 @@ private:
 	page_t* find_page(uint32_t page_id);
 	const page_t* find_page(uint32_t page_id) const;
 	
-	template<typename T>
-	word_t& get_word(const T& word);
 	const word_t* find_word(uint32_t word_id) const;
 	
 	template<typename T>
@@ -207,7 +211,9 @@ private:
 	void update_page_callback_3(std::shared_ptr<page_update_job_t> job,
 								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
 	
-	void update_page_callback_4(std::shared_ptr<page_update_job_t> job,
+	void update_page_callback_4(std::shared_ptr<page_update_job_t> job);
+	
+	void update_page_callback_5(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page(std::shared_ptr<page_update_job_t> job);
@@ -238,6 +244,8 @@ private:
 	void print_stats();
 	
 	void query_task(std::shared_ptr<query_job_t> job) const noexcept;
+	
+	void word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept;
 	
 	void word_update_task(std::shared_ptr<word_update_job_t> job) noexcept;
 	
