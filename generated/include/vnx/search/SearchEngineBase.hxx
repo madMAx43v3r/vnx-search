@@ -66,7 +66,8 @@ public:
 protected:
 	virtual void query_async(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags, const vnx::request_id_t& _request_id) const = 0;
 	void query_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) const;
-	virtual ::vnx::Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const = 0;
+	virtual void get_domain_info_async(const std::string& host, const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
+	void get_domain_info_async_return(const vnx::request_id_t& _request_id, const ::vnx::Object& _ret_0) const;
 	virtual void get_page_info_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;
 	void get_page_info_async_return(const vnx::request_id_t& _request_id, const ::vnx::Object& _ret_0) const;
 	virtual std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const = 0;

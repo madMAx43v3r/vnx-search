@@ -40,7 +40,7 @@ module SearchEngine {
 	
 	SearchResult* query(vector<string> words, int limit, uint offset, vector<search_flags_e> flags) const async;
 	
-	Object get_domain_info(string host, int limit, uint offset) const;
+	Object get_domain_info(string host, int limit, uint offset) const async;
 	
 	Object get_page_info(string url_key) const async;
 	

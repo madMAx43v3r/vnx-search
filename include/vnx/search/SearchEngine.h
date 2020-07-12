@@ -134,7 +134,10 @@ protected:
 										std::shared_ptr<const keyvalue::Entry> entry,
 										const request_id_t& req_id) const;
 	
-	Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset) const;
+	void get_domain_info_async(	const std::string& host,
+								const int32_t& limit,
+								const uint32_t& offset,
+								const request_id_t& req_id) const;
 	
 	void get_page_info_async(const std::string& url_key, const request_id_t& req_id) const;
 	
