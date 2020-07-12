@@ -331,7 +331,7 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed) const
 	return true;
 }
 
-int CrawlProcessor::enqueue(const std::string& url, int depth, int64_t load_time)
+int CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t load_time)
 {
 	if(depth > max_depth) {
 		return 0;
@@ -500,7 +500,7 @@ void CrawlProcessor::check_all_urls()
 	url_index_async->sync_all(input_url_index_sync);
 }
 
-void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_ptr<const keyvalue::Entry> entry)
+void CrawlProcessor::check_url(const Url::Url& parsed, const int depth, std::shared_ptr<const keyvalue::Entry> entry)
 {
 	const auto url = parsed.str();
 	const auto url_key = get_url_key(parsed);
@@ -508,7 +508,6 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 	
 	auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 	if(index) {
-		depth = std::min(depth, index->depth);
 		if(is_robots) {
 			if(index->last_fetched > 0) {
 				int64_t load_delay = robots_reload_interval;
@@ -546,12 +545,6 @@ void CrawlProcessor::check_url(const Url::Url& parsed, int depth, std::shared_pt
 				enqueue(url, depth, index->last_fetched + load_delay);
 			} else {
 				enqueue(url, depth);
-			}
-			if(depth < index->depth) {
-				auto copy = vnx::clone(index);
-				copy->scheme = parsed.scheme();
-				copy->depth = depth;
-				url_index_async->store_value(Variant(url_key), copy);
 			}
 		} else {
 			delete_page(url_key);
@@ -705,18 +698,16 @@ void CrawlProcessor::url_update_callback(	const std::string& url_key,
 	}
 	index->UrlInfo::operator=(info);
 	index->scheme = new_scheme;
+	index->depth = new_depth;
 	
 	bool do_process = true;
-	
 	if(previous) {
 		index->first_seen = previous->first_seen ? previous->first_seen : info.last_fetched;
 		index->fetch_count = previous->fetch_count + 1;
-		index->depth = std::min(previous->depth, new_depth);
 		do_process = info.last_fetched > previous->last_fetched + reload_interval / 2;
 	} else {
 		index->first_seen = info.last_fetched;
 		index->fetch_count = 1;
-		index->depth = new_depth;
 	}
 	url_index_async->store_value(entry->key, index);
 	

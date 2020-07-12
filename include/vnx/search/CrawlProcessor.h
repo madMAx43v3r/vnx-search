@@ -100,11 +100,11 @@ private:
 	
 	bool filter_url(const Url::Url& parsed) const;
 	
-	int enqueue(const std::string& url, int depth, int64_t load_time = 0);
+	int enqueue(const std::string& url, const int depth, int64_t load_time = 0);
 	
 	void check_queue();
 	
-	void check_url(const Url::Url& url, int depth, std::shared_ptr<const keyvalue::Entry> entry);
+	void check_url(const Url::Url& url, const int depth, std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void check_all_urls();
 	
