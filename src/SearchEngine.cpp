@@ -1352,10 +1352,6 @@ void SearchEngine::query_task(std::shared_ptr<query_job_t> job) const noexcept
 				item.score = entry.second * page->reverse_domains.size();
 				results.push_back(item);
 			}
-			if(i % 1024 == 1000) {
-				lock.unlock();
-				lock.lock();
-			}
 		}
 	}
 	
@@ -1435,7 +1431,7 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 				const auto weight = entry.second;
 				list.emplace_back(uint64_t(weight) * page->reverse_domains.size(), entry);
 			}
-			if(i++ % 1024 == 1000) {
+			if(i++ % 8192 == 8000) {
 				lock.unlock();
 				lock.lock();
 			}
