@@ -1021,8 +1021,6 @@ void SearchEngine::check_queues()
 
 void SearchEngine::check_load_queue()
 {
-	static const size_t max_num_pending = 100;
-	
 	while(!load_queue.empty()
 			&& url_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_index_async->vnx_get_num_pending() < max_num_pending
@@ -1038,7 +1036,6 @@ void SearchEngine::check_load_queue()
 void SearchEngine::check_link_queue()
 {
 	std::shared_lock lock(index_mutex);
-	static const size_t max_num_pending = 100;
 	
 	const auto now = vnx::get_wall_time_micros();
 	while(!link_queue.empty()
@@ -1073,8 +1070,6 @@ void SearchEngine::check_link_queue()
 
 void SearchEngine::check_word_queue()
 {
-	static const size_t max_num_pending = 100;
-	
 	const auto now = vnx::get_wall_time_seconds();
 	while(!word_queue.empty()
 			&& word_context_async->vnx_get_num_pending() < max_num_pending)
