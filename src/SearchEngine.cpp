@@ -527,7 +527,6 @@ std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const s
 
 std::shared_ptr<SearchEngine::word_cache_t> SearchEngine::get_word_cache(uint32_t word_id)
 {
-	// update_mutex needs to be unique locked
 	auto& cache = word_cache[word_id];
 	if(!cache) {
 		cache = std::make_shared<word_cache_t>();
