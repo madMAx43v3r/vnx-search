@@ -244,7 +244,9 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::SyncUpdate> ent
 			const auto url = index->scheme + ":" + url_key;
 			const Url::Url parsed(url);
 			if(filter_url(parsed)) {
-				check_url(parsed, index->depth, entry);
+				if(!index->last_fetched) {
+					check_url(parsed, index->depth, entry);
+				}
 			} else if(!is_robots_txt(parsed)) {
 				delete_page(url_key);
 			}
