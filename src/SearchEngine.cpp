@@ -1010,7 +1010,8 @@ void SearchEngine::check_load_queue()
 	while(!load_queue.empty()
 			&& url_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_index_async->vnx_get_num_pending() < max_num_pending
-			&& page_info_async->vnx_get_num_pending() < max_num_pending)
+			&& page_info_async->vnx_get_num_pending() < max_num_pending
+			&& word_cache.size() > max_word_cache)
 	{
 		const auto job = load_queue.front();
 		url_index_async->get_value(Variant(job->url_key),
