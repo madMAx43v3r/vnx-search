@@ -69,6 +69,19 @@ void CrawlProcessor::main()
 	set_timer_millis(check_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
 	set_timer_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
+	{
+		std::vector<std::string> tmp;
+		for(const auto& url : root_urls) {
+			try {
+				if(filter_url(Url::Url(url))) {
+					tmp.push_back(url);
+				}
+			} catch(...) {
+				// ignore
+			}
+		}
+		root_urls = tmp;
+	}
 	for(const auto& url : root_urls)
 	{
 		const auto parsed = process_url(Url::Url(url));
