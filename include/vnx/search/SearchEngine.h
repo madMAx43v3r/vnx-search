@@ -108,6 +108,7 @@ protected:
 	};
 	
 	struct word_update_job_t {
+		size_t num_pages = 0;
 		std::shared_ptr<word_cache_t> cached;
 		std::shared_ptr<const WordContext> context;
 		std::shared_ptr<WordContext> result;

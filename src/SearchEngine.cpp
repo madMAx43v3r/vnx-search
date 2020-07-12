@@ -129,8 +129,6 @@ void SearchEngine::query_callback_0(std::shared_ptr<query_job_t> job,
 
 void SearchEngine::query_callback_1(std::shared_ptr<query_job_t> job) const
 {
-	std::shared_lock lock(index_mutex);
-	
 	std::vector<uint64_t> versions;
 	for(auto& item : job->result->items)
 	{
@@ -181,8 +179,6 @@ Object SearchEngine::get_domain_info(	const std::string& host,
 										const int32_t& limit,
 										const uint32_t& offset) const
 {
-	std::shared_lock lock(index_mutex);
-	
 	Object result;
 	/*const auto iter = domain_map.find(host);
 	if(iter != domain_map.end()) {
@@ -220,8 +216,6 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 											std::shared_ptr<const keyvalue::Entry> entry,
 											const request_id_t& req_id) const
 {
-	std::shared_lock lock(index_mutex);
-	
 	Object result;
 	/*const auto page_id = find_url_id(url_key);
 	const auto* page = find_page(page_id);
@@ -298,8 +292,6 @@ void SearchEngine::reverse_lookup_callback(	const std::string& url_key,
 											std::shared_ptr<const keyvalue::Entry> entry,
 											const request_id_t& req_id) const
 {
-	std::shared_lock lock(index_mutex);
-	
 	std::vector<std::pair<std::string, size_t>> sorted;
 	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	if(page_info) {
@@ -332,8 +324,6 @@ void SearchEngine::reverse_domain_lookup_callback(	const std::string& url_key,
 													std::shared_ptr<const keyvalue::Entry> entry,
 													const request_id_t& req_id) const
 {
-	std::shared_lock lock(index_mutex);
-	
 	std::map<std::string, uint32_t> tmp;
 	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	if(page_info) {
@@ -697,8 +687,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> pair)
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 {
-	std::shared_lock lock(index_mutex);
-	
 	if(value->code == keyvalue::SyncInfo::END)
 	{
 		init_sync_count++;
@@ -731,8 +719,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 void SearchEngine::check_page_callback(	std::shared_ptr<page_update_job_t> job,
 										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	std::shared_lock lock(index_mutex);
-	
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	auto* page = info ? find_page(info->id) : nullptr;
 	
@@ -1035,8 +1021,6 @@ void SearchEngine::check_load_queue()
 
 void SearchEngine::check_link_queue()
 {
-	std::shared_lock lock(index_mutex);
-	
 	const auto now = vnx::get_wall_time_micros();
 	while(!link_queue.empty()
 			&& page_info_async->vnx_get_num_pending() < max_num_pending)
@@ -1168,6 +1152,10 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 			}
 		}
 	}
+	const auto iter = word_index.find(job->cached->word_id);
+	if(iter != word_index.end()) {
+		iter->second.num_pages = job->num_pages;
+	}
 	check_word_queue();
 }
 
@@ -1202,8 +1190,6 @@ void SearchEngine::page_word_update_callback(	std::shared_ptr<page_cache_t> cach
 
 void SearchEngine::print_stats()
 {
-	std::shared_lock lock(index_mutex);
-	
 	log(INFO).out << (60000 * word_update_counter) / stats_interval_ms << " words/min, "
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
@@ -1382,10 +1368,7 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 				list.emplace_back(uint64_t(weight) * page->reverse_domains.size(), entry);
 			}
 		}
-		const auto iter = word_index.find(word_id);
-		if(iter != word_index.end()) {
-			iter->second.num_pages = list.size();
-		}
+		job->num_pages = list.size();
 	}
 	std::sort(list.begin(), list.end(), std::greater<std::pair<uint64_t, std::pair<uint32_t, uint16_t>>>());
 	
