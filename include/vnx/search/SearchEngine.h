@@ -101,8 +101,8 @@ protected:
 		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageIndex> index;
 		std::shared_ptr<const UrlIndex> url_index;
-		std::vector<std::string> links;
-		std::map<std::string, uint32_t> link_map;
+		std::vector<std::string> org_links;
+		std::vector<std::pair<std::string, uint32_t>> links;
 		std::map<std::string, std::string> redirects;
 	};
 	

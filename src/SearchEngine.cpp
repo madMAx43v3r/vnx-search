@@ -828,7 +828,7 @@ void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> jo
 					continue;
 				}
 				const auto url_key = get_url_key(parsed);
-				job->links.push_back(url_key);
+				job->org_links.push_back(url_key);
 				link_keys.push_back(Variant(url_key));
 			} catch(...) {
 				// ignore
@@ -861,7 +861,7 @@ void SearchEngine::update_page_callback_2(	std::shared_ptr<page_update_job_t> jo
 		}
 	}
 	std::vector<Variant> link_keys;
-	for(const auto& url_key : job->links) {
+	for(const auto& url_key : job->org_links) {
 		auto iter = job->redirects.find(url_key);
 		if(iter != job->redirects.end()) {
 			link_keys.push_back(Variant(iter->second));
@@ -878,7 +878,7 @@ void SearchEngine::update_page_callback_3(	std::shared_ptr<page_update_job_t> jo
 {
 	for(auto entry : entries) {
 		auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-		job->link_map[entry->key.to_string_value()] = info ? info->id : 0;
+		job->links.emplace_back(entry->key.to_string_value(), info ? info->id : 0);
 	}
 	page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
 			std::bind(&SearchEngine::update_page_callback_4, this, job, std::placeholders::_1));
@@ -935,12 +935,12 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	
 	if(!info || job->index_version > info->link_version)
 	{
-		std::unordered_set<uint32_t> new_links;
+		std::set<uint32_t> new_links;
 		auto p_link_cache = get_link_cache(url_key);
 		p_link_cache->link_version = job->index_version;
 		p_link_cache->is_page_update = true;
 		
-		for(const auto& entry : job->link_map)
+		for(const auto& entry : job->links)
 		{
 			const auto link_id = entry.second;
 			if(link_id) {
