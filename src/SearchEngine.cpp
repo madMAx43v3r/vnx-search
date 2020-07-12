@@ -1084,7 +1084,6 @@ void SearchEngine::link_update_callback(std::shared_ptr<link_cache_t> cache, Var
 				std::bind(&SearchEngine::link_update, this, cache, std::placeholders::_1));
 	} else {
 		link_queue.emplace(vnx::get_wall_time_micros(), cache);
-		log(WARN) << "Key not found for page id " << cache->page_id;
 	}
 }
 

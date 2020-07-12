@@ -17,7 +17,6 @@
 #include <vnx/keyvalue/ServerClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
 
-#include <stx/cstring.h>
 #include <stx/sstring.h>
 #include <stx/fstring.h>
 
@@ -58,8 +57,8 @@ protected:
 		uint64_t index_version = 0;
 		uint64_t link_version = 0;
 		uint64_t word_version = 0;
-		stx::fstring<8> scheme;
 		int64_t last_modified = 0;
+		stx::fstring<8> scheme;
 		std::vector<uint32_t> reverse_domains;
 	};
 	
