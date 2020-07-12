@@ -20,6 +20,8 @@ public:
 	
 	CrawlFrontendClient(vnx::Hash64 service_addr);
 	
+	::vnx::TypeCode vnx_get_type_code();
+	
 	std::shared_ptr<const ::vnx::search::FetchResult> fetch(const std::string& url);
 	
 	void register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads);

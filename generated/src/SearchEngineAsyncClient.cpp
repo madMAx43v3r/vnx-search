@@ -4,10 +4,12 @@
 #include <vnx/search/package.hxx>
 #include <vnx/search/SearchEngineAsyncClient.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/SearchEngine_get_domain_info.hxx>
 #include <vnx/search/SearchEngine_get_domain_info_return.hxx>
 #include <vnx/search/SearchEngine_get_domain_list.hxx>
@@ -43,32 +45,10 @@ SearchEngineAsyncClient::SearchEngineAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
-uint64_t SearchEngineAsyncClient::get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset, const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
-	auto _method = ::vnx::search::SearchEngine_get_domain_info::create();
-	_method->host = host;
-	_method->limit = limit;
-	_method->offset = offset;
+uint64_t SearchEngineAsyncClient::vnx_get_type_code(const std::function<void(::vnx::TypeCode)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
 	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_domain_info[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
-	return _request_id;
-}
-
-uint64_t SearchEngineAsyncClient::get_domain_list(const int32_t& limit, const uint32_t& offset, const std::function<void(std::vector<::vnx::Object>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
-	auto _method = ::vnx::search::SearchEngine_get_domain_list::create();
-	_method->limit = limit;
-	_method->offset = offset;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_domain_list[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
-	return _request_id;
-}
-
-uint64_t SearchEngineAsyncClient::get_page_info(const std::string& url_key, const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
-	auto _method = ::vnx::search::SearchEngine_get_page_info::create();
-	_method->url_key = url_key;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_page_info[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_queue_vnx_get_type_code[_request_id] = std::make_pair(_callback, _error_callback);
 	vnx_num_pending++;
 	return _request_id;
 }
@@ -85,11 +65,32 @@ uint64_t SearchEngineAsyncClient::query(const std::vector<std::string>& words, c
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::reverse_domain_lookup(const std::string& url_key, const std::function<void(std::vector<std::pair<std::string, uint32_t>>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
-	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
+uint64_t SearchEngineAsyncClient::get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset, const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_info::create();
+	_method->host = host;
+	_method->limit = limit;
+	_method->offset = offset;
+	const auto _request_id = vnx_request(_method);
+	vnx_queue_get_domain_info[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_num_pending++;
+	return _request_id;
+}
+
+uint64_t SearchEngineAsyncClient::get_page_info(const std::string& url_key, const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::search::SearchEngine_get_page_info::create();
 	_method->url_key = url_key;
 	const auto _request_id = vnx_request(_method);
-	vnx_queue_reverse_domain_lookup[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_queue_get_page_info[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_num_pending++;
+	return _request_id;
+}
+
+uint64_t SearchEngineAsyncClient::get_domain_list(const int32_t& limit, const uint32_t& offset, const std::function<void(std::vector<::vnx::Object>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::search::SearchEngine_get_domain_list::create();
+	_method->limit = limit;
+	_method->offset = offset;
+	const auto _request_id = vnx_request(_method);
+	vnx_queue_get_domain_list[_request_id] = std::make_pair(_callback, _error_callback);
 	vnx_num_pending++;
 	return _request_id;
 }
@@ -103,12 +104,11 @@ uint64_t SearchEngineAsyncClient::reverse_lookup(const std::string& url_key, con
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::suggest_domains(const std::string& prefix, const int32_t& limit, const std::function<void(std::vector<std::string>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
-	auto _method = ::vnx::search::SearchEngine_suggest_domains::create();
-	_method->prefix = prefix;
-	_method->limit = limit;
+uint64_t SearchEngineAsyncClient::reverse_domain_lookup(const std::string& url_key, const std::function<void(std::vector<std::pair<std::string, uint32_t>>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::search::SearchEngine_reverse_domain_lookup::create();
+	_method->url_key = url_key;
 	const auto _request_id = vnx_request(_method);
-	vnx_queue_suggest_domains[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_queue_reverse_domain_lookup[_request_id] = std::make_pair(_callback, _error_callback);
 	vnx_num_pending++;
 	return _request_id;
 }
@@ -123,30 +123,43 @@ uint64_t SearchEngineAsyncClient::suggest_words(const std::string& prefix, const
 	return _request_id;
 }
 
+uint64_t SearchEngineAsyncClient::suggest_domains(const std::string& prefix, const int32_t& limit, const std::function<void(std::vector<std::string>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::search::SearchEngine_suggest_domains::create();
+	_method->prefix = prefix;
+	_method->limit = limit;
+	const auto _request_id = vnx_request(_method);
+	vnx_queue_suggest_domains[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_num_pending++;
+	return _request_id;
+}
+
 std::vector<uint64_t> SearchEngineAsyncClient::vnx_get_pending_ids() const {
 	std::vector<uint64_t> _list;
-	for(const auto& entry : vnx_queue_get_domain_info) {
-		_list.push_back(entry.first);
-	}
-	for(const auto& entry : vnx_queue_get_domain_list) {
-		_list.push_back(entry.first);
-	}
-	for(const auto& entry : vnx_queue_get_page_info) {
+	for(const auto& entry : vnx_queue_vnx_get_type_code) {
 		_list.push_back(entry.first);
 	}
 	for(const auto& entry : vnx_queue_query) {
 		_list.push_back(entry.first);
 	}
-	for(const auto& entry : vnx_queue_reverse_domain_lookup) {
+	for(const auto& entry : vnx_queue_get_domain_info) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_get_page_info) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_get_domain_list) {
 		_list.push_back(entry.first);
 	}
 	for(const auto& entry : vnx_queue_reverse_lookup) {
 		_list.push_back(entry.first);
 	}
-	for(const auto& entry : vnx_queue_suggest_domains) {
+	for(const auto& entry : vnx_queue_reverse_domain_lookup) {
 		_list.push_back(entry.first);
 	}
 	for(const auto& entry : vnx_queue_suggest_words) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_suggest_domains) {
 		_list.push_back(entry.first);
 	}
 	return _list;
@@ -154,32 +167,12 @@ std::vector<uint64_t> SearchEngineAsyncClient::vnx_get_pending_ids() const {
 
 void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id, const std::exception& _ex) {
 	{
-		const auto _iter = vnx_queue_get_domain_info.find(_request_id);
-		if(_iter != vnx_queue_get_domain_info.end()) {
+		const auto _iter = vnx_queue_vnx_get_type_code.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_type_code.end()) {
 			if(_iter->second.second) {
 				_iter->second.second(_ex);
 			}
-			vnx_queue_get_domain_info.erase(_iter);
-			vnx_num_pending--;
-		}
-	}
-	{
-		const auto _iter = vnx_queue_get_domain_list.find(_request_id);
-		if(_iter != vnx_queue_get_domain_list.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
-			vnx_queue_get_domain_list.erase(_iter);
-			vnx_num_pending--;
-		}
-	}
-	{
-		const auto _iter = vnx_queue_get_page_info.find(_request_id);
-		if(_iter != vnx_queue_get_page_info.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
-			vnx_queue_get_page_info.erase(_iter);
+			vnx_queue_vnx_get_type_code.erase(_iter);
 			vnx_num_pending--;
 		}
 	}
@@ -194,12 +187,32 @@ void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id, const std:
 		}
 	}
 	{
-		const auto _iter = vnx_queue_reverse_domain_lookup.find(_request_id);
-		if(_iter != vnx_queue_reverse_domain_lookup.end()) {
+		const auto _iter = vnx_queue_get_domain_info.find(_request_id);
+		if(_iter != vnx_queue_get_domain_info.end()) {
 			if(_iter->second.second) {
 				_iter->second.second(_ex);
 			}
-			vnx_queue_reverse_domain_lookup.erase(_iter);
+			vnx_queue_get_domain_info.erase(_iter);
+			vnx_num_pending--;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_get_page_info.find(_request_id);
+		if(_iter != vnx_queue_get_page_info.end()) {
+			if(_iter->second.second) {
+				_iter->second.second(_ex);
+			}
+			vnx_queue_get_page_info.erase(_iter);
+			vnx_num_pending--;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_get_domain_list.find(_request_id);
+		if(_iter != vnx_queue_get_domain_list.end()) {
+			if(_iter->second.second) {
+				_iter->second.second(_ex);
+			}
+			vnx_queue_get_domain_list.erase(_iter);
 			vnx_num_pending--;
 		}
 	}
@@ -214,12 +227,12 @@ void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id, const std:
 		}
 	}
 	{
-		const auto _iter = vnx_queue_suggest_domains.find(_request_id);
-		if(_iter != vnx_queue_suggest_domains.end()) {
+		const auto _iter = vnx_queue_reverse_domain_lookup.find(_request_id);
+		if(_iter != vnx_queue_reverse_domain_lookup.end()) {
 			if(_iter->second.second) {
 				_iter->second.second(_ex);
 			}
-			vnx_queue_suggest_domains.erase(_iter);
+			vnx_queue_reverse_domain_lookup.erase(_iter);
 			vnx_num_pending--;
 		}
 	}
@@ -233,53 +246,29 @@ void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id, const std:
 			vnx_num_pending--;
 		}
 	}
+	{
+		const auto _iter = vnx_queue_suggest_domains.find(_request_id);
+		if(_iter != vnx_queue_suggest_domains.end()) {
+			if(_iter->second.second) {
+				_iter->second.second(_ex);
+			}
+			vnx_queue_suggest_domains.erase(_iter);
+			vnx_num_pending--;
+		}
+	}
 }
 
 void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
 	const auto _type_hash = _value->get_type_hash();
-	if(_type_hash == vnx::Hash64(0xdd84ef2259be7eull)) {
-		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info_return>(_value);
+	if(_type_hash == vnx::Hash64(0x9f4322ca83b0d1ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_value);
 		if(!_result) {
 			throw std::logic_error("SearchEngineAsyncClient: !_result");
 		}
-		const auto _iter = vnx_queue_get_domain_info.find(_request_id);
-		if(_iter != vnx_queue_get_domain_info.end()) {
+		const auto _iter = vnx_queue_vnx_get_type_code.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_type_code.end()) {
 			const auto _callback = std::move(_iter->second.first);
-			vnx_queue_get_domain_info.erase(_iter);
-			vnx_num_pending--;
-			if(_callback) {
-				_callback(_result->_ret_0);
-			}
-		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
-		}
-	}
-	else if(_type_hash == vnx::Hash64(0xa06392efe70f0679ull)) {
-		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list_return>(_value);
-		if(!_result) {
-			throw std::logic_error("SearchEngineAsyncClient: !_result");
-		}
-		const auto _iter = vnx_queue_get_domain_list.find(_request_id);
-		if(_iter != vnx_queue_get_domain_list.end()) {
-			const auto _callback = std::move(_iter->second.first);
-			vnx_queue_get_domain_list.erase(_iter);
-			vnx_num_pending--;
-			if(_callback) {
-				_callback(_result->_ret_0);
-			}
-		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
-		}
-	}
-	else if(_type_hash == vnx::Hash64(0xa79acda144d4c33bull)) {
-		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_value);
-		if(!_result) {
-			throw std::logic_error("SearchEngineAsyncClient: !_result");
-		}
-		const auto _iter = vnx_queue_get_page_info.find(_request_id);
-		if(_iter != vnx_queue_get_page_info.end()) {
-			const auto _callback = std::move(_iter->second.first);
-			vnx_queue_get_page_info.erase(_iter);
+			vnx_queue_vnx_get_type_code.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback(_result->_ret_0);
@@ -305,15 +294,49 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
 		}
 	}
-	else if(_type_hash == vnx::Hash64(0x8f0160842cd83465ull)) {
-		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup_return>(_value);
+	else if(_type_hash == vnx::Hash64(0xdd84ef2259be7eull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_info_return>(_value);
 		if(!_result) {
 			throw std::logic_error("SearchEngineAsyncClient: !_result");
 		}
-		const auto _iter = vnx_queue_reverse_domain_lookup.find(_request_id);
-		if(_iter != vnx_queue_reverse_domain_lookup.end()) {
+		const auto _iter = vnx_queue_get_domain_info.find(_request_id);
+		if(_iter != vnx_queue_get_domain_info.end()) {
 			const auto _callback = std::move(_iter->second.first);
-			vnx_queue_reverse_domain_lookup.erase(_iter);
+			vnx_queue_get_domain_info.erase(_iter);
+			vnx_num_pending--;
+			if(_callback) {
+				_callback(_result->_ret_0);
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0xa79acda144d4c33bull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_value);
+		if(!_result) {
+			throw std::logic_error("SearchEngineAsyncClient: !_result");
+		}
+		const auto _iter = vnx_queue_get_page_info.find(_request_id);
+		if(_iter != vnx_queue_get_page_info.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_get_page_info.erase(_iter);
+			vnx_num_pending--;
+			if(_callback) {
+				_callback(_result->_ret_0);
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0xa06392efe70f0679ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list_return>(_value);
+		if(!_result) {
+			throw std::logic_error("SearchEngineAsyncClient: !_result");
+		}
+		const auto _iter = vnx_queue_get_domain_list.find(_request_id);
+		if(_iter != vnx_queue_get_domain_list.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_get_domain_list.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback(_result->_ret_0);
@@ -339,15 +362,15 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
 		}
 	}
-	else if(_type_hash == vnx::Hash64(0x385aae88fe3df753ull)) {
-		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains_return>(_value);
+	else if(_type_hash == vnx::Hash64(0x8f0160842cd83465ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_reverse_domain_lookup_return>(_value);
 		if(!_result) {
 			throw std::logic_error("SearchEngineAsyncClient: !_result");
 		}
-		const auto _iter = vnx_queue_suggest_domains.find(_request_id);
-		if(_iter != vnx_queue_suggest_domains.end()) {
+		const auto _iter = vnx_queue_reverse_domain_lookup.find(_request_id);
+		if(_iter != vnx_queue_reverse_domain_lookup.end()) {
 			const auto _callback = std::move(_iter->second.first);
-			vnx_queue_suggest_domains.erase(_iter);
+			vnx_queue_reverse_domain_lookup.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback(_result->_ret_0);
@@ -365,6 +388,23 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 		if(_iter != vnx_queue_suggest_words.end()) {
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_suggest_words.erase(_iter);
+			vnx_num_pending--;
+			if(_callback) {
+				_callback(_result->_ret_0);
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0x385aae88fe3df753ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_suggest_domains_return>(_value);
+		if(!_result) {
+			throw std::logic_error("SearchEngineAsyncClient: !_result");
+		}
+		const auto _iter = vnx_queue_suggest_domains.find(_request_id);
+		if(_iter != vnx_queue_suggest_domains.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_suggest_domains.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback(_result->_ret_0);

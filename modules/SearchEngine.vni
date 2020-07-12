@@ -13,9 +13,11 @@ module SearchEngine {
 	
 	string page_content_server = "PageContent";
 	
-	int max_query_pages = 1000;
+	int max_query_pages = 1000;				// max query results
 	
 	int max_word_cache = 1000000;
+	
+	int max_num_pending = 100;				// number of async requests
 	
 	int num_query_threads = 4;
 	
@@ -53,7 +55,7 @@ module SearchEngine {
 	vector<string> suggest_domains(string prefix, int limit) const;
 	
 	
-	void handle(vnx.keyvalue.KeyValuePair sample);
+	void handle(vnx.keyvalue.SyncUpdate sample);
 	
 	void handle(vnx.keyvalue.SyncInfo sample);
 	

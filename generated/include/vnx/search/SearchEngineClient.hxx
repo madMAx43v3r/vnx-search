@@ -8,8 +8,8 @@
 #include <vnx/Module.h>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/KeyValuePair.hxx>
 #include <vnx/keyvalue/SyncInfo.hxx>
+#include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/search_flags_e.hxx>
 
@@ -23,21 +23,23 @@ public:
 	
 	SearchEngineClient(vnx::Hash64 service_addr);
 	
-	::vnx::Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset);
-	
-	std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset);
-	
-	::vnx::Object get_page_info(const std::string& url_key);
+	::vnx::TypeCode vnx_get_type_code();
 	
 	std::shared_ptr<const ::vnx::search::SearchResult> query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags);
 	
-	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key);
+	::vnx::Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset);
+	
+	::vnx::Object get_page_info(const std::string& url_key);
+	
+	std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset);
 	
 	std::vector<std::string> reverse_lookup(const std::string& url_key);
 	
-	std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit);
+	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key);
 	
 	std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit);
+	
+	std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit);
 	
 };
 

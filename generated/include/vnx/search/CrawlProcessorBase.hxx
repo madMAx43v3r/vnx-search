@@ -8,7 +8,7 @@
 #include <vnx/Module.h>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -75,10 +75,10 @@ public:
 	
 protected:
 	virtual ::vnx::Object get_stats(const int32_t& limit) const = 0;
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::KeyValuePair> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value) {}
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;

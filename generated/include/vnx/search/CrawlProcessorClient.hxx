@@ -8,7 +8,7 @@
 #include <vnx/Module.h>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/KeyValuePair.hxx>
+#include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/TextResponse.hxx>
 
 
@@ -20,6 +20,8 @@ public:
 	CrawlProcessorClient(const std::string& service_name);
 	
 	CrawlProcessorClient(vnx::Hash64 service_addr);
+	
+	::vnx::TypeCode vnx_get_type_code();
 	
 	::vnx::Object get_stats(const int32_t& limit);
 	

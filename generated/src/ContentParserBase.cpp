@@ -5,6 +5,8 @@
 #include <vnx/search/ContentParserBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/search/ContentParser_parse.hxx>
 #include <vnx/search/ContentParser_parse_return.hxx>
 #include <vnx/search/HttpResponse.hxx>
@@ -101,8 +103,9 @@ std::shared_ptr<vnx::TypeCode> ContentParserBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0xbe968e62c4bea207ull);
 	type_code->code_hash = vnx::Hash64(0x7711f34b6e9a4060ull);
 	type_code->is_native = true;
-	type_code->methods.resize(1);
-	type_code->methods[0] = ::vnx::search::ContentParser_parse::static_get_type_code();
+	type_code->methods.resize(2);
+	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
+	type_code->methods[1] = ::vnx::search::ContentParser_parse::static_get_type_code();
 	type_code->fields.resize(1);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -120,7 +123,15 @@ void ContentParserBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sa
 
 std::shared_ptr<vnx::Value> ContentParserBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
 	const auto _type_hash = _method->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x3a3496c5361fbf35ull)) {
+	if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
+		_return_value->_ret_0 = vnx_get_type_code();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x3a3496c5361fbf35ull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::search::ContentParser_parse>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
@@ -168,7 +179,6 @@ void read(TypeInput& in, ::vnx::search::ContentParserBase& value, const TypeCode
 			default: vnx::skip(in, type_code, code); return;
 		}
 	}
-	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {

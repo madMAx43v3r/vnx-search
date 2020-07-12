@@ -19,6 +19,8 @@ public:
 	
 	ArchiveProxyClient(vnx::Hash64 service_addr);
 	
+	::vnx::TypeCode vnx_get_type_code();
+	
 };
 
 
