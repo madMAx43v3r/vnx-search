@@ -108,6 +108,8 @@ private:
 	
 	void check_all_urls();
 	
+	void check_root_urls();
+	
 	void check_page_callback(	const std::string& url_key,
 								std::shared_ptr<const keyvalue::Entry> entry,
 								std::shared_ptr<const PageIndex> page_index);

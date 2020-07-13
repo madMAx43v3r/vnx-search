@@ -17,6 +17,7 @@ int main(int argc, char** argv)
 	std::map<std::string, std::string> options;
 	options["s"] = "server";
 	options["f"] = "frontend";
+	options["i"] = "initialize";
 	options["server"] = "backend server url";
 	options["frontend"] = "frontend server url";
 	
@@ -46,6 +47,7 @@ int main(int argc, char** argv)
 	proxy->max_queue_ms = 0;		// quick fix
 	
 	vnx::Handle<vnx::search::CrawlProcessor> module = new vnx::search::CrawlProcessor("CrawlProcessor");
+	vnx::read_config("initialize", module->inititial_sync);
 	proxy->forward_list.push_back(module->url_index_server);
 	proxy->forward_list.push_back(module->page_index_server);
 	proxy->forward_list.push_back(module->page_content_server);

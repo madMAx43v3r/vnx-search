@@ -67,6 +67,7 @@ void CrawlProcessor::main()
 	set_timer_millis(1000, std::bind(&CrawlProcessor::print_stats, this));
 	set_timer_millis(10 * 1000, std::bind(&CrawlProcessor::publish_stats, this));
 	set_timer_millis(check_interval_ms, std::bind(&CrawlProcessor::check_queue, this));
+	set_timer_millis((reload_interval * 1000) / 10, std::bind(&CrawlProcessor::check_root_urls, this));
 	set_timer_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	
 	{
@@ -82,12 +83,7 @@ void CrawlProcessor::main()
 		}
 		root_urls = tmp;
 	}
-	for(const auto& url : root_urls)
-	{
-		const auto parsed = process_url(Url::Url(url));
-		url_index_async->get_value(Variant(get_url_key(parsed)),
-				std::bind(&CrawlProcessor::check_url, this, parsed, 0, std::placeholders::_1));
-	}
+	check_root_urls();
 	
 	if(inititial_sync) {
 		check_all_urls();
@@ -514,6 +510,15 @@ void CrawlProcessor::check_queue()
 void CrawlProcessor::check_all_urls()
 {
 	url_index_async->sync_all(input_url_index_sync);
+}
+
+void CrawlProcessor::check_root_urls()
+{
+	for(const auto& url : root_urls) {
+		const auto parsed = process_url(Url::Url(url));
+		url_index_async->get_value(Variant(get_url_key(parsed)),
+				std::bind(&CrawlProcessor::check_url, this, parsed, 0, std::placeholders::_1));
+	}
 }
 
 void CrawlProcessor::check_url(const Url::Url& parsed, const int depth, std::shared_ptr<const keyvalue::Entry> entry)
