@@ -684,7 +684,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> pair)
 		if(!url_index || url_index->fetch_count == 0) {
 			return;
 		}
-		bool is_redirect = false;
 		const auto org_url_key = pair->key.to_string_value();
 		
 		if(!url_index->redirect.empty())
@@ -697,7 +696,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> pair)
 				keys.push_back(Variant(new_url_key));
 				page_info_async->get_values(keys,
 						std::bind(&SearchEngine::redirect_callback, this, org_url_key, new_url_key, std::placeholders::_1));
-				is_redirect = true;
 			}
 		}
 		return;
@@ -1237,8 +1235,8 @@ void SearchEngine::print_stats()
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< (60000 * query_counter) / stats_interval_ms << " query/min, "
 			<< domain_index.size() << " domains, "
-			<< load_queue.size() << " / " << link_cache.size() << " / " << link_cache_2.size()
-			<< " / " << page_cache.size() << " / " << page_index.size() << " pages, "
+			<< load_queue.size() << " / " << link_queue.size() << " / "
+			<< page_cache.size() << " / " << page_index.size() << " pages, "
 			<< word_cache.size() << " / " << word_index.size() << " words";
 	
 	word_update_counter = 0;
