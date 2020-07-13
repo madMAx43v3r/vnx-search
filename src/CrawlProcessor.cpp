@@ -89,8 +89,9 @@ void CrawlProcessor::main()
 				std::bind(&CrawlProcessor::check_url, this, parsed, 0, std::placeholders::_1));
 	}
 	
-	check_all_urls();
-	
+	if(inititial_sync) {
+		check_all_urls();
+	}
 	if(do_reprocess) {
 		page_index_async->sync_all(input_page_index_sync);
 	}

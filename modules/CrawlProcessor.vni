@@ -48,6 +48,8 @@ module CrawlProcessor {
 	
 	bool do_reprocess = false;				// if to reprocess all pages
 	
+	bool inititial_sync = false;			// if to perform initial sync
+	
 	string user_agent = "Googlebot";		// for robots.txt matching
 	
 	vector<string> protocols;

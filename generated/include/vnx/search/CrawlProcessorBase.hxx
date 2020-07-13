@@ -41,6 +41,7 @@ public:
 	vnx::float32_t reload_power = 4;
 	uint32_t index_version = 0;
 	vnx::bool_t do_reprocess = false;
+	vnx::bool_t inititial_sync = false;
 	std::string user_agent = "Googlebot";
 	std::vector<std::string> protocols;
 	std::vector<std::string> root_urls;
