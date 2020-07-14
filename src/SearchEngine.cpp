@@ -608,6 +608,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 		auto copy = vnx::clone(page_info);
 		copy->is_deleted = true;
 		page_info_async->store_value(entry->key, copy);
+		word_array_async->delete_value(entry->key);
 	} else {
 		page_info_async->unlock(entry->key);
 	}
