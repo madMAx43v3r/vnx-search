@@ -33,6 +33,7 @@ namespace search {
 class SearchEngine : public SearchEngineBase {
 public:
 	TopicPtr input_page_info;
+	TopicPtr input_page_content;
 	TopicPtr input_url_index_sync;
 	TopicPtr input_page_info_sync;
 	TopicPtr input_page_index_sync;
@@ -103,13 +104,14 @@ protected:
 			short mode = 0;
 			uint16_t count = 0;
 		};
+		bool update_info = false;
+		bool update_links = false;
+		bool update_words = false;
 		uint64_t index_version = 0;
 		std::string url_key;
 		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageIndex> index;
-		std::shared_ptr<const PageContent> content;
 		std::shared_ptr<const UrlIndex> url_index;
-		std::shared_ptr<const WordArray> word_array;
 		std::vector<std::string> org_links;
 		std::vector<std::pair<std::string, uint32_t>> links;
 		std::map<std::string, std::string> redirects;
@@ -122,6 +124,12 @@ protected:
 		std::shared_ptr<word_cache_t> cached;
 		std::shared_ptr<const WordContext> context;
 		std::shared_ptr<WordContext> result;
+	};
+	
+	struct word_process_job_t {
+		Variant url_key;
+		std::shared_ptr<const PageContent> content;
+		std::shared_ptr<const WordArray> word_array;
 	};
 	
 	void init() override;
@@ -211,20 +219,21 @@ private:
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page_callback_2(std::shared_ptr<page_update_job_t> job,
-								std::shared_ptr<const keyvalue::Entry> entry);
+								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
 	
 	void update_page_callback_3(std::shared_ptr<page_update_job_t> job,
 								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
 	
-	void update_page_callback_4(std::shared_ptr<page_update_job_t> job,
-								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
+	void update_page_callback_4(std::shared_ptr<page_update_job_t> job);
 	
-	void update_page_callback_5(std::shared_ptr<page_update_job_t> job);
-	
-	void update_page_callback_6(std::shared_ptr<page_update_job_t> job,
+	void update_page_callback_5(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page(std::shared_ptr<page_update_job_t> job);
+	
+	void update_word_array(std::shared_ptr<const keyvalue::Entry> entry);
+	
+	void word_process_callback(std::shared_ptr<word_process_job_t> job);
 	
 	void check_queues();
 	
@@ -253,7 +262,9 @@ private:
 	
 	void query_task(std::shared_ptr<query_job_t> job) const noexcept;
 	
-	void word_process_task(std::shared_ptr<page_update_job_t> job) noexcept;
+	void word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept;
+	
+	void word_process_task(std::shared_ptr<word_process_job_t> job) noexcept;
 	
 	void word_update_task(std::shared_ptr<word_update_job_t> job) noexcept;
 	

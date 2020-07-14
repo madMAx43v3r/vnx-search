@@ -6,6 +6,7 @@ module SearchEngine {
 	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
 	vnx.TopicPtr input_page_index = "backend.page_index.key_updates";
+	vnx.TopicPtr input_page_content = "backend.page_content.updates";
 	
 	string url_index_server = "UrlIndex";
 	string page_index_server = "PageIndex";

@@ -43,6 +43,7 @@ int main(int argc, char** argv)
 		vnx::Handle<vnx::keyvalue::Server> module = new vnx::keyvalue::Server("PageContent");
 		module->collection = "page_content";
 		module->update_topic = "backend.page_content.updates";
+		module->update_topic_keys = "backend.page_content.key_updates";
 		module.start_detached();
 	}
 	
