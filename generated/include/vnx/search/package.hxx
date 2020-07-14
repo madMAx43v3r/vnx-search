@@ -53,6 +53,7 @@ class SearchResult;
 class TextResponse;
 class UrlIndex;
 class UrlInfo;
+class WordArray;
 class WordContext;
 class result_item_t;
 class search_flags_e;
@@ -96,6 +97,7 @@ extern const vnx::TypeCode* const vnx_native_type_code_SearchResult; ///< \priva
 extern const vnx::TypeCode* const vnx_native_type_code_TextResponse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_UrlIndex; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_UrlInfo; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_WordArray; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_WordContext; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_result_item_t; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_search_flags_e; ///< \private
@@ -145,6 +147,7 @@ void read(TypeInput& in, ::vnx::search::SearchResult& value, const TypeCode* typ
 void read(TypeInput& in, ::vnx::search::TextResponse& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::UrlInfo& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::WordArray& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::WordContext& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::result_item_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::search_flags_e& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -188,6 +191,7 @@ void write(TypeOutput& out, const ::vnx::search::SearchResult& value, const Type
 void write(TypeOutput& out, const ::vnx::search::TextResponse& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::UrlIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::UrlInfo& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::WordArray& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::WordContext& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::result_item_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::search_flags_e& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -231,6 +235,7 @@ void read(std::istream& in, ::vnx::search::SearchResult& value); ///< \private
 void read(std::istream& in, ::vnx::search::TextResponse& value); ///< \private
 void read(std::istream& in, ::vnx::search::UrlIndex& value); ///< \private
 void read(std::istream& in, ::vnx::search::UrlInfo& value); ///< \private
+void read(std::istream& in, ::vnx::search::WordArray& value); ///< \private
 void read(std::istream& in, ::vnx::search::WordContext& value); ///< \private
 void read(std::istream& in, ::vnx::search::result_item_t& value); ///< \private
 void read(std::istream& in, ::vnx::search::search_flags_e& value); ///< \private
@@ -274,6 +279,7 @@ void write(std::ostream& out, const ::vnx::search::SearchResult& value); ///< \p
 void write(std::ostream& out, const ::vnx::search::TextResponse& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::UrlIndex& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::UrlInfo& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::WordArray& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::WordContext& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::result_item_t& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::search_flags_e& value); ///< \private
@@ -317,6 +323,7 @@ void accept(Visitor& visitor, const ::vnx::search::SearchResult& value); ///< \p
 void accept(Visitor& visitor, const ::vnx::search::TextResponse& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::UrlIndex& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::UrlInfo& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::WordArray& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::WordContext& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::result_item_t& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::search_flags_e& value); ///< \private
@@ -1211,6 +1218,29 @@ struct type<::vnx::search::UrlInfo> {
 		vnx::write(out, value);
 	}
 	void accept(Visitor& visitor, const ::vnx::search::UrlInfo& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::WordArray> {
+	void read(TypeInput& in, ::vnx::search::WordArray& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::WordArray& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::WordArray& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::WordArray& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::WordArray& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {
