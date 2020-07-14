@@ -165,6 +165,8 @@ T advance_until(T iter, const T& end, const ssize_t offset)
 	return iter;
 }
 
+std::vector<std::string> parse_text(const std::string& content);
+
 
 } // search
 } // vnx

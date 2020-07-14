@@ -8,10 +8,6 @@
 #include <vnx/search/CrawlProcessor.h>
 #include <vnx/search/Util.h>
 
-#include <unicode/unistr.h>
-#include <unicode/brkiter.h>
-using namespace icu;
-
 #include <url.h>
 #include <time.h>
 #include <math.h>
@@ -162,29 +158,10 @@ void CrawlProcessor::process_page(	const std::string& url,
 {
 	std::map<std::string, size_t> word_set;
 	{
-		const UnicodeString text = UnicodeString::fromUTF8(content);
-		
-		UErrorCode status = U_ZERO_ERROR;
-		BreakIterator* bi = BreakIterator::createWordInstance(Locale::getUS(), status);
-		bi->setText(text);
-		
-		auto pos = bi->first();
-		auto begin = pos;
-		while(pos != BreakIterator::DONE) {
-			begin = pos;
-			pos = bi->next();
-			if(pos != BreakIterator::DONE) {
-				if(bi->getRuleStatus() != UBRK_WORD_NONE) {
-					UnicodeString word;
-					text.extractBetween(begin, pos, word);
-					word.toLower();
-					std::string tmp;
-					word.toUTF8String(tmp);
-					word_set[tmp]++;
-				}
-			}
+		const auto words = parse_text(content);
+		for(const auto& word : words) {
+			word_set[word]++;
 		}
-		delete bi;
     }
 	
 	const Url::Url parent(url);

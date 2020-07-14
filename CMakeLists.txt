@@ -34,6 +34,7 @@ add_library(vnx_search SHARED
 	src/SearchEngine.cpp
 	src/PlainTextParser.cpp
 	src/ArchiveProxy.cpp
+	src/Util.cpp
 )
 
 target_include_directories(vnx_search
