@@ -22,6 +22,7 @@ public:
 	
 	::vnx::TopicPtr input_url_index = "backend.url_index.updates";
 	::vnx::TopicPtr input_page_index = "backend.page_index.key_updates";
+	::vnx::TopicPtr input_page_content = "backend.page_content.updates";
 	std::string url_index_server = "UrlIndex";
 	std::string page_index_server = "PageIndex";
 	std::string page_content_server = "PageContent";
@@ -33,6 +34,7 @@ public:
 	int32_t link_commit_interval = 60;
 	int32_t word_commit_interval = 3600;
 	int32_t lock_timeout = 100;
+	int32_t queue_interval_ms = 10;
 	int32_t stats_interval_ms = 10000;
 	int32_t word_cutoff = 100;
 	vnx::float32_t word_power = 1;
