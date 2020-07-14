@@ -91,7 +91,7 @@
 	"\\.shtml\\?cid=",
 	"\\/latest$",
 	"\\/abusive$",
-	"\\?p=[0-9]{5,}(&|$)",
+	"[^\\/]\\?p=[0-9]{5,}(&|$)",
 	"-post[0-9]{5,}\\.html",
 	"-print\\.html",
 	"-(prev|next)-thread\\.html",
