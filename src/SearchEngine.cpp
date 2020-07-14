@@ -43,7 +43,7 @@ void SearchEngine::main()
 	subscribe(input_page_info, 100);
 	subscribe(input_url_index_sync, 100, 100);
 	subscribe(input_page_info_sync, 100, 100);
-	subscribe(input_page_index_sync, 100, 10);
+	subscribe(input_page_index_sync, 100, 100);
 	subscribe(input_word_context_sync, 100, 100);
 	
 	protocols = get_unique(protocols);
@@ -75,7 +75,7 @@ void SearchEngine::main()
 	add_async_client(page_index_async);
 	add_async_client(page_content_async);
 	
-	set_timer_millis(100, std::bind(&SearchEngine::check_queues, this));
+	set_timer_millis(queue_interval_ms, std::bind(&SearchEngine::check_queues, this));
 	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
 	
 	page_info_async->sync_all(input_page_info_sync);
@@ -544,7 +544,6 @@ void SearchEngine::delete_page_async(const std::string& url_key)
 void SearchEngine::delete_page_callback(const std::string& url_key,
 										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	check_load_queue();
 	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	if(!page_info) {
 		page_info_async->unlock(entry->key);
@@ -783,7 +782,6 @@ void SearchEngine::check_page_callback(	std::shared_ptr<page_update_job_t> job,
 	{
 		job->info = info;
 		load_queue.emplace(job);
-		check_load_queue();
 	}
 }
 
@@ -891,7 +889,6 @@ void SearchEngine::update_page_callback_6(	std::shared_ptr<page_update_job_t> jo
 {
 	job->info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	update_page(job);
-	check_load_queue();
 }
 
 void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
@@ -1225,7 +1222,6 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 	if(iter != word_index.end()) {
 		iter->second.num_pages = job->num_pages;
 	}
-	check_word_queue();
 }
 
 void SearchEngine::page_word_update_finished(uint32_t page_id)

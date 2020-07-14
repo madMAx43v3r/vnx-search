@@ -27,6 +27,8 @@ module SearchEngine {
 	
 	int lock_timeout = 100;					// [sec]
 	
+	int queue_interval_ms = 10;		// [ms]
+	
 	int stats_interval_ms = 10000;
 	
 	int word_cutoff = 100;					// minimum total word count for weighting
