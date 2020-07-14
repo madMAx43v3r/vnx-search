@@ -57,15 +57,23 @@ void SearchEngine::main()
 	module_word_context->collection = "word_context";
 	module_word_context.start();
 	
+	module_word_array = new keyvalue::Server("WordArray");
+	module_word_array->collection = "word_array";
+	module_word_array.start();
+	
 	page_info_async = std::make_shared<keyvalue::ServerAsyncClient>("PageInfo");
 	word_context_async = std::make_shared<keyvalue::ServerAsyncClient>("WordContext");
+	word_array_async = std::make_shared<keyvalue::ServerAsyncClient>("WordArray");
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
+	page_content_async = std::make_shared<keyvalue::ServerAsyncClient>(page_content_server);
 	
 	add_async_client(page_info_async);
 	add_async_client(word_context_async);
+	add_async_client(word_array_async);
 	add_async_client(url_index_async);
 	add_async_client(page_index_async);
+	add_async_client(page_content_async);
 	
 	set_timer_millis(100, std::bind(&SearchEngine::check_queues, this));
 	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
@@ -766,10 +774,11 @@ void SearchEngine::check_page_callback(	std::shared_ptr<page_update_job_t> job,
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	auto* page = info ? find_page(info->id) : nullptr;
 	
-	if(!page
+	if(!info || !page
 		|| job->index_version > page->index_version
 		|| job->index_version > page->link_version
-		|| job->index_version > page->word_version)
+		|| job->index_version > page->word_version
+		|| info->engine_version < engine_version)
 	{
 		job->info = info;
 		load_queue.emplace(job);
@@ -798,22 +807,7 @@ void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> jo
 	if(index) {
 		job->index = index;
 		job->index_version = entry->version;
-		
-		std::vector<Variant> link_keys;
-		for(const auto& link_url : index->links) {
-			try {
-				const Url::Url parsed(link_url);
-				if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
-					continue;
-				}
-				const auto url_key = get_url_key(parsed);
-				job->org_links.push_back(url_key);
-				link_keys.push_back(Variant(url_key));
-			} catch(...) {
-				// ignore
-			}
-		}
-		url_index_async->get_values(link_keys,
+		page_content_async->get_value(Variant(job->url_key),
 				std::bind(&SearchEngine::update_page_callback_2, this, job, std::placeholders::_1));
 	} else {
 		delete_page_async(job->url_key);
@@ -821,6 +815,29 @@ void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> jo
 }
 
 void SearchEngine::update_page_callback_2(	std::shared_ptr<page_update_job_t> job,
+											std::shared_ptr<const keyvalue::Entry> entry)
+{
+	job->content = std::dynamic_pointer_cast<const PageContent>(entry->value);
+	
+	std::vector<Variant> link_keys;
+	for(const auto& link_url : job->index->links) {
+		try {
+			const Url::Url parsed(link_url);
+			if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
+				continue;
+			}
+			const auto url_key = get_url_key(parsed);
+			job->org_links.push_back(url_key);
+			link_keys.push_back(Variant(url_key));
+		} catch(...) {
+			// ignore
+		}
+	}
+	url_index_async->get_values(link_keys,
+			std::bind(&SearchEngine::update_page_callback_3, this, job, std::placeholders::_1));
+}
+
+void SearchEngine::update_page_callback_3(	std::shared_ptr<page_update_job_t> job,
 											std::vector<std::shared_ptr<const keyvalue::Entry>> entries)
 {
 	for(auto entry : entries) {
@@ -849,26 +866,26 @@ void SearchEngine::update_page_callback_2(	std::shared_ptr<page_update_job_t> jo
 		}
 	}
 	page_info_async->get_values(link_keys,
-			std::bind(&SearchEngine::update_page_callback_3, this, job, std::placeholders::_1));
+			std::bind(&SearchEngine::update_page_callback_4, this, job, std::placeholders::_1));
 }
 
-void SearchEngine::update_page_callback_3(	std::shared_ptr<page_update_job_t> job,
+void SearchEngine::update_page_callback_4(	std::shared_ptr<page_update_job_t> job,
 											std::vector<std::shared_ptr<const keyvalue::Entry>> entries)
 {
 	for(auto entry : entries) {
 		auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 		job->links.emplace_back(entry->key.to_string_value(), info ? info->id : 0);
 	}
-	update_threads->add_task(std::bind(&SearchEngine::word_collect_task, this, job));
+	update_threads->add_task(std::bind(&SearchEngine::word_process_task, this, job));
 }
 
-void SearchEngine::update_page_callback_4(	std::shared_ptr<page_update_job_t> job)
+void SearchEngine::update_page_callback_5(	std::shared_ptr<page_update_job_t> job)
 {
 	page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
-			std::bind(&SearchEngine::update_page_callback_5, this, job, std::placeholders::_1));
+			std::bind(&SearchEngine::update_page_callback_6, this, job, std::placeholders::_1));
 }
 
-void SearchEngine::update_page_callback_5(	std::shared_ptr<page_update_job_t> job,
+void SearchEngine::update_page_callback_6(	std::shared_ptr<page_update_job_t> job,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	job->info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
@@ -900,11 +917,14 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		domain.pages.push_back(page.id);
 	}
 	
-	if(!info || job->index_version > info->index_version)
+	if(!info
+		|| job->index_version > info->index_version
+		|| info->engine_version < engine_version)
 	{
 		// initialize or update page_info
 		auto copy = info ? vnx::clone(info) : PageInfo::create();
 		copy->id = page_id;
+		copy->engine_version = engine_version;
 		copy->is_deleted = false;
 		copy->index_version = job->index_version;
 		copy->first_seen = url_index->first_seen;
@@ -1037,6 +1057,13 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		if(p_page_cache->words_pending == 0) {
 			page_word_update_finished(page_id);
 		}
+	}
+	
+	if(!info
+		|| job->index_version > info->index_version
+		|| info->engine_version < 1)
+	{
+		word_array_async->store_value(Variant(url_key), job->word_array);
 	}
 }
 
@@ -1369,8 +1396,13 @@ void SearchEngine::query_task(std::shared_ptr<query_job_t> job) const noexcept
 	add_task(std::bind(&SearchEngine::query_callback_1, this, job));
 }
 
-void SearchEngine::word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept
+void SearchEngine::word_process_task(std::shared_ptr<page_update_job_t> job) noexcept
 {
+	std::vector<std::string> word_list;
+	if(job->content) {
+		word_list = parse_text(job->content->text);
+	}
+	
 	std::shared_lock lock(index_mutex);
 	
 	for(const auto& entry : job->index->words)
@@ -1391,8 +1423,19 @@ void SearchEngine::word_collect_task(std::shared_ptr<page_update_job_t> job) noe
 			}
 		}
 	}
+	if(job->content) {
+		auto array = WordArray::create();
+		array->last_update = std::time(0);
+		for(const auto& word : word_list) {
+			const auto iter = word_map.find(word);
+			if(iter != word_map.end()) {
+				array->list.push_back(iter->second);
+			}
+		}
+		job->word_array = array;
+	}
 	
-	add_task(std::bind(&SearchEngine::update_page_callback_4, this, job));
+	add_task(std::bind(&SearchEngine::update_page_callback_5, this, job));
 }
 
 void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noexcept

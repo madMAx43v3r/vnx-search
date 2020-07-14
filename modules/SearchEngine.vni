@@ -8,9 +8,7 @@ module SearchEngine {
 	vnx.TopicPtr input_page_index = "backend.page_index.key_updates";
 	
 	string url_index_server = "UrlIndex";
-	
 	string page_index_server = "PageIndex";
-	
 	string page_content_server = "PageContent";
 	
 	int max_query_pages = 1000;				// max query results

@@ -1,0 +1,9 @@
+package vnx.search;
+
+class WordArray {
+	
+	long last_update;				// posix [sec]
+	
+	vector<uint> list;				// list of word ids
+	
+}

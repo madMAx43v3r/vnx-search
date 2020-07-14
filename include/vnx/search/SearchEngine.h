@@ -10,7 +10,10 @@
 
 #include <vnx/search/SearchEngineBase.hxx>
 #include <vnx/search/WordContext.hxx>
+#include <vnx/search/WordArray.hxx>
 #include <vnx/search/PageInfo.hxx>
+#include <vnx/search/PageIndex.hxx>
+#include <vnx/search/PageContent.hxx>
 #include <vnx/search/SearchEngine_query.hxx>
 
 #include <vnx/keyvalue/Server.h>
@@ -104,7 +107,9 @@ protected:
 		std::string url_key;
 		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageIndex> index;
+		std::shared_ptr<const PageContent> content;
 		std::shared_ptr<const UrlIndex> url_index;
+		std::shared_ptr<const WordArray> word_array;
 		std::vector<std::string> org_links;
 		std::vector<std::pair<std::string, uint32_t>> links;
 		std::map<std::string, std::string> redirects;
@@ -206,14 +211,17 @@ private:
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page_callback_2(std::shared_ptr<page_update_job_t> job,
-								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
+								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page_callback_3(std::shared_ptr<page_update_job_t> job,
 								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
 	
-	void update_page_callback_4(std::shared_ptr<page_update_job_t> job);
+	void update_page_callback_4(std::shared_ptr<page_update_job_t> job,
+								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
 	
-	void update_page_callback_5(std::shared_ptr<page_update_job_t> job,
+	void update_page_callback_5(std::shared_ptr<page_update_job_t> job);
+	
+	void update_page_callback_6(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page(std::shared_ptr<page_update_job_t> job);
@@ -245,13 +253,14 @@ private:
 	
 	void query_task(std::shared_ptr<query_job_t> job) const noexcept;
 	
-	void word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept;
+	void word_process_task(std::shared_ptr<page_update_job_t> job) noexcept;
 	
 	void word_update_task(std::shared_ptr<word_update_job_t> job) noexcept;
 	
 private:
 	Handle<keyvalue::Server> module_page_info;
 	Handle<keyvalue::Server> module_word_context;
+	Handle<keyvalue::Server> module_word_array;
 	
 	std::shared_ptr<ThreadPool> query_threads;
 	std::shared_ptr<ThreadPool> update_threads;
@@ -259,7 +268,9 @@ private:
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> page_info_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> page_index_async;
+	std::shared_ptr<keyvalue::ServerAsyncClient> page_content_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> word_context_async;
+	std::shared_ptr<keyvalue::ServerAsyncClient> word_array_async;
 	
 	// protected by index_mutex (only main thread may modify)
 	std::map<stx::sstring, uint32_t, std::less<>> word_map;
@@ -284,6 +295,8 @@ private:
 	uint32_t next_word_id = 1;
 	uint32_t next_domain_id = 1;
 	std::atomic_bool is_initialized {false};
+	
+	static const unsigned int engine_version = 1;
 	
 	mutable std::atomic<int64_t> query_counter {0};
 	mutable std::atomic<int64_t> page_update_counter {0};
