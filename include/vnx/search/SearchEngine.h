@@ -58,9 +58,6 @@ protected:
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
 		uint64_t info_version = 0;
-		uint64_t index_version = 0;
-		uint64_t link_version = 0;
-		uint64_t word_version = 0;
 		int64_t last_modified = 0;
 		stx::fstring<8> scheme;
 		std::vector<uint32_t> reverse_domains;

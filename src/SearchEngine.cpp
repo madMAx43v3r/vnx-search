@@ -663,9 +663,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 			if(page.id != info->id)
 			{
 				page.id = info->id;
-				page.index_version = info->index_version;
-				page.link_version = info->link_version;
-				page.word_version = info->word_version;
 				page.scheme = info->scheme;
 				page.last_modified = info->last_modified;
 				
@@ -787,11 +784,10 @@ void SearchEngine::check_page_callback(	std::shared_ptr<page_update_job_t> job,
 										std::shared_ptr<const keyvalue::Entry> entry)
 {
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-	auto* page = info ? find_page(info->id) : nullptr;
 	
-	job->update_info = !page || job->index_version > page->index_version;
-	job->update_links = !page || job->index_version > page->link_version;
-	job->update_words = !page || job->index_version > page->word_version;
+	job->update_info = !info || job->index_version > info->index_version;
+	job->update_links = !info || job->index_version > info->link_version;
+	job->update_words = !info || job->index_version > info->word_version;
 	
 	if(job->update_info || job->update_links || job->update_words)
 	{
@@ -805,7 +801,6 @@ void SearchEngine::check_page_callback_2(	std::shared_ptr<word_process_job_t> jo
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-	auto* page = info ? find_page(info->id) : nullptr;
 	
 	if(!info || job->content_version > info->array_version)
 	{
@@ -930,9 +925,6 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	
 	auto& page = page_index[page_id];
 	page.id = page_id;
-	page.index_version = job->index_version;
-	page.link_version = job->index_version;
-	page.word_version = job->index_version;
 	page.scheme = url_index->scheme;
 	page.last_modified = url_index->last_modified;
 	
