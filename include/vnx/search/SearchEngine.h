@@ -33,10 +33,10 @@ namespace search {
 class SearchEngine : public SearchEngineBase {
 public:
 	TopicPtr input_page_info;
-	TopicPtr input_page_content;
 	TopicPtr input_url_index_sync;
-	TopicPtr input_page_info_sync;
 	TopicPtr input_page_index_sync;
+	TopicPtr input_page_content_sync;
+	TopicPtr input_page_info_sync;
 	TopicPtr input_word_context_sync;
 	
 	SearchEngine(const std::string& _vnx_name);
@@ -128,6 +128,8 @@ protected:
 	
 	struct word_process_job_t {
 		Variant url_key;
+		uint64_t content_version = 0;
+		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageContent> content;
 		std::shared_ptr<const WordArray> word_array;
 	};
@@ -212,6 +214,9 @@ private:
 	void check_page_callback(	std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
+	void check_page_callback_2(	std::shared_ptr<word_process_job_t> job,
+								std::shared_ptr<const keyvalue::Entry> entry);
+	
 	void update_page_callback_0(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
@@ -231,9 +236,13 @@ private:
 	
 	void update_page(std::shared_ptr<page_update_job_t> job);
 	
-	void update_word_array(std::shared_ptr<const keyvalue::Entry> entry);
+	void word_process_callback_0(	std::shared_ptr<word_process_job_t> job,
+									std::shared_ptr<const keyvalue::Entry> entry);
 	
-	void word_process_callback(std::shared_ptr<word_process_job_t> job);
+	void word_process_callback_1(	std::shared_ptr<word_process_job_t> job);
+	
+	void word_process_callback_2(	std::shared_ptr<word_process_job_t> job,
+									std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void check_queues();
 	
@@ -296,6 +305,7 @@ private:
 	std::unordered_map<uint32_t, std::shared_ptr<link_cache_t>> link_cache;
 	std::unordered_map<std::string, std::shared_ptr<link_cache_t>> link_cache_2;
 	std::queue<std::shared_ptr<page_update_job_t>> load_queue;
+	std::queue<std::shared_ptr<word_process_job_t>> load_queue_2;
 	std::multimap<int64_t, std::shared_ptr<link_cache_t>> link_queue;
 	std::multimap<int64_t, uint32_t> word_queue;
 	
@@ -306,8 +316,6 @@ private:
 	uint32_t next_word_id = 1;
 	uint32_t next_domain_id = 1;
 	std::atomic_bool is_initialized {false};
-	
-	static const unsigned int engine_version = 1;
 	
 	mutable std::atomic<int64_t> query_counter {0};
 	mutable std::atomic<int64_t> page_update_counter {0};
