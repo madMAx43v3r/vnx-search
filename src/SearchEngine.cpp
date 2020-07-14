@@ -885,7 +885,11 @@ void SearchEngine::update_page_callback_3(	std::shared_ptr<page_update_job_t> jo
 		auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 		job->links.emplace_back(entry->key.to_string_value(), info ? info->id : 0);
 	}
-	update_threads->add_task(std::bind(&SearchEngine::word_collect_task, this, job));
+	if(job->update_words) {
+		update_threads->add_task(std::bind(&SearchEngine::word_collect_task, this, job));
+	} else {
+		update_page_callback_4(job);
+	}
 }
 
 void SearchEngine::update_page_callback_4(	std::shared_ptr<page_update_job_t> job)
