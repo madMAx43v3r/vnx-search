@@ -740,7 +740,10 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> pair)
 	
 	if(pair->collection == "page_content")
 	{
-		update_word_array(pair);
+		const auto url_key = pair->key.to_string_value();
+		if(!is_robots_txt(Url::Url(url_key))) {
+			update_word_array(pair);
+		}
 	}
 }
 
