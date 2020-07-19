@@ -14,11 +14,11 @@ namespace search {
 class result_item_t : public ::vnx::Value {
 public:
 	
-	uint32_t page_id = 0;
-	int64_t score = 0;
+	vnx::float32_t score = 0;
 	int64_t last_modified = 0;
 	std::string url;
 	std::string title;
+	std::string context;
 	
 	typedef ::vnx::Value Super;
 	

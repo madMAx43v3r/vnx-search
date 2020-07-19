@@ -7,7 +7,6 @@
 #include <vnx/Type.h>
 
 #include <vnx/package.hxx>
-#include <vnx/keyvalue/package.hxx>
 
 
 namespace vnx {

@@ -137,7 +137,7 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontend_register_parser::static_create_type
 		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "mime_types";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];

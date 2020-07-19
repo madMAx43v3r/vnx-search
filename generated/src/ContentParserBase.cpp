@@ -47,8 +47,8 @@ void ContentParserBase::accept(vnx::Visitor& _visitor) const {
 }
 
 void ContentParserBase::write(std::ostream& _out) const {
-	_out << "{\"__type\": \"vnx.search.ContentParser\"";
-	_out << ", \"frontend_server\": "; vnx::write(_out, frontend_server);
+	_out << "{";
+	_out << "\"frontend_server\": "; vnx::write(_out, frontend_server);
 	_out << "}";
 }
 
@@ -64,7 +64,6 @@ void ContentParserBase::read(std::istream& _in) {
 
 vnx::Object ContentParserBase::to_object() const {
 	vnx::Object _object;
-	_object["__type"] = "vnx.search.ContentParser";
 	_object["frontend_server"] = frontend_server;
 	return _object;
 }
@@ -112,7 +111,7 @@ std::shared_ptr<vnx::TypeCode> ContentParserBase::static_create_type_code() {
 		field.is_extended = true;
 		field.name = "frontend_server";
 		field.value = vnx::to_string("CrawlFrontend");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	type_code->build();
 	return type_code;

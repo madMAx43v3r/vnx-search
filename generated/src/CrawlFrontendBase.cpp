@@ -66,8 +66,8 @@ void CrawlFrontendBase::accept(vnx::Visitor& _visitor) const {
 }
 
 void CrawlFrontendBase::write(std::ostream& _out) const {
-	_out << "{\"__type\": \"vnx.search.CrawlFrontend\"";
-	_out << ", \"output_http\": "; vnx::write(_out, output_http);
+	_out << "{";
+	_out << "\"output_http\": "; vnx::write(_out, output_http);
 	_out << ", \"output_text\": "; vnx::write(_out, output_text);
 	_out << ", \"num_threads\": "; vnx::write(_out, num_threads);
 	_out << ", \"response_timeout_ms\": "; vnx::write(_out, response_timeout_ms);
@@ -107,7 +107,6 @@ void CrawlFrontendBase::read(std::istream& _in) {
 
 vnx::Object CrawlFrontendBase::to_object() const {
 	vnx::Object _object;
-	_object["__type"] = "vnx.search.CrawlFrontend";
 	_object["output_http"] = output_http;
 	_object["output_text"] = output_text;
 	_object["num_threads"] = num_threads;
@@ -224,14 +223,14 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 		field.is_extended = true;
 		field.name = "processor_server";
 		field.value = vnx::to_string("CrawlProcessor");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[8];
 		field.is_extended = true;
 		field.name = "user_agent";
 		field.value = vnx::to_string("Mozilla/5.0");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	type_code->build();
 	return type_code;

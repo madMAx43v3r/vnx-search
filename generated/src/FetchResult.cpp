@@ -179,13 +179,13 @@ std::shared_ptr<vnx::TypeCode> FetchResult::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "redirect";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "content_type";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];

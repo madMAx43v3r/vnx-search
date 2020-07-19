@@ -16,6 +16,7 @@ class SearchResult : public ::vnx::Value {
 public:
 	
 	vnx::bool_t is_fail = 0;
+	vnx::bool_t has_more = 0;
 	int32_t num_results_total = 0;
 	int32_t load_time_us = 0;
 	int32_t compute_time_us = 0;

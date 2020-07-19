@@ -113,7 +113,7 @@ std::shared_ptr<vnx::TypeCode> PageContent::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "text";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	type_code->build();
 	return type_code;

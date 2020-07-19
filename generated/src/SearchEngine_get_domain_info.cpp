@@ -130,7 +130,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_get_domain_info::static_create_type_
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "host";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];

@@ -114,7 +114,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_suggest_domains_return::static_creat
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "_ret_0";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	type_code->build();
 	return type_code;

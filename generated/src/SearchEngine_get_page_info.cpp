@@ -116,7 +116,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_get_page_info::static_create_type_co
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "url_key";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	type_code->build();
 	return type_code;

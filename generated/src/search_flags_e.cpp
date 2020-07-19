@@ -68,7 +68,6 @@ void search_flags_e::read(std::istream& _in) {
 
 vnx::Object search_flags_e::to_object() const {
 	vnx::Object _object;
-	_object["__type"] = "vnx.search.search_flags_e";
 	_object["value"] = value;
 	return _object;
 }

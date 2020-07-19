@@ -134,7 +134,7 @@ std::shared_ptr<vnx::TypeCode> Response::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "url";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];

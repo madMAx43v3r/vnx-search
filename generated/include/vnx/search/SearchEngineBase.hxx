@@ -36,8 +36,7 @@ public:
 	int32_t lock_timeout = 100;
 	int32_t queue_interval_ms = 10;
 	int32_t stats_interval_ms = 10000;
-	int32_t word_cutoff = 100;
-	vnx::float32_t word_power = 1;
+	int32_t result_context_window = 128;
 	std::vector<std::string> protocols;
 	
 	typedef ::vnx::Module Super;

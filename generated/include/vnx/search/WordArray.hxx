@@ -15,7 +15,7 @@ class WordArray : public ::vnx::Value {
 public:
 	
 	int64_t last_update = 0;
-	std::vector<uint32_t> list;
+	std::vector<std::pair<uint32_t, uint32_t>> list;
 	
 	typedef ::vnx::Value Super;
 	

@@ -155,7 +155,7 @@ std::shared_ptr<vnx::TypeCode> PageIndex::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "title";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];
@@ -176,19 +176,19 @@ std::shared_ptr<vnx::TypeCode> PageIndex::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[4];
 		field.is_extended = true;
 		field.name = "links";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[5];
 		field.is_extended = true;
 		field.name = "images";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.is_extended = true;
 		field.name = "words";
-		field.code = {12, 23, 2, 4, 6, 12, 5, 2};
+		field.code = {12, 23, 2, 4, 5, 32, 2};
 	}
 	type_code->build();
 	return type_code;

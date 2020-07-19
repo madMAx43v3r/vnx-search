@@ -114,7 +114,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_reverse_domain_lookup_return::static
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "_ret_0";
-		field.code = {12, 23, 2, 4, 6, 12, 5, 3};
+		field.code = {12, 23, 2, 4, 5, 32, 3};
 	}
 	type_code->build();
 	return type_code;

@@ -23,10 +23,12 @@ public:
 	int64_t first_seen = 0;
 	int64_t last_modified = 0;
 	std::string scheme;
+	std::string domain;
 	std::string title;
 	std::vector<uint32_t> words;
-	std::vector<uint32_t> links;
-	std::vector<uint32_t> reverse_links;
+	std::vector<std::string> links;
+	std::vector<std::string> reverse_links;
+	std::map<std::string, int32_t> reverse_domains;
 	
 	typedef ::vnx::Value Super;
 	

@@ -107,8 +107,8 @@ void CrawlProcessorBase::accept(vnx::Visitor& _visitor) const {
 }
 
 void CrawlProcessorBase::write(std::ostream& _out) const {
-	_out << "{\"__type\": \"vnx.search.CrawlProcessor\"";
-	_out << ", \"input_url_index\": "; vnx::write(_out, input_url_index);
+	_out << "{";
+	_out << "\"input_url_index\": "; vnx::write(_out, input_url_index);
 	_out << ", \"output_crawl_stats\": "; vnx::write(_out, output_crawl_stats);
 	_out << ", \"url_index_server\": "; vnx::write(_out, url_index_server);
 	_out << ", \"page_index_server\": "; vnx::write(_out, page_index_server);
@@ -211,7 +211,6 @@ void CrawlProcessorBase::read(std::istream& _in) {
 
 vnx::Object CrawlProcessorBase::to_object() const {
 	vnx::Object _object;
-	_object["__type"] = "vnx.search.CrawlProcessor";
 	_object["input_url_index"] = input_url_index;
 	_object["output_crawl_stats"] = output_crawl_stats;
 	_object["url_index_server"] = url_index_server;
@@ -360,28 +359,28 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 		field.is_extended = true;
 		field.name = "url_index_server";
 		field.value = vnx::to_string("UrlIndex");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[3];
 		field.is_extended = true;
 		field.name = "page_index_server";
 		field.value = vnx::to_string("PageIndex");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[4];
 		field.is_extended = true;
 		field.name = "page_content_server";
 		field.value = vnx::to_string("PageContent");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[5];
 		field.is_extended = true;
 		field.name = "crawl_frontend_server";
 		field.value = vnx::to_string("CrawlFrontend");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
@@ -496,37 +495,37 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 		field.is_extended = true;
 		field.name = "user_agent";
 		field.value = vnx::to_string("Googlebot");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[25];
 		field.is_extended = true;
 		field.name = "protocols";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[26];
 		field.is_extended = true;
 		field.name = "root_urls";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[27];
 		field.is_extended = true;
 		field.name = "domain_blacklist";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[28];
 		field.is_extended = true;
 		field.name = "path_blacklist";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[29];
 		field.is_extended = true;
 		field.name = "regex_blacklist";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	type_code->build();
 	return type_code;

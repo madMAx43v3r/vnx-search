@@ -171,7 +171,7 @@ std::shared_ptr<vnx::TypeCode> TextResponse::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "url";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];
@@ -192,31 +192,31 @@ std::shared_ptr<vnx::TypeCode> TextResponse::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[4];
 		field.is_extended = true;
 		field.name = "title";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[5];
 		field.is_extended = true;
 		field.name = "text";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
 		field.is_extended = true;
 		field.name = "base_url";
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[7];
 		field.is_extended = true;
 		field.name = "links";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[8];
 		field.is_extended = true;
 		field.name = "images";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	type_code->build();
 	return type_code;

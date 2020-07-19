@@ -49,8 +49,8 @@ void ArchiveProxyBase::accept(vnx::Visitor& _visitor) const {
 }
 
 void ArchiveProxyBase::write(std::ostream& _out) const {
-	_out << "{\"__type\": \"vnx.search.ArchiveProxy\"";
-	_out << ", \"input_http\": "; vnx::write(_out, input_http);
+	_out << "{";
+	_out << "\"input_http\": "; vnx::write(_out, input_http);
 	_out << ", \"server_name\": "; vnx::write(_out, server_name);
 	_out << ", \"buffer_size\": "; vnx::write(_out, buffer_size);
 	_out << "}";
@@ -72,7 +72,6 @@ void ArchiveProxyBase::read(std::istream& _in) {
 
 vnx::Object ArchiveProxyBase::to_object() const {
 	vnx::Object _object;
-	_object["__type"] = "vnx.search.ArchiveProxy";
 	_object["input_http"] = input_http;
 	_object["server_name"] = server_name;
 	_object["buffer_size"] = buffer_size;
@@ -131,7 +130,7 @@ std::shared_ptr<vnx::TypeCode> ArchiveProxyBase::static_create_type_code() {
 		field.is_extended = true;
 		field.name = "server_name";
 		field.value = vnx::to_string("HttpArchive");
-		field.code = {12, 5};
+		field.code = {32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];

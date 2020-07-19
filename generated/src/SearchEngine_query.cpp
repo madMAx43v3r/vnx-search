@@ -140,7 +140,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_query::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "words";
-		field.code = {12, 12, 5};
+		field.code = {12, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];
