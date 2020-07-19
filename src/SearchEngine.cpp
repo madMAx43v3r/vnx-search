@@ -748,12 +748,9 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 
 void SearchEngine::redirect_callback(	const std::string& org_url_key,
 										const std::string& new_url_key,
-										std::vector<std::shared_ptr<const keyvalue::Entry>> entries)
+										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	std::unique_lock lock(index_mutex);
-	
-	auto org_page_info = std::dynamic_pointer_cast<const PageInfo>(entries[0]->value);
-	auto new_page_info = std::dynamic_pointer_cast<const PageInfo>(entries[1]->value);
+	auto org_page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	
 	if(org_page_info && !org_page_info->is_deleted)
 	{
@@ -761,12 +758,10 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 		
 		for(const auto& parent_key : org_page_info->reverse_links)
 		{
-			if(new_page_info && new_page_info->id)
-			{
-				auto cache = get_link_cache(parent_key);
-				if(cache) {
-					cache->add_links.push_back(new_url_key);
-				}
+			auto cache = get_link_cache(parent_key);
+			if(cache) {
+				cache->add_links.push_back(new_url_key);
+				cache->rem_links.push_back(org_url_key);
 			}
 			p_new_cache->add_reverse_links.push_back(parent_key);
 		}
@@ -832,10 +827,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 			const auto new_url_key = get_url_key(url_index->redirect);
 			if(new_url_key != org_url_key)
 			{
-				std::vector<Variant> keys;
-				keys.push_back(Variant(org_url_key));
-				keys.push_back(Variant(new_url_key));
-				page_info_async->get_values(keys,
+				page_info_async->get_value(Variant(org_url_key),
 						std::bind(&SearchEngine::redirect_callback, this, org_url_key, new_url_key, std::placeholders::_1));
 			}
 		}

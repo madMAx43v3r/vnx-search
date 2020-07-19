@@ -235,7 +235,7 @@ private:
 	
 	void redirect_callback(	const std::string& org_url_key,
 							const std::string& new_url_key,
-							std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
+							std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page_callback_0(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
