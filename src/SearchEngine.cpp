@@ -1073,7 +1073,12 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		for(const auto& link_key : job->links)
 		{
 			if(link_key != url_key) {
-				new_links.emplace(link_key);
+				const auto iter = job->redirects.find(link_key);
+				if(iter != job->redirects.end()) {
+					new_links.emplace(iter->second);
+				} else {
+					new_links.emplace(link_key);
+				}
 			}
 		}
 		if(info) {
