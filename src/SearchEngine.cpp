@@ -705,13 +705,6 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 					cache->add_reverse_domains[page_info->domain]--;
 				}
 			}
-			for(const auto& parent_key : page_info->reverse_links)
-			{
-				const auto cache = get_link_cache(parent_key);
-				if(cache) {
-					cache->rem_links.push_back(url_key);
-				}
-			}
 			p_link_cache->schedule_time_us = vnx::get_wall_time_micros();
 		}
 	}
