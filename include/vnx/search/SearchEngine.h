@@ -18,10 +18,12 @@
 
 #include <vnx/keyvalue/Server.h>
 #include <vnx/keyvalue/ServerClient.hxx>
+#include <vnx/keyvalue/StorageClient.hxx>
 #include <vnx/keyvalue/ServerAsyncClient.hxx>
 
 #include <stx/sstring.h>
 #include <stx/fstring.h>
+#include <stx/pstring.h>
 
 #include <atomic>
 #include <shared_mutex>
@@ -57,50 +59,66 @@ protected:
 	struct page_t {
 		uint32_t id = 0;
 		uint32_t domain_id = 0;
-		uint64_t info_version = 0;
+		uint32_t reverse_links = 0;
+		uint32_t reverse_domains = 0;
+		uint64_t index_version = 0;
+		uint64_t link_version = 0;
+		uint64_t word_version = 0;
+		uint64_t array_version = 0;
 		int64_t last_modified = 0;
 		stx::fstring<8> scheme;
-		std::vector<uint32_t> reverse_domains;
+		stx::pstring url_key;
+		std::string get_url() const { return scheme.str() + ":" + url_key.str(); }
 	};
 	
 	struct page_cache_t {
 		int32_t words_pending = 0;
 		uint64_t word_version = 0;
 		std::string url_key;
-		std::vector<uint32_t> words;
+		std::set<uint32_t> words;
 	};
 	
 	struct word_cache_t {
 		uint32_t word_id = 0;
 		std::string word;
 		std::vector<uint32_t> rem_pages;
-		std::vector<std::pair<uint32_t, float>> add_pages;
+		std::vector<uint32_t> add_pages;
 	};
 	
 	struct link_cache_t {
 		std::string url_key;
-		uint32_t page_id = 0;
 		bool is_page_update = false;		// if version should be updated
 		uint64_t link_version = 0;
 		int64_t schedule_time_us = 0;
-		std::vector<uint32_t> rem_links;
-		std::vector<uint32_t> add_links;
-		std::vector<uint32_t> rem_reverse_links;
-		std::vector<uint32_t> add_reverse_links;
+		std::vector<std::string> rem_links;
+		std::vector<std::string> add_links;
+		std::vector<std::string> rem_reverse_links;
+		std::vector<std::string> add_reverse_links;
+		std::map<std::string, int> add_reverse_domains;
+	};
+	
+	struct tmp_result_t {
+		uint32_t page_id = 0;
+		uint32_t domain_id = 0;
+		stx::pstring url_key;
+		int64_t context_center = -1;
+		float score = 0;
 	};
 	
 	struct query_job_t : SearchEngine_query {
 		request_id_t req_id;
 		int64_t time_begin = 0;
+		std::atomic<size_t> num_left;
+		std::vector<Variant> url_keys;
+		std::vector<tmp_result_t> tmp_results;
+		std::unordered_map<uint32_t, uint32_t> word_set;
 		std::shared_ptr<SearchResult> result;
 		std::vector<std::shared_ptr<const WordContext>> context;
+		std::vector<std::shared_ptr<const WordArray>> word_arrays;
+		std::function<void(const std::exception& ex)> error_callback;
 	};
 	
 	struct page_update_job_t {
-		struct word_info_t {
-			short mode = 0;
-			uint16_t count = 0;
-		};
 		bool update_info = false;
 		bool update_links = false;
 		bool update_words = false;
@@ -109,11 +127,10 @@ protected:
 		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageIndex> index;
 		std::shared_ptr<const UrlIndex> url_index;
-		std::vector<std::string> org_links;
-		std::vector<std::pair<std::string, uint32_t>> links;
+		std::vector<std::string> links;
 		std::map<std::string, std::string> redirects;
-		std::map<uint32_t, word_info_t> words;
-		std::vector<std::pair<std::string, uint16_t>> new_words;
+		std::map<uint32_t, int> words;
+		std::vector<std::string> new_words;
 	};
 	
 	struct word_update_job_t {
@@ -126,9 +143,12 @@ protected:
 	struct word_process_job_t {
 		Variant url_key;
 		uint64_t content_version = 0;
+		size_t num_new_words = 0;
+		std::vector<std::string> word_list;
+		std::vector<uint32_t> word_positions;
 		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageContent> content;
-		std::shared_ptr<const WordArray> word_array;
+		std::shared_ptr<WordArray> word_array;
 	};
 	
 	void init() override;
@@ -176,15 +196,19 @@ protected:
 private:
 	page_t* find_page(uint32_t page_id);
 	const page_t* find_page(uint32_t page_id) const;
+	template<typename T>
+	const page_t* find_page_url(const T& url_key) const;
 	
+	template<typename T>
+	uint32_t find_word_id(const T& word) const;
 	const word_t* find_word(uint32_t word_id) const;
+	uint32_t add_word(const std::string& word);
 	
 	template<typename T>
 	domain_t& get_domain(const T& host);
 	const domain_t* find_domain(uint32_t domain_id) const;
 	
 	std::shared_ptr<link_cache_t> get_link_cache(const std::string& url_key);
-	std::shared_ptr<link_cache_t> get_link_cache(uint32_t page_id);
 	
 	std::shared_ptr<word_cache_t> get_word_cache(uint32_t word_id);
 	
@@ -194,9 +218,14 @@ private:
 	void query_callback_1(std::shared_ptr<query_job_t> job) const;
 	
 	void query_callback_2(	std::shared_ptr<query_job_t> job,
-							std::vector<std::pair<uint64_t, Variant>> entries) const;
+							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
 	
-	void query_callback_3(	std::shared_ptr<query_job_t> job,
+	void query_callback_3(std::shared_ptr<query_job_t> job) const;
+	
+	void query_callback_4(	std::shared_ptr<query_job_t> job,
+							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
+	
+	void query_callback_5(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
 	
 	void delete_page_async(const std::string& url_key);
@@ -208,12 +237,6 @@ private:
 							const std::string& new_url_key,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
 	
-	void check_page_callback(	std::shared_ptr<page_update_job_t> job,
-								std::shared_ptr<const keyvalue::Entry> entry);
-	
-	void check_page_callback_2(	std::shared_ptr<word_process_job_t> job,
-								std::shared_ptr<const keyvalue::Entry> entry);
-	
 	void update_page_callback_0(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
@@ -223,12 +246,9 @@ private:
 	void update_page_callback_2(std::shared_ptr<page_update_job_t> job,
 								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
 	
-	void update_page_callback_3(std::shared_ptr<page_update_job_t> job,
-								std::vector<std::shared_ptr<const keyvalue::Entry>> entries);
+	void update_page_callback_3(std::shared_ptr<page_update_job_t> job);
 	
-	void update_page_callback_4(std::shared_ptr<page_update_job_t> job);
-	
-	void update_page_callback_5(std::shared_ptr<page_update_job_t> job,
+	void update_page_callback_4(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page(std::shared_ptr<page_update_job_t> job);
@@ -249,10 +269,8 @@ private:
 	
 	void check_word_queue();
 	
-	void link_update_callback(std::shared_ptr<link_cache_t> cache, Variant url_key);
-	
-	void link_update(	std::shared_ptr<link_cache_t> cache,
-						std::shared_ptr<const keyvalue::Entry> entry);
+	void link_update_callback(	std::shared_ptr<link_cache_t> cache,
+								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void word_update_callback(	std::shared_ptr<word_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
@@ -266,7 +284,10 @@ private:
 	
 	void print_stats();
 	
-	void query_task(std::shared_ptr<query_job_t> job) const noexcept;
+	void query_task_0(std::shared_ptr<query_job_t> job) const noexcept;
+	
+	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
+						std::shared_ptr<const WordArray> word_array) const noexcept;
 	
 	void word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept;
 	
@@ -292,6 +313,7 @@ private:
 	// protected by index_mutex (only main thread may modify)
 	std::map<stx::sstring, uint32_t, std::less<>> word_map;
 	std::map<stx::sstring, uint32_t, std::less<>> domain_map;
+	std::map<stx::pstring, uint32_t, std::less<>> page_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
 	std::unordered_map<uint32_t, word_t> word_index;
@@ -299,8 +321,7 @@ private:
 	// accessed by main thread only
 	std::unordered_map<uint32_t, std::shared_ptr<page_cache_t>> page_cache;
 	std::unordered_map<uint32_t, std::shared_ptr<word_cache_t>> word_cache;
-	std::unordered_map<uint32_t, std::shared_ptr<link_cache_t>> link_cache;
-	std::unordered_map<std::string, std::shared_ptr<link_cache_t>> link_cache_2;
+	std::unordered_map<std::string, std::shared_ptr<link_cache_t>> link_cache;
 	std::queue<std::shared_ptr<page_update_job_t>> load_queue;
 	std::queue<std::shared_ptr<word_process_job_t>> load_queue_2;
 	std::multimap<int64_t, std::shared_ptr<link_cache_t>> link_queue;

@@ -1,5 +1,6 @@
 {
-	"rewrite_threshold": 0.3,
+	"do_compress": true,
+	"rewrite_threshold": 0.5,
 	"rewrite_chunk_count": 5000,
-	"num_read_threads": 16
+	"num_read_threads": 4
 }

@@ -2,12 +2,11 @@ package vnx.search;
 
 class result_item_t {
 	
-	uint page_id;
-	
-	long score;
+	float score;
 	long last_modified;
 	
 	string url;
 	string title;
+	string context;
 	
 }

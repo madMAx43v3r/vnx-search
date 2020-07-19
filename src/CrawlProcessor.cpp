@@ -157,12 +157,14 @@ void CrawlProcessor::process_page(	const std::string& url,
 									bool is_reprocess)
 {
 	std::map<std::string, size_t> word_set;
-	{
+	try {
 		const auto words = parse_text(content);
 		for(const auto& word : words) {
 			word_set[word]++;
 		}
-    }
+	} catch(const std::exception& ex) {
+		log(WARN) << ex.what();
+	}
 	
 	const Url::Url parent(url);
 	const Url::Url base(base_url);

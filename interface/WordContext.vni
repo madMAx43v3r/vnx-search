@@ -6,6 +6,6 @@ class WordContext {
 	
 	long last_update;				// posix [sec]
 	
-	vector<pair<uint, ushort>> pages;			// [page_id, weight]
+	vector<uint> pages;				// page_id
 	
 }

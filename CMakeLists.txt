@@ -87,6 +87,9 @@ target_link_libraries(vnx_search_archive vnx_search)
 add_executable(test_url test/test_url.cpp)
 target_link_libraries(test_url vnx_search)
 
+add_executable(test_text_parse test/test_text_parse.cpp)
+target_link_libraries(test_text_parse vnx_search)
+
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY generated/include/ DESTINATION include)
 install(DIRECTORY interface/ DESTINATION interface/vnx/keyvalue)

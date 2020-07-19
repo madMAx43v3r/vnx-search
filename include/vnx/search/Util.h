@@ -57,6 +57,9 @@ std::string& clean(std::string& s, const char* t = "\n\r\f\v")
 	return s;
 }
 
+// remove duplicate whitespace
+std::string& clean_text(std::string& s);
+
 inline
 std::string get_url_key(const Url::Url& url)
 {
@@ -165,7 +168,7 @@ T advance_until(T iter, const T& end, const ssize_t offset)
 	return iter;
 }
 
-std::vector<std::string> parse_text(const std::string& content);
+std::vector<std::string> parse_text(const std::string& content, std::vector<uint32_t>* byte_positions = nullptr);
 
 
 } // search

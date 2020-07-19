@@ -15,10 +15,14 @@ class PageInfo {
 	long last_modified;
 	
 	string scheme;
+	string domain;
 	string title;
 	
-	vector<uint> words;
-	vector<uint> links;
-	vector<uint> reverse_links;
+	vector<uint> words;						// word ids
+	
+	vector<string> links;					// url key
+	vector<string> reverse_links;			// url key
+	
+	map<string, int> reverse_domains;		// [domain => page count]
 	
 }

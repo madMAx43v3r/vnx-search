@@ -3,6 +3,7 @@ package vnx.search;
 class SearchResult {
 	
 	bool is_fail;
+	bool has_more;
 	
 	int num_results_total;
 	

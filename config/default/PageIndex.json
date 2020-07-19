@@ -1,3 +1,4 @@
 {
-	"do_compress": true
+	"do_compress": true,
+	"num_read_threads": 4
 }
