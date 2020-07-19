@@ -27,6 +27,7 @@ public:
 	std::string page_index_server = "PageIndex";
 	std::string page_content_server = "PageContent";
 	int32_t max_query_pages = 1000;
+	int32_t max_link_cache = 100000;
 	int32_t max_word_cache = 1000000;
 	int32_t max_num_pending = 100;
 	int32_t num_query_threads = 4;

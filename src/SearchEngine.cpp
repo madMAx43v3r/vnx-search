@@ -1167,6 +1167,7 @@ void SearchEngine::check_load_queue()
 			&& word_context_async->vnx_get_num_pending() < max_num_pending
 			&& word_array_async->vnx_get_num_pending() < max_num_pending
 			&& update_threads->get_num_pending() < max_num_pending
+			&& link_cache.size() <= 1.1 * max_link_cache
 			&& word_cache.size() <= 1.1 * max_word_cache)
 	{
 		if(!load_queue.empty()) {
@@ -1190,7 +1191,8 @@ void SearchEngine::check_link_queue()
 	while(!link_queue.empty())
 	{
 		const auto iter = link_queue.begin();
-		if(now - iter->first >= int64_t(link_commit_interval) * 1000000)
+		if(now - iter->first >= int64_t(link_commit_interval) * 1000000
+				|| link_cache.size() > max_link_cache)
 		{
 			const auto cache = iter->second;
 			if(cache->schedule_time_us) {
