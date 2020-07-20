@@ -1241,20 +1241,23 @@ void SearchEngine::link_update_callback(std::shared_ptr<link_cache_t> cache,
 	if(!info) {
 		info = PageInfo::create();
 	}
+	std::set<std::string> links(info->links.begin(), info->links.end());
+	std::set<std::string> reverse_links(info->reverse_links.begin(), info->reverse_links.end());
+	
 	if(cache->is_page_update) {
 		info->link_version = cache->link_version;
 	}
-	for(const auto link_id : cache->rem_links) {
-		remove(info->links, link_id);
+	for(const auto& link_key : cache->rem_links) {
+		links.erase(link_key);
 	}
-	for(const auto link_id : cache->add_links) {
-		unique_push_back(info->links, link_id);
+	for(const auto& link_key : cache->add_links) {
+		links.insert(link_key);
 	}
-	for(const auto page_id : cache->rem_reverse_links) {
-		remove(info->reverse_links, page_id);
+	for(const auto& parent_key : cache->rem_reverse_links) {
+		reverse_links.erase(parent_key);
 	}
-	for(const auto page_id : cache->add_reverse_links) {
-		unique_push_back(info->reverse_links, page_id);
+	for(const auto& parent_key : cache->add_reverse_links) {
+		reverse_links.insert(parent_key);
 	}
 	for(const auto& entry : cache->add_reverse_domains) {
 		info->reverse_domains[entry.first] += entry.second;
@@ -1266,6 +1269,9 @@ void SearchEngine::link_update_callback(std::shared_ptr<link_cache_t> cache,
 			iter++;
 		}
 	}
+	info->links = std::vector<std::string>(links.begin(), links.end());
+	info->reverse_links = std::vector<std::string>(reverse_links.begin(), reverse_links.end());
+	
 	page_info_async->store_value(entry->key, info);
 	page_update_counter++;
 }
