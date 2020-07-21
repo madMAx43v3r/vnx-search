@@ -1185,7 +1185,8 @@ void SearchEngine::check_link_queue()
 {
 	const auto now = vnx::get_wall_time_micros();
 	while(!link_queue.empty()
-			&& page_info_async->vnx_get_num_pending() < max_num_pending)
+			&& page_info_async->vnx_get_num_pending() < max_num_pending
+			&& update_threads->get_num_pending() < max_num_pending)
 	{
 		const auto iter = link_queue.begin();
 		if(now - iter->first >= int64_t(link_commit_interval) * 1000000
@@ -1197,7 +1198,7 @@ void SearchEngine::check_link_queue()
 				cache->schedule_time_us = 0;
 			} else {
 				page_info_async->get_value_locked(Variant(cache->url_key), lock_timeout * 1000,
-						std::bind(&SearchEngine::link_update_callback, this, cache, std::placeholders::_1));
+						std::bind(&SearchEngine::link_update_callback_0, this, cache, std::placeholders::_1));
 				link_cache.erase(cache->url_key);
 			}
 			link_queue.erase(iter);
@@ -1234,45 +1235,19 @@ void SearchEngine::check_word_queue()
 	}
 }
 
-void SearchEngine::link_update_callback(std::shared_ptr<link_cache_t> cache,
-										std::shared_ptr<const keyvalue::Entry> entry)
+void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cache,
+											std::shared_ptr<const keyvalue::Entry> entry)
 {
-	auto info = std::dynamic_pointer_cast<PageInfo>(vnx::clone(entry->value));
-	if(!info) {
-		info = PageInfo::create();
-	}
-	std::set<std::string> links(info->links.begin(), info->links.end());
-	std::set<std::string> reverse_links(info->reverse_links.begin(), info->reverse_links.end());
+	auto job = std::make_shared<link_update_job_t>();
+	job->cached = cache;
+	job->info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	
-	if(cache->is_page_update) {
-		info->link_version = cache->link_version;
-	}
-	for(const auto& link_key : cache->rem_links) {
-		links.erase(link_key);
-	}
-	for(const auto& link_key : cache->add_links) {
-		links.insert(link_key);
-	}
-	for(const auto& parent_key : cache->rem_reverse_links) {
-		reverse_links.erase(parent_key);
-	}
-	for(const auto& parent_key : cache->add_reverse_links) {
-		reverse_links.insert(parent_key);
-	}
-	for(const auto& entry : cache->add_reverse_domains) {
-		info->reverse_domains[entry.first] += entry.second;
-	}
-	for(auto iter = info->reverse_domains.begin(); iter != info->reverse_domains.end();) {
-		if(iter->second <= 0) {
-			iter = info->reverse_domains.erase(iter);
-		} else {
-			iter++;
-		}
-	}
-	info->links = std::vector<std::string>(links.begin(), links.end());
-	info->reverse_links = std::vector<std::string>(reverse_links.begin(), reverse_links.end());
-	
-	page_info_async->store_value(entry->key, info);
+	update_threads->add_task(std::bind(&SearchEngine::link_update_task, this, job));
+}
+
+void SearchEngine::link_update_callback_1(std::shared_ptr<link_update_job_t> job)
+{
+	page_info_async->store_value(Variant(job->cached->url_key), job->result);
 	page_update_counter++;
 }
 
@@ -1531,6 +1506,43 @@ void SearchEngine::query_task_1(std::shared_ptr<query_job_t> job, size_t index,
 	if(--job->num_left == 0) {
 		add_task(std::bind(&SearchEngine::query_callback_3, this, job));
 	}
+}
+
+void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noexcept
+{
+	auto cache = job->cached;
+	auto info = vnx::clone(job->info);
+	if(!info) {
+		info = PageInfo::create();
+	}
+	if(cache->is_page_update) {
+		info->link_version = cache->link_version;
+	}
+	for(const auto& link_key : cache->rem_links) {
+		remove(info->links, link_key);
+	}
+	for(const auto& link_key : cache->add_links) {
+		unique_push_back(info->links, link_key);
+	}
+	for(const auto& parent_key : cache->rem_reverse_links) {
+		remove(info->reverse_links, parent_key);
+	}
+	for(const auto& parent_key : cache->add_reverse_links) {
+		unique_push_back(info->reverse_links, parent_key);
+	}
+	for(const auto& entry : cache->add_reverse_domains) {
+		info->reverse_domains[entry.first] += entry.second;
+	}
+	for(auto iter = info->reverse_domains.begin(); iter != info->reverse_domains.end();) {
+		if(iter->second <= 0) {
+			iter = info->reverse_domains.erase(iter);
+		} else {
+			iter++;
+		}
+	}
+	job->result = info;
+	
+	add_task(std::bind(&SearchEngine::link_update_callback_1, this, job));
 }
 
 void SearchEngine::word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept

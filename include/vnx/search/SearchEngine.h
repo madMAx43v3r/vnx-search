@@ -133,6 +133,12 @@ protected:
 		std::vector<std::string> new_words;
 	};
 	
+	struct link_update_job_t {
+		std::shared_ptr<link_cache_t> cached;
+		std::shared_ptr<const PageInfo> info;
+		std::shared_ptr<PageInfo> result;
+	};
+	
 	struct word_update_job_t {
 		size_t num_pages = 0;
 		std::shared_ptr<word_cache_t> cached;
@@ -269,8 +275,10 @@ private:
 	
 	void check_word_queue();
 	
-	void link_update_callback(	std::shared_ptr<link_cache_t> cache,
+	void link_update_callback_0(std::shared_ptr<link_cache_t> cache,
 								std::shared_ptr<const keyvalue::Entry> entry);
+	
+	void link_update_callback_1(std::shared_ptr<link_update_job_t> job);
 	
 	void word_update_callback(	std::shared_ptr<word_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
@@ -288,6 +296,8 @@ private:
 	
 	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 						std::shared_ptr<const WordArray> word_array) const noexcept;
+	
+	void link_update_task(std::shared_ptr<link_update_job_t> job) noexcept;
 	
 	void word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept;
 	
