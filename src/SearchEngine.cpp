@@ -12,6 +12,7 @@
 
 #include <url.h>
 #include <omp.h>
+#include <malloc.h>
 #include <cmath>
 #include <chrono>
 #include <algorithm>
@@ -85,6 +86,7 @@ void SearchEngine::main()
 	
 	set_timer_millis(queue_interval_ms, std::bind(&SearchEngine::check_queues, this));
 	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
+	set_timer_millis(600 * 1000, std::bind(&SearchEngine::write_info, this));
 	
 	page_info_async->sync_all(input_page_info_sync);
 	word_context_async->sync_all(input_word_context_sync);
@@ -1374,6 +1376,13 @@ void SearchEngine::print_stats()
 	word_update_counter = 0;
 	page_update_counter = 0;
 	query_counter = 0;
+}
+
+void SearchEngine::write_info()
+{
+	::FILE* file = fopen("malloc_info.xml", "w");
+	::malloc_info(0, file);
+	fclose(file);
 }
 
 void SearchEngine::query_task_0(std::shared_ptr<query_job_t> job) const noexcept

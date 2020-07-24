@@ -292,6 +292,8 @@ private:
 	
 	void print_stats();
 	
+	void write_info();
+	
 	void query_task_0(std::shared_ptr<query_job_t> job) const noexcept;
 	
 	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
