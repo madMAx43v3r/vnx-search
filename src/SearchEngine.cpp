@@ -648,8 +648,7 @@ std::shared_ptr<SearchEngine::link_cache_t> SearchEngine::get_link_cache(const s
 	if(!cache) {
 		cache = std::make_shared<link_cache_t>();
 		cache->url_key = url_key;
-		const int64_t rand_offset = (::rand() * int64_t(link_commit_interval)) / RAND_MAX;
-		link_queue.emplace(vnx::get_wall_time_micros() + rand_offset * 1000000, cache);
+		link_queue.emplace(vnx::get_wall_time_micros(), cache);
 	}
 	return cache;
 }
