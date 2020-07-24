@@ -1327,6 +1327,7 @@ void SearchEngine::word_process_callback_0(	std::shared_ptr<word_process_job_t> 
 	auto content = std::dynamic_pointer_cast<const PageContent>(entry->value);
 	if(content) {
 		job->content = content;
+		job->content_version = entry->version;
 		update_threads->add_task(std::bind(&SearchEngine::word_process_task, this, job));
 	}
 }
