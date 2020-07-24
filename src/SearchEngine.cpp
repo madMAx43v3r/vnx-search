@@ -12,7 +12,7 @@
 
 #include <url.h>
 #include <omp.h>
-#include <malloc.h>
+#include <jemalloc/jemalloc.h>
 #include <cmath>
 #include <chrono>
 #include <algorithm>
@@ -1378,10 +1378,16 @@ void SearchEngine::print_stats()
 	query_counter = 0;
 }
 
+static
+void write_info_callback(void* file, const char* data)
+{
+	fwrite(data, 1, strlen(data), (FILE*)file);
+}
+
 void SearchEngine::write_info()
 {
-	::FILE* file = fopen("malloc_info.xml", "w");
-	::malloc_info(0, file);
+	FILE* file = fopen("malloc_info.txt", "w");
+	malloc_stats_print(&write_info_callback, file, 0);
 	fclose(file);
 }
 

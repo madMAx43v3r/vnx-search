@@ -52,7 +52,7 @@ target_include_directories(vnx_search
 )
 target_link_libraries(vnx_search
 	vnx_keyvalue vnx_addons vnx_base
-	xmlpp robotstxt curl
+	xmlpp robotstxt curl jemalloc
 	${LIBXML2_LIBRARIES}
 	${PC_GLIBMM_LIBRARIES}
 )

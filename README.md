@@ -4,7 +4,7 @@ An open-source Search Engine based on VNX middleware.
 ## Dependencies
 vnx-base (>=1.6.8)
 
-`libcurl4-openssl-dev libicu-dev libxml2-dev libglibmm-2.4-dev mm-common`
+`libcurl4-openssl-dev libicu-dev libxml2-dev libglibmm-2.4-dev libjemalloc-dev mm-common`
 
 ## Notes
 Increase max open file limit in /etc/sysctl.conf:
