@@ -1,0 +1,5 @@
+set height unlimited
+set pagination off
+set verbose off
+info threads
+quit
