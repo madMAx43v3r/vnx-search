@@ -12,6 +12,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fopenmp -pthread")
 find_package(PkgConfig)
 find_package(LibXml2)
 
+find_library(JEMALLOC_LIBRARY jemalloc REQUIRED)
+
 pkg_check_modules(PC_GLIBMM glibmm-2.4)
 
 file(GLOB GENERATED_SOURCE_FILES generated/src/*.cpp)
@@ -52,9 +54,10 @@ target_include_directories(vnx_search
 )
 target_link_libraries(vnx_search
 	vnx_keyvalue vnx_addons vnx_base
-	xmlpp robotstxt curl jemalloc
+	xmlpp robotstxt curl
 	${LIBXML2_LIBRARIES}
 	${PC_GLIBMM_LIBRARIES}
+	${JEMALLOC_LIBRARY}
 )
 
 add_executable(vnx_search_frontend src/vnx_search_frontend.cpp)
