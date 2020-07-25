@@ -766,7 +766,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		job->url_key = entry->key.to_string_value();
 		job->index_version = entry->version;
 		
-		auto* page = find_page_url(job->url_key);
+		const auto* page = find_page_url(job->url_key);
 		job->update_info = !page || job->index_version > page->index_version;
 		job->update_links = !page || job->index_version > page->link_version;
 		job->update_words = !page || job->index_version > page->word_version;
@@ -780,7 +780,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 	if(entry->collection == "page_content")
 	{
 		const auto url_key = entry->key.to_string_value();
-		auto* page = find_page_url(url_key);
+		const auto* page = find_page_url(url_key);
 		
 		if(!page || entry->version > page->array_version)
 		{
@@ -852,6 +852,11 @@ void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> jo
 	}
 	job->index = index;
 	job->index_version = entry->version;
+	
+	const auto* page = find_page_url(job->url_key);
+	job->update_info = !page || job->index_version > page->index_version;
+	job->update_links = !page || job->index_version > page->link_version;
+	job->update_words = !page || job->index_version > page->word_version;
 	
 	std::vector<Variant> link_keys;
 	if(job->update_links) {
