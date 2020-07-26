@@ -16,7 +16,7 @@ module SearchEngine {
 	
 	int max_link_cache = 100000;
 	
-	int max_word_cache = 1000000;
+	int max_word_cache = 500000;
 	
 	int max_num_pending = 100;				// number of async requests
 	

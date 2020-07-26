@@ -1,5 +1,4 @@
 {
-	"max_depth": 9,
 	"max_query_pages": 1000,
 	"word_commit_interval": 60
 }
