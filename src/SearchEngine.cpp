@@ -643,6 +643,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 	{
 		std::unique_lock lock(index_mutex);
 		page_index.erase(page_info->id);
+		page_map.erase(url_key);
 	}
 	if(!page_info->is_deleted)
 	{
