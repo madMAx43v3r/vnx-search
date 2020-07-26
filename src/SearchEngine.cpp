@@ -615,7 +615,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 					cache->add_reverse_domains[page_info->domain]--;
 				}
 			}
-			p_link_cache->schedule_time_us = vnx::get_wall_time_micros();
+			p_link_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
 		}
 	}
 	if(page_info->word_version)
@@ -678,7 +678,7 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 		for(const auto& entry : org_page_info->reverse_domains) {
 			p_new_cache->add_reverse_domains[entry.first] += entry.second;
 		}
-		p_new_cache->schedule_time_us = vnx::get_wall_time_micros();
+		p_new_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
 		
 		delete_page_async(org_url_key);
 	}
@@ -1026,7 +1026,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 			p_link_cache->add_links.push_back(link_key);
 		}
 		// make sure our link cache is saved last
-		p_link_cache->schedule_time_us = vnx::get_wall_time_micros();
+		p_link_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
 	}
 	
 	// update word index if version is greater and previous update has finished
