@@ -81,6 +81,21 @@ void SearchEngine_get_page_info::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant SearchEngine_get_page_info::get_field(const std::string& _name) const {
+	if(_name == "url_key") {
+		return vnx::Variant(url_key);
+	}
+	return vnx::Variant();
+}
+
+void SearchEngine_get_page_info::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "url_key") {
+		_value.to(url_key);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchEngine_get_page_info& _value) {
 	_value.write(_out);

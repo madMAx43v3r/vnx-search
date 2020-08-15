@@ -178,6 +178,91 @@ void PageInfo::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant PageInfo::get_field(const std::string& _name) const {
+	if(_name == "id") {
+		return vnx::Variant(id);
+	}
+	if(_name == "is_deleted") {
+		return vnx::Variant(is_deleted);
+	}
+	if(_name == "index_version") {
+		return vnx::Variant(index_version);
+	}
+	if(_name == "link_version") {
+		return vnx::Variant(link_version);
+	}
+	if(_name == "word_version") {
+		return vnx::Variant(word_version);
+	}
+	if(_name == "array_version") {
+		return vnx::Variant(array_version);
+	}
+	if(_name == "first_seen") {
+		return vnx::Variant(first_seen);
+	}
+	if(_name == "last_modified") {
+		return vnx::Variant(last_modified);
+	}
+	if(_name == "scheme") {
+		return vnx::Variant(scheme);
+	}
+	if(_name == "domain") {
+		return vnx::Variant(domain);
+	}
+	if(_name == "title") {
+		return vnx::Variant(title);
+	}
+	if(_name == "words") {
+		return vnx::Variant(words);
+	}
+	if(_name == "links") {
+		return vnx::Variant(links);
+	}
+	if(_name == "reverse_links") {
+		return vnx::Variant(reverse_links);
+	}
+	if(_name == "reverse_domains") {
+		return vnx::Variant(reverse_domains);
+	}
+	return vnx::Variant();
+}
+
+void PageInfo::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "id") {
+		_value.to(id);
+	} else if(_name == "is_deleted") {
+		_value.to(is_deleted);
+	} else if(_name == "index_version") {
+		_value.to(index_version);
+	} else if(_name == "link_version") {
+		_value.to(link_version);
+	} else if(_name == "word_version") {
+		_value.to(word_version);
+	} else if(_name == "array_version") {
+		_value.to(array_version);
+	} else if(_name == "first_seen") {
+		_value.to(first_seen);
+	} else if(_name == "last_modified") {
+		_value.to(last_modified);
+	} else if(_name == "scheme") {
+		_value.to(scheme);
+	} else if(_name == "domain") {
+		_value.to(domain);
+	} else if(_name == "title") {
+		_value.to(title);
+	} else if(_name == "words") {
+		_value.to(words);
+	} else if(_name == "links") {
+		_value.to(links);
+	} else if(_name == "reverse_links") {
+		_value.to(reverse_links);
+	} else if(_name == "reverse_domains") {
+		_value.to(reverse_domains);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const PageInfo& _value) {
 	_value.write(_out);
@@ -215,7 +300,7 @@ std::shared_ptr<vnx::TypeCode> PageInfo::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[1];
 		field.name = "is_deleted";
-		field.code = {1};
+		field.code = {31};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];

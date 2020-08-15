@@ -238,6 +238,111 @@ void SearchEngineBase::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant SearchEngineBase::get_field(const std::string& _name) const {
+	if(_name == "input_url_index") {
+		return vnx::Variant(input_url_index);
+	}
+	if(_name == "input_page_index") {
+		return vnx::Variant(input_page_index);
+	}
+	if(_name == "input_page_content") {
+		return vnx::Variant(input_page_content);
+	}
+	if(_name == "url_index_server") {
+		return vnx::Variant(url_index_server);
+	}
+	if(_name == "page_index_server") {
+		return vnx::Variant(page_index_server);
+	}
+	if(_name == "page_content_server") {
+		return vnx::Variant(page_content_server);
+	}
+	if(_name == "max_query_pages") {
+		return vnx::Variant(max_query_pages);
+	}
+	if(_name == "max_link_cache") {
+		return vnx::Variant(max_link_cache);
+	}
+	if(_name == "max_word_cache") {
+		return vnx::Variant(max_word_cache);
+	}
+	if(_name == "max_num_pending") {
+		return vnx::Variant(max_num_pending);
+	}
+	if(_name == "num_query_threads") {
+		return vnx::Variant(num_query_threads);
+	}
+	if(_name == "num_update_threads") {
+		return vnx::Variant(num_update_threads);
+	}
+	if(_name == "link_commit_interval") {
+		return vnx::Variant(link_commit_interval);
+	}
+	if(_name == "word_commit_interval") {
+		return vnx::Variant(word_commit_interval);
+	}
+	if(_name == "lock_timeout") {
+		return vnx::Variant(lock_timeout);
+	}
+	if(_name == "queue_interval_ms") {
+		return vnx::Variant(queue_interval_ms);
+	}
+	if(_name == "stats_interval_ms") {
+		return vnx::Variant(stats_interval_ms);
+	}
+	if(_name == "result_context_window") {
+		return vnx::Variant(result_context_window);
+	}
+	if(_name == "protocols") {
+		return vnx::Variant(protocols);
+	}
+	return vnx::Variant();
+}
+
+void SearchEngineBase::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "input_url_index") {
+		_value.to(input_url_index);
+	} else if(_name == "input_page_index") {
+		_value.to(input_page_index);
+	} else if(_name == "input_page_content") {
+		_value.to(input_page_content);
+	} else if(_name == "url_index_server") {
+		_value.to(url_index_server);
+	} else if(_name == "page_index_server") {
+		_value.to(page_index_server);
+	} else if(_name == "page_content_server") {
+		_value.to(page_content_server);
+	} else if(_name == "max_query_pages") {
+		_value.to(max_query_pages);
+	} else if(_name == "max_link_cache") {
+		_value.to(max_link_cache);
+	} else if(_name == "max_word_cache") {
+		_value.to(max_word_cache);
+	} else if(_name == "max_num_pending") {
+		_value.to(max_num_pending);
+	} else if(_name == "num_query_threads") {
+		_value.to(num_query_threads);
+	} else if(_name == "num_update_threads") {
+		_value.to(num_update_threads);
+	} else if(_name == "link_commit_interval") {
+		_value.to(link_commit_interval);
+	} else if(_name == "word_commit_interval") {
+		_value.to(word_commit_interval);
+	} else if(_name == "lock_timeout") {
+		_value.to(lock_timeout);
+	} else if(_name == "queue_interval_ms") {
+		_value.to(queue_interval_ms);
+	} else if(_name == "stats_interval_ms") {
+		_value.to(stats_interval_ms);
+	} else if(_name == "result_context_window") {
+		_value.to(result_context_window);
+	} else if(_name == "protocols") {
+		_value.to(protocols);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchEngineBase& _value) {
 	_value.write(_out);

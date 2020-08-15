@@ -108,6 +108,41 @@ void result_item_t::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant result_item_t::get_field(const std::string& _name) const {
+	if(_name == "score") {
+		return vnx::Variant(score);
+	}
+	if(_name == "last_modified") {
+		return vnx::Variant(last_modified);
+	}
+	if(_name == "url") {
+		return vnx::Variant(url);
+	}
+	if(_name == "title") {
+		return vnx::Variant(title);
+	}
+	if(_name == "context") {
+		return vnx::Variant(context);
+	}
+	return vnx::Variant();
+}
+
+void result_item_t::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "score") {
+		_value.to(score);
+	} else if(_name == "last_modified") {
+		_value.to(last_modified);
+	} else if(_name == "url") {
+		_value.to(url);
+	} else if(_name == "title") {
+		_value.to(title);
+	} else if(_name == "context") {
+		_value.to(context);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const result_item_t& _value) {
 	_value.write(_out);

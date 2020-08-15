@@ -130,6 +130,56 @@ void SearchResult::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant SearchResult::get_field(const std::string& _name) const {
+	if(_name == "is_fail") {
+		return vnx::Variant(is_fail);
+	}
+	if(_name == "has_more") {
+		return vnx::Variant(has_more);
+	}
+	if(_name == "num_results_total") {
+		return vnx::Variant(num_results_total);
+	}
+	if(_name == "load_time_us") {
+		return vnx::Variant(load_time_us);
+	}
+	if(_name == "compute_time_us") {
+		return vnx::Variant(compute_time_us);
+	}
+	if(_name == "error_msg") {
+		return vnx::Variant(error_msg);
+	}
+	if(_name == "words") {
+		return vnx::Variant(words);
+	}
+	if(_name == "items") {
+		return vnx::Variant(items);
+	}
+	return vnx::Variant();
+}
+
+void SearchResult::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "is_fail") {
+		_value.to(is_fail);
+	} else if(_name == "has_more") {
+		_value.to(has_more);
+	} else if(_name == "num_results_total") {
+		_value.to(num_results_total);
+	} else if(_name == "load_time_us") {
+		_value.to(load_time_us);
+	} else if(_name == "compute_time_us") {
+		_value.to(compute_time_us);
+	} else if(_name == "error_msg") {
+		_value.to(error_msg);
+	} else if(_name == "words") {
+		_value.to(words);
+	} else if(_name == "items") {
+		_value.to(items);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchResult& _value) {
 	_value.write(_out);
@@ -164,12 +214,12 @@ std::shared_ptr<vnx::TypeCode> SearchResult::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.name = "is_fail";
-		field.code = {1};
+		field.code = {31};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[1];
 		field.name = "has_more";
-		field.code = {1};
+		field.code = {31};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[2];

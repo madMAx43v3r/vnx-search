@@ -80,6 +80,21 @@ void PageContent::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant PageContent::get_field(const std::string& _name) const {
+	if(_name == "text") {
+		return vnx::Variant(text);
+	}
+	return vnx::Variant();
+}
+
+void PageContent::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "text") {
+		_value.to(text);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const PageContent& _value) {
 	_value.write(_out);

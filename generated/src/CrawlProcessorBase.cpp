@@ -310,6 +310,166 @@ void CrawlProcessorBase::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant CrawlProcessorBase::get_field(const std::string& _name) const {
+	if(_name == "input_url_index") {
+		return vnx::Variant(input_url_index);
+	}
+	if(_name == "output_crawl_stats") {
+		return vnx::Variant(output_crawl_stats);
+	}
+	if(_name == "url_index_server") {
+		return vnx::Variant(url_index_server);
+	}
+	if(_name == "page_index_server") {
+		return vnx::Variant(page_index_server);
+	}
+	if(_name == "page_content_server") {
+		return vnx::Variant(page_content_server);
+	}
+	if(_name == "crawl_frontend_server") {
+		return vnx::Variant(crawl_frontend_server);
+	}
+	if(_name == "jump_cost") {
+		return vnx::Variant(jump_cost);
+	}
+	if(_name == "max_depth") {
+		return vnx::Variant(max_depth);
+	}
+	if(_name == "reload_interval") {
+		return vnx::Variant(reload_interval);
+	}
+	if(_name == "error_reload_interval") {
+		return vnx::Variant(error_reload_interval);
+	}
+	if(_name == "sync_interval") {
+		return vnx::Variant(sync_interval);
+	}
+	if(_name == "max_per_minute") {
+		return vnx::Variant(max_per_minute);
+	}
+	if(_name == "max_num_pending") {
+		return vnx::Variant(max_num_pending);
+	}
+	if(_name == "max_queue_size") {
+		return vnx::Variant(max_queue_size);
+	}
+	if(_name == "max_url_length") {
+		return vnx::Variant(max_url_length);
+	}
+	if(_name == "max_word_length") {
+		return vnx::Variant(max_word_length);
+	}
+	if(_name == "num_worker_threads") {
+		return vnx::Variant(num_worker_threads);
+	}
+	if(_name == "check_interval_ms") {
+		return vnx::Variant(check_interval_ms);
+	}
+	if(_name == "robots_timeout") {
+		return vnx::Variant(robots_timeout);
+	}
+	if(_name == "robots_reload_interval") {
+		return vnx::Variant(robots_reload_interval);
+	}
+	if(_name == "reload_power") {
+		return vnx::Variant(reload_power);
+	}
+	if(_name == "index_version") {
+		return vnx::Variant(index_version);
+	}
+	if(_name == "do_reprocess") {
+		return vnx::Variant(do_reprocess);
+	}
+	if(_name == "inititial_sync") {
+		return vnx::Variant(inititial_sync);
+	}
+	if(_name == "user_agent") {
+		return vnx::Variant(user_agent);
+	}
+	if(_name == "protocols") {
+		return vnx::Variant(protocols);
+	}
+	if(_name == "root_urls") {
+		return vnx::Variant(root_urls);
+	}
+	if(_name == "domain_blacklist") {
+		return vnx::Variant(domain_blacklist);
+	}
+	if(_name == "path_blacklist") {
+		return vnx::Variant(path_blacklist);
+	}
+	if(_name == "regex_blacklist") {
+		return vnx::Variant(regex_blacklist);
+	}
+	return vnx::Variant();
+}
+
+void CrawlProcessorBase::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "input_url_index") {
+		_value.to(input_url_index);
+	} else if(_name == "output_crawl_stats") {
+		_value.to(output_crawl_stats);
+	} else if(_name == "url_index_server") {
+		_value.to(url_index_server);
+	} else if(_name == "page_index_server") {
+		_value.to(page_index_server);
+	} else if(_name == "page_content_server") {
+		_value.to(page_content_server);
+	} else if(_name == "crawl_frontend_server") {
+		_value.to(crawl_frontend_server);
+	} else if(_name == "jump_cost") {
+		_value.to(jump_cost);
+	} else if(_name == "max_depth") {
+		_value.to(max_depth);
+	} else if(_name == "reload_interval") {
+		_value.to(reload_interval);
+	} else if(_name == "error_reload_interval") {
+		_value.to(error_reload_interval);
+	} else if(_name == "sync_interval") {
+		_value.to(sync_interval);
+	} else if(_name == "max_per_minute") {
+		_value.to(max_per_minute);
+	} else if(_name == "max_num_pending") {
+		_value.to(max_num_pending);
+	} else if(_name == "max_queue_size") {
+		_value.to(max_queue_size);
+	} else if(_name == "max_url_length") {
+		_value.to(max_url_length);
+	} else if(_name == "max_word_length") {
+		_value.to(max_word_length);
+	} else if(_name == "num_worker_threads") {
+		_value.to(num_worker_threads);
+	} else if(_name == "check_interval_ms") {
+		_value.to(check_interval_ms);
+	} else if(_name == "robots_timeout") {
+		_value.to(robots_timeout);
+	} else if(_name == "robots_reload_interval") {
+		_value.to(robots_reload_interval);
+	} else if(_name == "reload_power") {
+		_value.to(reload_power);
+	} else if(_name == "index_version") {
+		_value.to(index_version);
+	} else if(_name == "do_reprocess") {
+		_value.to(do_reprocess);
+	} else if(_name == "inititial_sync") {
+		_value.to(inititial_sync);
+	} else if(_name == "user_agent") {
+		_value.to(user_agent);
+	} else if(_name == "protocols") {
+		_value.to(protocols);
+	} else if(_name == "root_urls") {
+		_value.to(root_urls);
+	} else if(_name == "domain_blacklist") {
+		_value.to(domain_blacklist);
+	} else if(_name == "path_blacklist") {
+		_value.to(path_blacklist);
+	} else if(_name == "regex_blacklist") {
+		_value.to(regex_blacklist);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const CrawlProcessorBase& _value) {
 	_value.write(_out);
@@ -482,13 +642,13 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[22];
 		field.name = "do_reprocess";
 		field.value = vnx::to_string(false);
-		field.code = {1};
+		field.code = {31};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[23];
 		field.name = "inititial_sync";
 		field.value = vnx::to_string(false);
-		field.code = {1};
+		field.code = {31};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[24];

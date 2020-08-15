@@ -130,6 +130,56 @@ void HttpResponse::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant HttpResponse::get_field(const std::string& _name) const {
+	if(_name == "url") {
+		return vnx::Variant(url);
+	}
+	if(_name == "date") {
+		return vnx::Variant(date);
+	}
+	if(_name == "last_modified") {
+		return vnx::Variant(last_modified);
+	}
+	if(_name == "fetch_duration_us") {
+		return vnx::Variant(fetch_duration_us);
+	}
+	if(_name == "status") {
+		return vnx::Variant(status);
+	}
+	if(_name == "content_type") {
+		return vnx::Variant(content_type);
+	}
+	if(_name == "content_charset") {
+		return vnx::Variant(content_charset);
+	}
+	if(_name == "payload") {
+		return vnx::Variant(payload);
+	}
+	return vnx::Variant();
+}
+
+void HttpResponse::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "url") {
+		_value.to(url);
+	} else if(_name == "date") {
+		_value.to(date);
+	} else if(_name == "last_modified") {
+		_value.to(last_modified);
+	} else if(_name == "fetch_duration_us") {
+		_value.to(fetch_duration_us);
+	} else if(_name == "status") {
+		_value.to(status);
+	} else if(_name == "content_type") {
+		_value.to(content_type);
+	} else if(_name == "content_charset") {
+		_value.to(content_charset);
+	} else if(_name == "payload") {
+		_value.to(payload);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const HttpResponse& _value) {
 	_value.write(_out);

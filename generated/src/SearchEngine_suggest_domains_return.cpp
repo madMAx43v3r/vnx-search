@@ -80,6 +80,21 @@ void SearchEngine_suggest_domains_return::from_object(const vnx::Object& _object
 	}
 }
 
+vnx::Variant SearchEngine_suggest_domains_return::get_field(const std::string& _name) const {
+	if(_name == "_ret_0") {
+		return vnx::Variant(_ret_0);
+	}
+	return vnx::Variant();
+}
+
+void SearchEngine_suggest_domains_return::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "_ret_0") {
+		_value.to(_ret_0);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchEngine_suggest_domains_return& _value) {
 	_value.write(_out);

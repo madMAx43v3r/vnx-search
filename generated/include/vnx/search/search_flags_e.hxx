@@ -47,6 +47,9 @@ struct search_flags_e {
 	vnx::Object to_object() const;
 	void from_object(const vnx::Object& object);
 	
+	vnx::Variant get_field(const std::string& name) const;
+	void set_field(const std::string& name, const vnx::Variant& value);
+	
 	friend std::ostream& operator<<(std::ostream& _out, const search_flags_e& _value);
 	friend std::istream& operator>>(std::istream& _in, search_flags_e& _value);
 	

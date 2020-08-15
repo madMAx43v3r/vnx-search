@@ -81,6 +81,21 @@ void CrawlFrontend_fetch::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant CrawlFrontend_fetch::get_field(const std::string& _name) const {
+	if(_name == "url") {
+		return vnx::Variant(url);
+	}
+	return vnx::Variant();
+}
+
+void CrawlFrontend_fetch::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "url") {
+		_value.to(url);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const CrawlFrontend_fetch& _value) {
 	_value.write(_out);

@@ -101,6 +101,36 @@ void Response::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant Response::get_field(const std::string& _name) const {
+	if(_name == "url") {
+		return vnx::Variant(url);
+	}
+	if(_name == "date") {
+		return vnx::Variant(date);
+	}
+	if(_name == "last_modified") {
+		return vnx::Variant(last_modified);
+	}
+	if(_name == "fetch_duration_us") {
+		return vnx::Variant(fetch_duration_us);
+	}
+	return vnx::Variant();
+}
+
+void Response::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "url") {
+		_value.to(url);
+	} else if(_name == "date") {
+		_value.to(date);
+	} else if(_name == "last_modified") {
+		_value.to(last_modified);
+	} else if(_name == "fetch_duration_us") {
+		_value.to(fetch_duration_us);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const Response& _value) {
 	_value.write(_out);

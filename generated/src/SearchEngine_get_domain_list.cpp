@@ -88,6 +88,26 @@ void SearchEngine_get_domain_list::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant SearchEngine_get_domain_list::get_field(const std::string& _name) const {
+	if(_name == "limit") {
+		return vnx::Variant(limit);
+	}
+	if(_name == "offset") {
+		return vnx::Variant(offset);
+	}
+	return vnx::Variant();
+}
+
+void SearchEngine_get_domain_list::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "limit") {
+		_value.to(limit);
+	} else if(_name == "offset") {
+		_value.to(offset);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchEngine_get_domain_list& _value) {
 	_value.write(_out);

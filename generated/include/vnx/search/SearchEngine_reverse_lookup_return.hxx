@@ -39,6 +39,9 @@ public:
 	vnx::Object to_object() const;
 	void from_object(const vnx::Object& object);
 	
+	vnx::Variant get_field(const std::string& name) const;
+	void set_field(const std::string& name, const vnx::Variant& value);
+	
 	friend std::ostream& operator<<(std::ostream& _out, const SearchEngine_reverse_lookup_return& _value);
 	friend std::istream& operator>>(std::istream& _in, SearchEngine_reverse_lookup_return& _value);
 	

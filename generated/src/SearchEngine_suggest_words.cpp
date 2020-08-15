@@ -88,6 +88,26 @@ void SearchEngine_suggest_words::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant SearchEngine_suggest_words::get_field(const std::string& _name) const {
+	if(_name == "prefix") {
+		return vnx::Variant(prefix);
+	}
+	if(_name == "limit") {
+		return vnx::Variant(limit);
+	}
+	return vnx::Variant();
+}
+
+void SearchEngine_suggest_words::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "prefix") {
+		_value.to(prefix);
+	} else if(_name == "limit") {
+		_value.to(limit);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchEngine_suggest_words& _value) {
 	_value.write(_out);

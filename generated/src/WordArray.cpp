@@ -87,6 +87,26 @@ void WordArray::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant WordArray::get_field(const std::string& _name) const {
+	if(_name == "last_update") {
+		return vnx::Variant(last_update);
+	}
+	if(_name == "list") {
+		return vnx::Variant(list);
+	}
+	return vnx::Variant();
+}
+
+void WordArray::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "last_update") {
+		_value.to(last_update);
+	} else if(_name == "list") {
+		_value.to(list);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const WordArray& _value) {
 	_value.write(_out);

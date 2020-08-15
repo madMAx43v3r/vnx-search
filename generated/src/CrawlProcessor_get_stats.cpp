@@ -81,6 +81,21 @@ void CrawlProcessor_get_stats::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant CrawlProcessor_get_stats::get_field(const std::string& _name) const {
+	if(_name == "limit") {
+		return vnx::Variant(limit);
+	}
+	return vnx::Variant();
+}
+
+void CrawlProcessor_get_stats::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "limit") {
+		_value.to(limit);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const CrawlProcessor_get_stats& _value) {
 	_value.write(_out);

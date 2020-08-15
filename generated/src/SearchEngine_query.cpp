@@ -103,6 +103,36 @@ void SearchEngine_query::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant SearchEngine_query::get_field(const std::string& _name) const {
+	if(_name == "words") {
+		return vnx::Variant(words);
+	}
+	if(_name == "limit") {
+		return vnx::Variant(limit);
+	}
+	if(_name == "offset") {
+		return vnx::Variant(offset);
+	}
+	if(_name == "flags") {
+		return vnx::Variant(flags);
+	}
+	return vnx::Variant();
+}
+
+void SearchEngine_query::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "words") {
+		_value.to(words);
+	} else if(_name == "limit") {
+		_value.to(limit);
+	} else if(_name == "offset") {
+		_value.to(offset);
+	} else if(_name == "flags") {
+		_value.to(flags);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchEngine_query& _value) {
 	_value.write(_out);

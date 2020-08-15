@@ -96,6 +96,31 @@ void CrawlFrontend_register_parser::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant CrawlFrontend_register_parser::get_field(const std::string& _name) const {
+	if(_name == "address") {
+		return vnx::Variant(address);
+	}
+	if(_name == "mime_types") {
+		return vnx::Variant(mime_types);
+	}
+	if(_name == "num_threads") {
+		return vnx::Variant(num_threads);
+	}
+	return vnx::Variant();
+}
+
+void CrawlFrontend_register_parser::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "address") {
+		_value.to(address);
+	} else if(_name == "mime_types") {
+		_value.to(mime_types);
+	} else if(_name == "num_threads") {
+		_value.to(num_threads);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const CrawlFrontend_register_parser& _value) {
 	_value.write(_out);

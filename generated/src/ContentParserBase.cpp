@@ -76,6 +76,21 @@ void ContentParserBase::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant ContentParserBase::get_field(const std::string& _name) const {
+	if(_name == "frontend_server") {
+		return vnx::Variant(frontend_server);
+	}
+	return vnx::Variant();
+}
+
+void ContentParserBase::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "frontend_server") {
+		_value.to(frontend_server);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const ContentParserBase& _value) {
 	_value.write(_out);

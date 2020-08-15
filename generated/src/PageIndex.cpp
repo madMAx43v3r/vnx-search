@@ -122,6 +122,51 @@ void PageIndex::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant PageIndex::get_field(const std::string& _name) const {
+	if(_name == "title") {
+		return vnx::Variant(title);
+	}
+	if(_name == "last_modified") {
+		return vnx::Variant(last_modified);
+	}
+	if(_name == "word_count") {
+		return vnx::Variant(word_count);
+	}
+	if(_name == "version") {
+		return vnx::Variant(version);
+	}
+	if(_name == "links") {
+		return vnx::Variant(links);
+	}
+	if(_name == "images") {
+		return vnx::Variant(images);
+	}
+	if(_name == "words") {
+		return vnx::Variant(words);
+	}
+	return vnx::Variant();
+}
+
+void PageIndex::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "title") {
+		_value.to(title);
+	} else if(_name == "last_modified") {
+		_value.to(last_modified);
+	} else if(_name == "word_count") {
+		_value.to(word_count);
+	} else if(_name == "version") {
+		_value.to(version);
+	} else if(_name == "links") {
+		_value.to(links);
+	} else if(_name == "images") {
+		_value.to(images);
+	} else if(_name == "words") {
+		_value.to(words);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const PageIndex& _value) {
 	_value.write(_out);

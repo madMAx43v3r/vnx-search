@@ -90,6 +90,31 @@ void ArchiveProxyBase::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant ArchiveProxyBase::get_field(const std::string& _name) const {
+	if(_name == "input_http") {
+		return vnx::Variant(input_http);
+	}
+	if(_name == "server_name") {
+		return vnx::Variant(server_name);
+	}
+	if(_name == "buffer_size") {
+		return vnx::Variant(buffer_size);
+	}
+	return vnx::Variant();
+}
+
+void ArchiveProxyBase::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "input_http") {
+		_value.to(input_http);
+	} else if(_name == "server_name") {
+		_value.to(server_name);
+	} else if(_name == "buffer_size") {
+		_value.to(buffer_size);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const ArchiveProxyBase& _value) {
 	_value.write(_out);

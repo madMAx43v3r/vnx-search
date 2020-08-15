@@ -136,6 +136,61 @@ void TextResponse::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant TextResponse::get_field(const std::string& _name) const {
+	if(_name == "url") {
+		return vnx::Variant(url);
+	}
+	if(_name == "date") {
+		return vnx::Variant(date);
+	}
+	if(_name == "last_modified") {
+		return vnx::Variant(last_modified);
+	}
+	if(_name == "fetch_duration_us") {
+		return vnx::Variant(fetch_duration_us);
+	}
+	if(_name == "title") {
+		return vnx::Variant(title);
+	}
+	if(_name == "text") {
+		return vnx::Variant(text);
+	}
+	if(_name == "base_url") {
+		return vnx::Variant(base_url);
+	}
+	if(_name == "links") {
+		return vnx::Variant(links);
+	}
+	if(_name == "images") {
+		return vnx::Variant(images);
+	}
+	return vnx::Variant();
+}
+
+void TextResponse::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "url") {
+		_value.to(url);
+	} else if(_name == "date") {
+		_value.to(date);
+	} else if(_name == "last_modified") {
+		_value.to(last_modified);
+	} else if(_name == "fetch_duration_us") {
+		_value.to(fetch_duration_us);
+	} else if(_name == "title") {
+		_value.to(title);
+	} else if(_name == "text") {
+		_value.to(text);
+	} else if(_name == "base_url") {
+		_value.to(base_url);
+	} else if(_name == "links") {
+		_value.to(links);
+	} else if(_name == "images") {
+		_value.to(images);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const TextResponse& _value) {
 	_value.write(_out);

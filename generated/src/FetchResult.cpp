@@ -144,6 +144,66 @@ void FetchResult::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant FetchResult::get_field(const std::string& _name) const {
+	if(_name == "redirect") {
+		return vnx::Variant(redirect);
+	}
+	if(_name == "content_type") {
+		return vnx::Variant(content_type);
+	}
+	if(_name == "last_fetched") {
+		return vnx::Variant(last_fetched);
+	}
+	if(_name == "last_modified") {
+		return vnx::Variant(last_modified);
+	}
+	if(_name == "fetch_duration_us") {
+		return vnx::Variant(fetch_duration_us);
+	}
+	if(_name == "num_bytes") {
+		return vnx::Variant(num_bytes);
+	}
+	if(_name == "http_status") {
+		return vnx::Variant(http_status);
+	}
+	if(_name == "curl_status") {
+		return vnx::Variant(curl_status);
+	}
+	if(_name == "is_fail") {
+		return vnx::Variant(is_fail);
+	}
+	if(_name == "response") {
+		return vnx::Variant(response);
+	}
+	return vnx::Variant();
+}
+
+void FetchResult::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "redirect") {
+		_value.to(redirect);
+	} else if(_name == "content_type") {
+		_value.to(content_type);
+	} else if(_name == "last_fetched") {
+		_value.to(last_fetched);
+	} else if(_name == "last_modified") {
+		_value.to(last_modified);
+	} else if(_name == "fetch_duration_us") {
+		_value.to(fetch_duration_us);
+	} else if(_name == "num_bytes") {
+		_value.to(num_bytes);
+	} else if(_name == "http_status") {
+		_value.to(http_status);
+	} else if(_name == "curl_status") {
+		_value.to(curl_status);
+	} else if(_name == "is_fail") {
+		_value.to(is_fail);
+	} else if(_name == "response") {
+		_value.to(response);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const FetchResult& _value) {
 	_value.write(_out);
@@ -223,7 +283,7 @@ std::shared_ptr<vnx::TypeCode> FetchResult::static_create_type_code() {
 	{
 		vnx::TypeField& field = type_code->fields[8];
 		field.name = "is_fail";
-		field.code = {1};
+		field.code = {31};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[9];

@@ -143,6 +143,61 @@ void CrawlFrontendBase::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant CrawlFrontendBase::get_field(const std::string& _name) const {
+	if(_name == "output_http") {
+		return vnx::Variant(output_http);
+	}
+	if(_name == "output_text") {
+		return vnx::Variant(output_text);
+	}
+	if(_name == "num_threads") {
+		return vnx::Variant(num_threads);
+	}
+	if(_name == "response_timeout_ms") {
+		return vnx::Variant(response_timeout_ms);
+	}
+	if(_name == "stats_interval_ms") {
+		return vnx::Variant(stats_interval_ms);
+	}
+	if(_name == "max_content_length") {
+		return vnx::Variant(max_content_length);
+	}
+	if(_name == "max_response_size") {
+		return vnx::Variant(max_response_size);
+	}
+	if(_name == "processor_server") {
+		return vnx::Variant(processor_server);
+	}
+	if(_name == "user_agent") {
+		return vnx::Variant(user_agent);
+	}
+	return vnx::Variant();
+}
+
+void CrawlFrontendBase::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "output_http") {
+		_value.to(output_http);
+	} else if(_name == "output_text") {
+		_value.to(output_text);
+	} else if(_name == "num_threads") {
+		_value.to(num_threads);
+	} else if(_name == "response_timeout_ms") {
+		_value.to(response_timeout_ms);
+	} else if(_name == "stats_interval_ms") {
+		_value.to(stats_interval_ms);
+	} else if(_name == "max_content_length") {
+		_value.to(max_content_length);
+	} else if(_name == "max_response_size") {
+		_value.to(max_response_size);
+	} else if(_name == "processor_server") {
+		_value.to(processor_server);
+	} else if(_name == "user_agent") {
+		_value.to(user_agent);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const CrawlFrontendBase& _value) {
 	_value.write(_out);

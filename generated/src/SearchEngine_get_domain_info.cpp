@@ -95,6 +95,31 @@ void SearchEngine_get_domain_info::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant SearchEngine_get_domain_info::get_field(const std::string& _name) const {
+	if(_name == "host") {
+		return vnx::Variant(host);
+	}
+	if(_name == "limit") {
+		return vnx::Variant(limit);
+	}
+	if(_name == "offset") {
+		return vnx::Variant(offset);
+	}
+	return vnx::Variant();
+}
+
+void SearchEngine_get_domain_info::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "host") {
+		_value.to(host);
+	} else if(_name == "limit") {
+		_value.to(limit);
+	} else if(_name == "offset") {
+		_value.to(offset);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const SearchEngine_get_domain_info& _value) {
 	_value.write(_out);
