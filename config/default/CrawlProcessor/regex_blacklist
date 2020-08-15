@@ -30,7 +30,7 @@
 	"[&?;]viewallpages=(1|true)",
 	"[&?;]view=findpost",
 	"[&?;]module=members([&?]|$)",
-	"[&?;]ubb=(showflat|printthread|addfavuser)([&?]|$)",
+	"[&?;]ubb=(showflat|printthread|addfavuser|sendprivate|showprofile|userposts)([&?]|$)",
 	"[&?;]mini=calendar",
 	"[&?;]random-post=",
 	"[&?;][Ss]how_?[Uu]ser=",
