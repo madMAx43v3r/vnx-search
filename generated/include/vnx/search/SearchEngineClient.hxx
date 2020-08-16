@@ -11,7 +11,7 @@
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/SearchResult.hxx>
-#include <vnx/search/search_flags_e.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 
 namespace vnx {
@@ -25,7 +25,7 @@ public:
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
-	std::shared_ptr<const ::vnx::search::SearchResult> query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags);
+	std::shared_ptr<const ::vnx::search::SearchResult> query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options);
 	
 	::vnx::Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset);
 	

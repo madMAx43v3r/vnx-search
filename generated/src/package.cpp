@@ -42,7 +42,9 @@
 #include <vnx/search/UrlInfo.hxx>
 #include <vnx/search/WordArray.hxx>
 #include <vnx/search/WordContext.hxx>
+#include <vnx/search/query_options_t.hxx>
 #include <vnx/search/result_item_t.hxx>
+#include <vnx/search/score_type_e.hxx>
 #include <vnx/search/search_flags_e.hxx>
 
 #include <vnx/vnx.h>
@@ -95,7 +97,9 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::UrlInfo::static_create_type_code());
 	vnx::register_type_code(::vnx::search::WordArray::static_create_type_code());
 	vnx::register_type_code(::vnx::search::WordContext::static_create_type_code());
+	vnx::register_type_code(::vnx::search::query_options_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::result_item_t::static_create_type_code());
+	vnx::register_type_code(::vnx::search::score_type_e::static_create_type_code());
 	vnx::register_type_code(::vnx::search::search_flags_e::static_create_type_code());
 }
 
@@ -146,7 +150,9 @@ const vnx::TypeCode* const vnx_native_type_code_UrlIndex = vnx::get_type_code(vn
 const vnx::TypeCode* const vnx_native_type_code_UrlInfo = vnx::get_type_code(vnx::Hash64(0xd69101803f781acfull));
 const vnx::TypeCode* const vnx_native_type_code_WordArray = vnx::get_type_code(vnx::Hash64(0xabb8eb197035a035ull));
 const vnx::TypeCode* const vnx_native_type_code_WordContext = vnx::get_type_code(vnx::Hash64(0xdaa75d84f367905bull));
+const vnx::TypeCode* const vnx_native_type_code_query_options_t = vnx::get_type_code(vnx::Hash64(0x8abc6f7a05400550ull));
 const vnx::TypeCode* const vnx_native_type_code_result_item_t = vnx::get_type_code(vnx::Hash64(0x25b1d557d37a1bdfull));
+const vnx::TypeCode* const vnx_native_type_code_score_type_e = vnx::get_type_code(vnx::Hash64(0x433d867b180521adull));
 const vnx::TypeCode* const vnx_native_type_code_search_flags_e = vnx::get_type_code(vnx::Hash64(0xe55b90a8ffab58ffull));
 
 } // namespace vnx

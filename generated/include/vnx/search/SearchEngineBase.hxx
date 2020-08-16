@@ -11,7 +11,7 @@
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/SearchResult.hxx>
-#include <vnx/search/search_flags_e.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 
 namespace vnx {
@@ -37,7 +37,6 @@ public:
 	int32_t lock_timeout = 100;
 	int32_t queue_interval_ms = 10;
 	int32_t stats_interval_ms = 10000;
-	int32_t result_context_window = 128;
 	std::vector<std::string> protocols;
 	
 	typedef ::vnx::Module Super;
@@ -69,7 +68,7 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual void query_async(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags, const vnx::request_id_t& _request_id) const = 0;
+	virtual void query_async(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, const vnx::request_id_t& _request_id) const = 0;
 	void query_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) const;
 	virtual void get_domain_info_async(const std::string& host, const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
 	void get_domain_info_async_return(const vnx::request_id_t& _request_id, const ::vnx::Object& _ret_0) const;

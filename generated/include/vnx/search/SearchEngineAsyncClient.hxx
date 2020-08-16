@@ -11,7 +11,7 @@
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/SearchResult.hxx>
-#include <vnx/search/search_flags_e.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 
 namespace vnx {
@@ -27,7 +27,7 @@ public:
 			const std::function<void(::vnx::TypeCode)>& _callback = std::function<void(::vnx::TypeCode)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
-	uint64_t query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags, 
+	uint64_t query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, 
 			const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback = std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	

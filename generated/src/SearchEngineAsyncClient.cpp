@@ -27,7 +27,7 @@
 #include <vnx/search/SearchEngine_suggest_words.hxx>
 #include <vnx/search/SearchEngine_suggest_words_return.hxx>
 #include <vnx/search/SearchResult.hxx>
-#include <vnx/search/search_flags_e.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 #include <vnx/vnx.h>
 
@@ -53,12 +53,10 @@ uint64_t SearchEngineAsyncClient::vnx_get_type_code(const std::function<void(::v
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags, const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+uint64_t SearchEngineAsyncClient::query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchEngine_query::create();
 	_method->words = words;
-	_method->limit = limit;
-	_method->offset = offset;
-	_method->flags = flags;
+	_method->options = options;
 	const auto _request_id = vnx_request(_method);
 	vnx_queue_query[_request_id] = std::make_pair(_callback, _error_callback);
 	vnx_num_pending++;

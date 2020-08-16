@@ -27,7 +27,7 @@
 #include <vnx/search/SearchEngine_suggest_words.hxx>
 #include <vnx/search/SearchEngine_suggest_words_return.hxx>
 #include <vnx/search/SearchResult.hxx>
-#include <vnx/search/search_flags_e.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 #include <vnx/vnx.h>
 
@@ -55,12 +55,10 @@ SearchEngineClient::SearchEngineClient(vnx::Hash64 service_addr)
 	return _result->_ret_0;
 }
 
-std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(const std::vector<std::string>& words, const int32_t& limit, const uint32_t& offset, const std::vector<::vnx::search::search_flags_e>& flags) {
+std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options) {
 	auto _method = ::vnx::search::SearchEngine_query::create();
 	_method->words = words;
-	_method->limit = limit;
-	_method->offset = offset;
-	_method->flags = flags;
+	_method->options = options;
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_query_return>(_return_value);
 	if(!_result) {
