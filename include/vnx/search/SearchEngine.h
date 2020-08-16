@@ -149,12 +149,11 @@ protected:
 	};
 	
 	struct word_process_job_t {
-		Variant url_key;
+		std::string url_key;
 		uint64_t content_version = 0;
 		size_t num_new_words = 0;
 		std::vector<std::string> word_list;
-		std::vector<uint32_t> word_positions;
-		std::shared_ptr<const PageInfo> info;
+		std::vector<std::pair<uint32_t, uint32_t>> word_positions;
 		std::shared_ptr<const PageContent> content;
 		std::shared_ptr<WordArray> word_array;
 	};

@@ -1,0 +1,11 @@
+package vnx.search;
+
+struct word_entry_t {
+	
+	uint word_id;
+	
+	uint offset;			// byte offset in UTF8 text
+	
+	ushort size;			// word size in bytes
+	
+}

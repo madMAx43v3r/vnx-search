@@ -15,14 +15,14 @@ int main()
 {
 	const std::string content = "This is a test, of some sort, 1337. More text is to follow.\nSome more text here.\n ";
 	
-	std::vector<uint32_t> positions;
+	std::vector<std::pair<uint32_t, uint32_t>> positions;
 	const auto words = vnx::search::parse_text(content, &positions);
 	
 	std::cout << vnx::to_string(words) << std::endl;
 	
 	std::vector<std::string> test;
 	for(auto pos : positions) {
-		test.push_back(content.substr(pos, 1));
+		test.push_back(content.substr(pos.first, pos.second - pos.first));
 	}
 	std::cout << vnx::to_string(test) << std::endl;
 	

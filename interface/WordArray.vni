@@ -4,6 +4,6 @@ class WordArray {
 	
 	long last_update;						// posix [sec]
 	
-	vector<pair<uint, uint>> list;			// list of [word id => text byte position]
+	vector<word_entry_t> list;
 	
 }

@@ -35,7 +35,7 @@ std::string& clean_text(std::string& s)
 	return s;
 }
 
-std::vector<std::string> parse_text(const std::string& content, std::vector<uint32_t>* byte_positions)
+std::vector<std::string> parse_text(const std::string& content, std::vector<std::pair<uint32_t, uint32_t>>* byte_positions)
 {
 	std::vector<std::string> result;
 	
@@ -57,7 +57,7 @@ std::vector<std::string> parse_text(const std::string& content, std::vector<uint
 	}
 	
 	UnicodeString uword;
-	std::array<UChar, 256> word;
+	std::array<UChar, 2048> word;
 	auto pos = bi->first();
 	auto begin = pos;
 	while(pos != BreakIterator::DONE) {
@@ -74,7 +74,7 @@ std::vector<std::string> parse_text(const std::string& content, std::vector<uint
 					uword.toUTF8String(tmp);
 					result.push_back(tmp);
 					if(byte_positions) {
-						byte_positions->push_back(begin);
+						byte_positions->emplace_back(begin, pos);
 					}
 				}
 			}

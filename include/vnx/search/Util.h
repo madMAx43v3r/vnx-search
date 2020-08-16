@@ -168,7 +168,7 @@ T advance_until(T iter, const T& end, const ssize_t offset)
 	return iter;
 }
 
-std::vector<std::string> parse_text(const std::string& content, std::vector<uint32_t>* byte_positions = nullptr);
+std::vector<std::string> parse_text(const std::string& content, std::vector<std::pair<uint32_t, uint32_t>>* byte_positions = nullptr);
 
 
 } // search

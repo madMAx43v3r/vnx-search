@@ -286,12 +286,6 @@ void SearchEngine::query_callback_5(std::shared_ptr<query_job_t> job,
 			const auto end = std::min(item.context.second, int64_t(content->text.size()));
 			if(end > begin) {
 				auto text = content->text.substr(begin, end - begin);
-				while(!text.empty() && text.front() == ' ') {
-					text.erase(0, 1);
-				}
-				while(!text.empty() && text.back() == ' ') {
-					text.pop_back();
-				}
 				job->result->items[i].context =
 						(begin > 0 ? "... " : "") + clean_text(text) + (end < content->text.size() ? " ..." : "");
 			}
@@ -785,12 +779,12 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		const auto url_key = entry->key.to_string_value();
 		const auto* page = find_page_url(url_key);
 		
-		if(!page || entry->version > page->array_version)
+		if(!page || entry->version > page->array_version || update_word_array)
 		{
 			if(!is_robots_txt(Url::Url(url_key)))
 			{
 				auto job = std::make_shared<word_process_job_t>();
-				job->url_key = entry->key;
+				job->url_key = url_key;
 				job->content_version = entry->version;
 				load_queue_2.emplace(job);
 			}
@@ -1092,7 +1086,7 @@ void SearchEngine::check_load_queue()
 		}
 		if(!load_queue_2.empty()) {
 			const auto job = load_queue_2.front();
-			page_content_async->get_value(job->url_key,
+			page_content_async->get_value(Variant(job->url_key),
 					std::bind(&SearchEngine::word_process_callback_0, this, job, std::placeholders::_1));
 			load_queue_2.pop();
 		}
@@ -1258,15 +1252,19 @@ void SearchEngine::word_process_callback_1(std::shared_ptr<word_process_job_t> j
 		
 		auto& list = job->word_array->list;
 		for(size_t i = 0; i < list.size(); ++i) {
-			if(list[i].first == 0) {
-				list[i].first = add_word(job->word_list[i]);
+			if(list[i].word_id == 0) {
+				list[i].word_id = add_word(job->word_list[i]);
 			}
 		}
 	}
-	word_array_async->store_value(job->url_key, job->word_array);
+	word_array_async->store_value(Variant(job->url_key), job->word_array);
 	
-	page_info_async->get_value_locked(job->url_key, lock_timeout * 1000,
-			std::bind(&SearchEngine::word_process_callback_2, this, job, std::placeholders::_1));
+	const auto* page = find_page_url(job->url_key);
+	if(!page || page->array_version != job->content_version)
+	{
+		page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
+				std::bind(&SearchEngine::word_process_callback_2, this, job, std::placeholders::_1));
+	}
 }
 
 void SearchEngine::word_process_callback_2(	std::shared_ptr<word_process_job_t> job,
@@ -1393,7 +1391,7 @@ void SearchEngine::query_task_1(std::shared_ptr<query_job_t> job, size_t index,
 	
 	std::vector<uint16_t> word_list(array.size());
 	for(ssize_t k = 0; k < array.size(); ++k) {
-		const auto iter = job->word_set.find(array[k].first);
+		const auto iter = job->word_set.find(array[k].word_id);
 		if(iter != job->word_set.end()) {
 			word_list[k] = 1 + iter->second;
 		}
@@ -1462,8 +1460,9 @@ void SearchEngine::query_task_1(std::shared_ptr<query_job_t> job, size_t index,
 	}
 	
 	if(best_pos >= 0) {
-		item.context.first =  array[std::max(best_pos - job->options.context, ssize_t(0))].second;
-		item.context.second = array[std::min(best_pos + job->options.context + 1, ssize_t(array.size() - 1))].second;
+		item.context.first = array[std::max(best_pos - job->options.context, ssize_t(0))].offset;
+		const auto& entry =  array[std::min(best_pos + job->options.context, ssize_t(array.size() - 1))];
+		item.context.second = entry.offset + entry.size;
 	}
 	
 	if(--job->num_left == 0) {
@@ -1543,16 +1542,20 @@ void SearchEngine::word_process_task(std::shared_ptr<word_process_job_t> job) no
 	
 	auto array = WordArray::create();
 	array->last_update = std::time(0);
+	array->list.resize(job->word_list.size());
 	
 	for(size_t i = 0; i < job->word_list.size(); ++i)
 	{
+		auto& entry = array->list[i];
 		const auto iter = word_map.find(job->word_list[i]);
 		if(iter != word_map.end()) {
-			array->list.emplace_back(iter->second, job->word_positions[i]);
+			entry.word_id = iter->second;
 		} else {
 			job->num_new_words++;
-			array->list.emplace_back(0, job->word_positions[i]);
 		}
+		const auto& position = job->word_positions[i];
+		entry.offset = position.first;
+		entry.size = position.second - position.first;
 	}
 	job->word_array = array;
 	
