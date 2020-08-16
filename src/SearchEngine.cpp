@@ -286,7 +286,10 @@ void SearchEngine::query_callback_5(std::shared_ptr<query_job_t> job,
 			const auto end = std::min(item.context.second, int64_t(content->text.size()));
 			if(end > begin) {
 				auto text = content->text.substr(begin, end - begin);
-				if(!text.empty() && text.back() == ' ') {
+				while(!text.empty() && text.front() == ' ') {
+					text.erase(0, 1);
+				}
+				while(!text.empty() && text.back() == ' ') {
 					text.pop_back();
 				}
 				job->result->items[i].context =
