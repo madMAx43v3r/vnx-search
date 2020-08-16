@@ -101,15 +101,12 @@ void SearchEngine::main()
 }
 
 void SearchEngine::query_async(	const std::vector<std::string>& words,
-								const int32_t& limit, const uint32_t& offset,
-								const std::vector<search_flags_e>& flags,
+								const query_options_t& options,
 								const vnx::request_id_t& req_id) const
 {
 	auto job = std::make_shared<query_job_t>();
 	job->words = get_unique(words);
-	job->limit = limit;
-	job->offset = offset;
-	job->flags = flags;
+	job->options = options;
 	job->req_id = req_id;
 	
 	auto result = SearchResult::create();
@@ -202,7 +199,7 @@ void SearchEngine::query_callback_3(std::shared_ptr<query_job_t> job) const
 	}
 	std::vector<std::pair<float, const tmp_result_t*>> sorted;
 	
-	if(has_flag(job->flags, search_flags_e::GROUP_BY_DOMAIN))
+	if(has_flag(job->options.flags, search_flags_e::GROUP_BY_DOMAIN))
 	{
 		std::unordered_map<uint32_t, std::pair<float, const tmp_result_t*>> best_of;
 		
@@ -227,9 +224,9 @@ void SearchEngine::query_callback_3(std::shared_ptr<query_job_t> job) const
 	job->url_keys.clear();
 	std::vector<tmp_result_t> new_tmp_results;
 	
-	for(uint32_t i = 0; i < uint32_t(job->limit) && job->offset + i < sorted.size(); ++i)
+	for(uint32_t i = 0; i < uint32_t(job->options.limit) && job->options.offset + i < sorted.size(); ++i)
 	{
-		const auto* tmp_item = sorted[job->offset + i].second;
+		const auto* tmp_item = sorted[job->options.offset + i].second;
 		const auto* page = find_page(tmp_item->page_id);
 		if(page) {
 			result_item_t item;
@@ -284,14 +281,16 @@ void SearchEngine::query_callback_5(std::shared_ptr<query_job_t> job,
 	for(size_t i = 0; i < entries.size(); ++i) {
 		auto content = std::dynamic_pointer_cast<const PageContent>(entries[i]->value);
 		if(content) {
-			const auto& tmp_item = job->tmp_results[i];
-			if(tmp_item.context_center >= 0) {
-				const auto begin = std::max(tmp_item.context_center - result_context_window, int64_t(0));
-				const auto end = std::min(tmp_item.context_center + result_context_window, int64_t(content->text.size()));
-				if(end > begin) {
-					auto text = content->text.substr(begin, end - begin);
-					job->result->items[i].context = clean_text(text);
+			const auto& item = job->tmp_results[i];
+			const auto begin = std::max(item.context.first, int64_t(0));
+			const auto end = std::min(item.context.second, int64_t(content->text.size()));
+			if(end > begin) {
+				auto text = content->text.substr(begin, end - begin);
+				if(!text.empty() && text.back() == ' ') {
+					text.pop_back();
 				}
+				job->result->items[i].context =
+						(begin > 0 ? "... " : "") + clean_text(text) + (end < content->text.size() ? " ..." : "");
 			}
 		}
 	}
@@ -1389,9 +1388,6 @@ void SearchEngine::query_task_1(std::shared_ptr<query_job_t> job, size_t index,
 	auto& item = job->tmp_results[index];
 	const auto& array = word_array->list;
 	
-	static const ssize_t window = 10;
-	static const float coeff_21[21] = {0.005712877830755518, 0.009764469451804187, 0.015773807952074306, 0.02408342166625359, 0.03475313089827647, 0.04739852456889689, 0.061098714937561756, 0.07443826449394159, 0.0857149004555338, 0.09328481433425843, 0.09595414682128679, 0.09328481433425843, 0.0857149004555338, 0.07443826449394159, 0.061098714937561756, 0.04739852456889689, 0.03475313089827647, 0.02408342166625359, 0.015773807952074306, 0.009764469451804187, 0.005712877830755518};
-	
 	std::vector<uint16_t> word_list(array.size());
 	for(ssize_t k = 0; k < array.size(); ++k) {
 		const auto iter = job->word_set.find(array[k].first);
@@ -1400,37 +1396,71 @@ void SearchEngine::query_task_1(std::shared_ptr<query_job_t> job, size_t index,
 		}
 	}
 	
-	float best_score = 0;
-	ssize_t best_pos = -1;
-	std::vector<float> word_hits(job->words.size());
+	struct window_t {
+		ssize_t size = 0;
+		std::vector<float> coeff;
+		std::vector<float> word_hits;
+	};
 	
-	for(ssize_t k = window; k + window < word_list.size(); k += 2)
+	std::array<window_t, 1> windows;
+	windows[0].size = 16;
+	
+	for(auto& win : windows) {
+		win.coeff.resize(win.size * 2 + 1);
+		for(ssize_t i = -win.size; i <= win.size; ++i) {
+			win.coeff[i + win.size] = fabsf(2 * (win.size + 1) - i) / float(2 * (win.size + 1));
+		}
+		win.word_hits.resize(job->words.size());
+	}
+	
+	ssize_t best_pos = -1;
+	float best_score = 0;
+	double total_score = 0;
+	
+	for(ssize_t k = 0; k < word_list.size(); ++k)
 	{
-		for(ssize_t i = -window; i <= window; ++i) {
-			const auto w_i = word_list[k + i];
-			if(w_i > 0) {
-				auto& value = word_hits[w_i - 1];
-				value = fmaxf(value, coeff_21[i + window]);
+		for(auto& win : windows) {
+			for(ssize_t i = -win.size; i <= win.size; ++i) {
+				const auto k_i = k + i;
+				if(k_i >= 0 && k_i < word_list.size()) {
+					const auto w_i = word_list[k_i];
+					if(w_i > 0) {
+						auto& value = win.word_hits[w_i - 1];
+						value = fmaxf(value, win.coeff[i + win.size]);
+					}
+				}
 			}
 		}
 		float score = 0;
-		for(auto& value : word_hits) {
-			score += value;
-			value = 0;
+		for(auto& win : windows) {
+			for(auto& value : win.word_hits) {
+				score += value;
+				value = 0;
+			}
 		}
 		if(score > best_score) {
 			best_pos = k;
 			best_score = score;
 		}
+		total_score += score;
 	}
+	
+	switch(job->options.score_type) {
+		case score_type_e::MAX_SCORE:
+			item.score *= best_score;
+			break;
+		default:
+		case score_type_e::AVG_SCORE:
+			item.score *= total_score / array.size();
+			break;
+		case score_type_e::TOTAL_SCORE:
+			item.score *= total_score;
+			break;
+	}
+	
 	if(best_pos >= 0) {
-		item.context_center = array[best_pos].second;
-		item.score = best_score * item.score;
-	} else if(array.size()) {
-		item.context_center = array[array.size() / 2].second;
-		item.score = 0.1f * item.score;		// TODO: improve this
-	} else {
-		item.score = 0;
+		item.context.first =  array[std::max(best_pos - job->options.context, ssize_t(0))].second;
+		item.context.second = array[std::min(best_pos + job->options.context + 1, ssize_t(array.size() - 1))].second;
 	}
 	
 	if(--job->num_left == 0) {

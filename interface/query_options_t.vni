@@ -1,0 +1,15 @@
+package vnx.search;
+
+struct query_options_t {
+	
+	int limit = 10;					// number of results
+	
+	uint offset;					// result offset
+	
+	int context = 20;				// number of words
+	
+	score_type_e score_type = AVG_SCORE;
+	
+	vector<search_flags_e> flags;
+	
+}

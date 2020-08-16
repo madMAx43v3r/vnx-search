@@ -34,12 +34,10 @@ module SearchEngine {
 	
 	int stats_interval_ms = 10000;
 	
-	int result_context_window = 128;		// number of characters
-	
 	vector<string> protocols;				// protocols to allow as links
 	
 	
-	SearchResult* query(vector<string> words, int limit, uint offset, vector<search_flags_e> flags) const async;
+	SearchResult* query(vector<string> words, query_options_t options) const async;
 	
 	Object get_domain_info(string host, int limit, uint offset) const async;
 	

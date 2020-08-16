@@ -18,29 +18,35 @@ int main(int argc, char** argv)
 	options["w"] = "words";
 	options["l"] = "limit";
 	options["p"] = "page";
-	options["o"] = "options";
+	options["t"] = "type";
+	options["f"] = "flags";
 	options["server"] = "backend server url";
 	options["words"] = "search words";
 	options["limit"] = "max results";
 	options["page"] = "page index";
-	options["options"] = "search flags";
+	options["type"] = "score type";
+	options["flags"] = "search flags";
 	options["complete"] = "complete word";
 	
 	vnx::init("vnx_search_query", argc, argv, options);
 	
 	std::string server = ".vnx_search_engine.sock";
 	std::vector<std::string> words;
+	vnx::search::query_options_t query_options;
 	int32_t limit = 10;
 	uint32_t page = 0;
-	std::vector<vnx::search::search_flags_e> flags;
 	bool complete = false;
 	
 	vnx::read_config("server", server);
 	vnx::read_config("words", words);
 	vnx::read_config("limit", limit);
 	vnx::read_config("page", page);
-	vnx::read_config("options", flags);
+	vnx::read_config("type", query_options.score_type);
+	vnx::read_config("flags", query_options.flags);
 	vnx::read_config("complete", complete);
+	
+	query_options.limit = limit;
+	query_options.offset = page * limit;
 	
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
@@ -55,7 +61,7 @@ int main(int argc, char** argv)
 			std::cout << vnx::to_string(result) << std::endl;
 		}
 	} else {
-		auto result = client.query(words, limit, limit >= 0 ? page * limit : 0, flags);
+		auto result = client.query(words, query_options);
 		vnx::PrettyPrinter print(std::cout);
 		vnx::accept(print, result);
 		std::cout << std::endl;

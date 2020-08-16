@@ -1,0 +1,9 @@
+package vnx.search;
+
+enum score_type_e {
+	
+	MAX_SCORE,
+	AVG_SCORE,
+	TOTAL_SCORE
+	
+}

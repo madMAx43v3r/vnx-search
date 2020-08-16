@@ -101,11 +101,13 @@ protected:
 		uint32_t page_id = 0;
 		uint32_t domain_id = 0;
 		stx::pstring url_key;
-		int64_t context_center = -1;
+		std::pair<int64_t, int64_t> context;
 		float score = 0;
 	};
 	
-	struct query_job_t : SearchEngine_query {
+	struct query_job_t {
+		std::vector<std::string> words;
+		query_options_t options;
 		request_id_t req_id;
 		int64_t time_begin = 0;
 		std::atomic<size_t> num_left;
@@ -162,8 +164,7 @@ protected:
 	void main() override;
 	
 	void query_async(	const std::vector<std::string>& words,
-						const int32_t& limit, const uint32_t& offset,
-						const std::vector<search_flags_e>& flags,
+						const query_options_t& options,
 						const request_id_t& req_id) const override;
 	
 	void get_page_info_callback(const std::string& url_key,
