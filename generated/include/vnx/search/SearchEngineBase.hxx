@@ -37,6 +37,7 @@ public:
 	int32_t lock_timeout = 100;
 	int32_t queue_interval_ms = 10;
 	int32_t stats_interval_ms = 10000;
+	vnx::bool_t update_word_array = 0;
 	std::vector<std::string> protocols;
 	
 	typedef ::vnx::Module Super;

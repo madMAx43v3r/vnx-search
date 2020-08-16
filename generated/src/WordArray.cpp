@@ -4,6 +4,7 @@
 #include <vnx/search/package.hxx>
 #include <vnx/search/WordArray.hxx>
 #include <vnx/Value.h>
+#include <vnx/search/word_entry_t.hxx>
 
 #include <vnx/vnx.h>
 
@@ -13,7 +14,7 @@ namespace search {
 
 
 const vnx::Hash64 WordArray::VNX_TYPE_HASH(0xabb8eb197035a035ull);
-const vnx::Hash64 WordArray::VNX_CODE_HASH(0xb3fed1757c44091aull);
+const vnx::Hash64 WordArray::VNX_CODE_HASH(0x28b84a0b48dce955ull);
 
 vnx::Hash64 WordArray::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -131,10 +132,12 @@ std::shared_ptr<vnx::TypeCode> WordArray::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.WordArray";
 	type_code->type_hash = vnx::Hash64(0xabb8eb197035a035ull);
-	type_code->code_hash = vnx::Hash64(0xb3fed1757c44091aull);
+	type_code->code_hash = vnx::Hash64(0x28b84a0b48dce955ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<WordArray>(); };
+	type_code->depends.resize(1);
+	type_code->depends[0] = ::vnx::search::word_entry_t::static_get_type_code();
 	type_code->fields.resize(2);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -145,7 +148,7 @@ std::shared_ptr<vnx::TypeCode> WordArray::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "list";
-		field.code = {12, 23, 2, 4, 5, 3, 3};
+		field.code = {12, 19, 0};
 	}
 	type_code->build();
 	return type_code;
