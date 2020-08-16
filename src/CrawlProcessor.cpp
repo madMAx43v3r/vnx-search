@@ -30,6 +30,11 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	matcher = std::make_shared<googlebot::RobotsMatcher>();
 }
 
+void CrawlProcessor::init()
+{
+	vnx::open_pipe(vnx_name, this, 100);
+}
+
 void CrawlProcessor::main()
 {
 	subscribe(input_url_index, 100);

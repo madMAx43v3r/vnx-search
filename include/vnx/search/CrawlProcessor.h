@@ -70,6 +70,8 @@ protected:
 		robots_txt_state_e robots_state = ROBOTS_TXT_UNKNOWN;
 	};
 	
+	void init() override;
+	
 	void main() override;
 	
 	Object get_stats(const int32_t& limit) const override;
