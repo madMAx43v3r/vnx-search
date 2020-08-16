@@ -2,5 +2,5 @@
 	"do_compress": true,
 	"compress_level": 3,
 	"rewrite_threshold": 0.3,
-	"num_threads": 16
+	"num_threads": 32
 }
