@@ -39,7 +39,7 @@ void HtmlParser::update()
 	vnx::connect(service_pipe, vnx::get_pipe(frontend_server), 0);
 	
 	frontend->register_parser_async(service_pipe->get_mac_addr(),
-			{"text/html", "text/xml", "application/xml", "application/xhtml+xml"}, 1);
+			std::vector<std::string>(g_html_content_types.begin(), g_html_content_types.end()), 1);
 }
 
 static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> result)
