@@ -18,6 +18,8 @@ using namespace icu;
 namespace vnx {
 namespace search {
 
+std::set<std::string> g_html_content_types = {"text/html", "text/xml", "application/xml", "application/xhtml+xml"};
+
 std::string& clean_text(std::string& s)
 {
 	clean(s);

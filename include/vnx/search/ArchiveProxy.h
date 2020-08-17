@@ -9,7 +9,7 @@
 #define INCLUDE_VNX_SEARCH_ARCHIVEPROXY_H_
 
 #include <vnx/search/ArchiveProxyBase.hxx>
-#include <vnx/keyvalue/ServerClient.hxx>
+#include <vnx/keyvalue/StorageClient.hxx>
 
 
 namespace vnx {
@@ -28,7 +28,7 @@ private:
 	void flush();
 	
 private:
-	std::shared_ptr<keyvalue::ServerClient> client;
+	std::shared_ptr<keyvalue::StorageClient> client;
 	
 	std::vector<std::pair<Variant, std::shared_ptr<const Value>>> buffer;
 	

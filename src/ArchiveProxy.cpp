@@ -19,9 +19,9 @@ ArchiveProxy::ArchiveProxy(const std::string& _vnx_name)
 
 void ArchiveProxy::main()
 {
-	subscribe(input_http, 100 * 1000);
+	subscribe(input_http, 300 * 1000);
 	
-	client = std::make_shared<keyvalue::ServerClient>(server_name);
+	client = std::make_shared<keyvalue::StorageClient>(server_name);
 	
 	set_timer_millis(1000, std::bind(&ArchiveProxy::flush, this));
 	

@@ -1,0 +1,28 @@
+package vnx.search;
+
+module ArchiveServer {
+	
+	vnx.TopicPtr input_updates;
+	
+	string frontend_server = "CrawlFrontend";
+	string http_archive_server = "HttpArchive";
+	string url_index_server = "UrlIndex";
+	
+	int max_per_minute = 12;				// max pages/min for a single domain
+	
+	int max_num_pending = 100;
+	
+	int num_threads = 4;
+	
+	int bytes_per_day = 1024;				// for reload interval based on size
+	
+	int check_interval_ms = 500;			// queue check [ms]
+	
+	int lock_timeout = 100;					// [sec]
+	
+	bool update_all;
+	
+	
+	void handle(vnx.keyvalue.SyncUpdate sample);
+	
+}

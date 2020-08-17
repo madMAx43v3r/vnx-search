@@ -19,6 +19,8 @@
 namespace vnx {
 namespace search {
 
+std::set<std::string> g_html_content_types;
+
 // trim from left
 inline
 std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")

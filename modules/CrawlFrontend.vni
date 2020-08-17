@@ -3,7 +3,6 @@ package vnx.search;
 module CrawlFrontend {
 	
 	vnx.TopicPtr output_http = "frontend.http_responses";
-	
 	vnx.TopicPtr output_text = "frontend.text_responses";
 	
 	int num_threads = 10;
@@ -16,12 +15,12 @@ module CrawlFrontend {
 	
 	long max_response_size = 4194304;
 	
-	string processor_server = "CrawlProcessor";
-	
 	string user_agent = "Mozilla/5.0";
 	
 	
-	FetchResult* fetch(string url) const async;
+	UrlInfo load(string url) const async;				// generic load
+	
+	FetchResult* fetch(string url) const async;			// crawl fetch
 	
 	void register_parser(vnx.Hash64 address, vector<string> mime_types, int num_threads);
 	
