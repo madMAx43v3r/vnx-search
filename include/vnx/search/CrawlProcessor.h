@@ -164,7 +164,6 @@ private:
 private:
 	std::shared_ptr<ThreadPool> work_threads;
 	std::map<uint64_t, std::string> pending_urls;
-	std::multimap<int64_t, std::string> waiting;
 	
 	std::unordered_map<std::string, url_t> url_map;
 	std::unordered_map<std::string, domain_t> domain_map;

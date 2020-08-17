@@ -93,7 +93,7 @@ void CrawlProcessor::main()
 		page_index_async->sync_all(input_page_index_sync);
 	}
 	
-	work_threads = std::make_shared<ThreadPool>(num_worker_threads, 100);
+	work_threads = std::make_shared<ThreadPool>(num_threads, 100);
 	
 	Super::main();
 	
@@ -235,14 +235,16 @@ void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::SyncUpdate> ent
 	{
 		auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 		if(index) {
-			const auto url = index->scheme + ":" + url_key;
-			const Url::Url parsed(url);
-			if(filter_url(parsed)) {
-				if(!index->last_fetched) {
-					check_url(parsed, index->depth, entry);
+			if(index->depth >= 0) {
+				const auto url = index->scheme + ":" + url_key;
+				const Url::Url parsed(url);
+				if(filter_url(parsed)) {
+					if(!index->last_fetched) {
+						check_url(parsed, index->depth, entry);
+					}
+				} else {
+					delete_page(url_key);
 				}
-			} else if(!is_robots_txt(parsed)) {
-				delete_page(url_key);
 			}
 			return;
 		}
@@ -682,9 +684,9 @@ void CrawlProcessor::url_update(	const std::string& url_key,
 									const UrlInfo& info,
 									std::shared_ptr<const TextResponse> response)
 {
-	url_index_async->get_value_locked(Variant(url_key), 100 * 1000,
-						std::bind(&CrawlProcessor::url_update_callback, this,
-								url_key, new_scheme, new_depth, info, response, std::placeholders::_1));
+	url_index_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
+			std::bind(&CrawlProcessor::url_update_callback, this,
+						url_key, new_scheme, new_depth, info, response, std::placeholders::_1));
 }
 
 void CrawlProcessor::url_update_callback(	const std::string& url_key,

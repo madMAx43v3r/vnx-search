@@ -7,11 +7,8 @@ module CrawlProcessor {
 	vnx.TopicPtr output_crawl_stats = "crawl.stats";
 	
 	string url_index_server = "UrlIndex";
-	
 	string page_index_server = "PageIndex";
-	
 	string page_content_server = "PageContent";
-	
 	string crawl_frontend_server = "CrawlFrontend";
 	
 	int jump_cost = 3;
@@ -34,13 +31,15 @@ module CrawlProcessor {
 	
 	int max_word_length = 64;
 	
-	int num_worker_threads = 4;
+	int num_threads = 4;
 	
 	int check_interval_ms = 500;			// queue check [ms]
 	
 	int robots_timeout = 1000;				// max time to wait for robots.txt [sec]
 	
 	int robots_reload_interval = 2678400;	// [sec]
+	
+	int lock_timeout = 100;					// [sec]
 	
 	float reload_power = 4;
 	
