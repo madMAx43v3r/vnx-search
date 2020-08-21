@@ -356,14 +356,10 @@ int CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t loa
 		return 0;
 	}
 	
-	bool is_waiting = false;
 	const auto delta = load_time - std::time(0);
 	if(delta <= 0) {
 		auto& domain = get_domain(host);
 		domain.queue.emplace(depth, url);
-	} else if(delta < 2 * sync_interval) {
-		waiting.emplace(load_time, url);
-		is_waiting = true;
 	} else {
 		return 0;
 	}
@@ -372,7 +368,7 @@ int CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t loa
 	entry.domain = host;
 	entry.depth = depth;
 	entry.is_reload = load_time > 0;
-	return is_waiting ? 2 : 1;
+	return 1;
 }
 
 void CrawlProcessor::check_queue()
@@ -383,20 +379,6 @@ void CrawlProcessor::check_queue()
 	const int64_t now_wall_us = vnx::get_wall_time_micros();
 	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
 	
-	while(!waiting.empty())
-	{
-		const auto entry = waiting.begin();
-		if(entry->first <= now_posix) {
-			auto url_iter = url_map.find(get_url_key(entry->second));
-			if(url_iter != url_map.end()) {
-				const url_t& url = url_iter->second;
-				get_domain(url.domain).queue.emplace(url.depth, entry->second);
-			}
-			waiting.erase(entry);
-		} else {
-			break;
-		}
-	}
 	for(auto iter = domain_map.begin(); iter != domain_map.end();)
 	{
 		auto& domain = iter->second;
@@ -810,7 +792,6 @@ Object CrawlProcessor::get_stats(const int32_t& limit) const
 	stats["num_reload"] = reload_counter;
 	stats["num_domains"] = domain_map.size();
 	stats["num_queued"] = url_map.size();
-	stats["num_waiting"] = waiting.size();
 	{
 		std::multimap<int64_t, Object, std::greater<int64_t>> sorted_fetched;
 		std::multimap<int64_t, Object, std::greater<int64_t>> sorted_queued;
@@ -850,7 +831,7 @@ void CrawlProcessor::publish_stats()
 
 void CrawlProcessor::print_stats()
 {
-	log(INFO).out << url_map.size() << " queued, " << waiting.size() << " waiting, "
+	log(INFO).out << url_map.size() << " queued, "
 			<< pending_urls.size() << " pending, " << queue_block_count << " blocking, "
 			<< fetch_counter << " fetched, " << error_counter << " failed, "
 			<< delete_counter << " deleted, " << reload_counter << " reload, "
