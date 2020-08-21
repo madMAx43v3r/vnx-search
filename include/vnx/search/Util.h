@@ -19,7 +19,7 @@
 namespace vnx {
 namespace search {
 
-std::set<std::string> g_html_content_types;
+extern const std::set<std::string> g_html_content_types;
 
 // trim from left
 inline
