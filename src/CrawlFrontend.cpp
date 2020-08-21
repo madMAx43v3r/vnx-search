@@ -79,6 +79,12 @@ void CrawlFrontend::main()
 	work_threads->close();
 }
 
+void CrawlFrontend::load_async(	const std::string& url,
+								const vnx::request_id_t& _request_id) const
+{
+	throw std::logic_error("not implemented");
+}
+
 void CrawlFrontend::fetch_async(const std::string& url,
 								const vnx::request_id_t& req_id) const
 {

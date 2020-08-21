@@ -44,6 +44,9 @@ protected:
 	
 	void main() override;
 	
+	void load_async(const std::string& url,
+					const vnx::request_id_t& _request_id) const override;
+	
 	void fetch_async(	const std::string& url,
 						const vnx::request_id_t& req_id) const override;
 	
