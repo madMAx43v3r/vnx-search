@@ -10,9 +10,12 @@
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/CrawlFrontend_fetch.hxx>
 #include <vnx/search/CrawlFrontend_fetch_return.hxx>
+#include <vnx/search/CrawlFrontend_load.hxx>
+#include <vnx/search/CrawlFrontend_load_return.hxx>
 #include <vnx/search/CrawlFrontend_register_parser.hxx>
 #include <vnx/search/CrawlFrontend_register_parser_return.hxx>
 #include <vnx/search/FetchResult.hxx>
+#include <vnx/search/UrlInfo.hxx>
 
 #include <vnx/vnx.h>
 
@@ -34,6 +37,17 @@ CrawlFrontendClient::CrawlFrontendClient(vnx::Hash64 service_addr)
 	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("CrawlFrontendClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+::vnx::search::UrlInfo CrawlFrontendClient::load(const std::string& url) {
+	auto _method = ::vnx::search::CrawlFrontend_load::create();
+	_method->url = url;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlFrontend_load_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("CrawlFrontendClient: !_result");
 	}

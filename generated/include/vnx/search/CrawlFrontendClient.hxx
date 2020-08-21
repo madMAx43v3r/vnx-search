@@ -9,6 +9,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
+#include <vnx/search/UrlInfo.hxx>
 
 
 namespace vnx {
@@ -21,6 +22,8 @@ public:
 	CrawlFrontendClient(vnx::Hash64 service_addr);
 	
 	::vnx::TypeCode vnx_get_type_code();
+	
+	::vnx::search::UrlInfo load(const std::string& url);
 	
 	std::shared_ptr<const ::vnx::search::FetchResult> fetch(const std::string& url);
 	

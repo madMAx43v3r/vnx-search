@@ -9,6 +9,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
+#include <vnx/search/UrlInfo.hxx>
 
 
 namespace vnx {
@@ -24,7 +25,6 @@ public:
 	int32_t stats_interval_ms = 10000;
 	int64_t max_content_length = 1048576;
 	int64_t max_response_size = 4194304;
-	std::string processor_server = "CrawlProcessor";
 	std::string user_agent = "Mozilla/5.0";
 	
 	typedef ::vnx::Module Super;
@@ -56,6 +56,8 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	virtual void load_async(const std::string& url, const vnx::request_id_t& _request_id) const = 0;
+	void load_async_return(const vnx::request_id_t& _request_id, const ::vnx::search::UrlInfo& _ret_0) const;
 	virtual void fetch_async(const std::string& url, const vnx::request_id_t& _request_id) const = 0;
 	void fetch_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::FetchResult>& _ret_0) const;
 	virtual void register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads) = 0;

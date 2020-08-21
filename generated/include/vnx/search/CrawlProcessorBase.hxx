@@ -34,10 +34,11 @@ public:
 	int32_t max_queue_size = 1000;
 	int32_t max_url_length = 256;
 	int32_t max_word_length = 64;
-	int32_t num_worker_threads = 4;
+	int32_t num_threads = 4;
 	int32_t check_interval_ms = 500;
 	int32_t robots_timeout = 1000;
 	int32_t robots_reload_interval = 2678400;
+	int32_t lock_timeout = 100;
 	vnx::float32_t reload_power = 4;
 	uint32_t index_version = 0;
 	vnx::bool_t do_reprocess = false;

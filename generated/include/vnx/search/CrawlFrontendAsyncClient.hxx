@@ -9,6 +9,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
+#include <vnx/search/UrlInfo.hxx>
 
 
 namespace vnx {
@@ -22,6 +23,10 @@ public:
 	
 	uint64_t vnx_get_type_code(
 			const std::function<void(::vnx::TypeCode)>& _callback = std::function<void(::vnx::TypeCode)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
+	
+	uint64_t load(const std::string& url, 
+			const std::function<void(::vnx::search::UrlInfo)>& _callback = std::function<void(::vnx::search::UrlInfo)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
 	uint64_t fetch(const std::string& url, 
@@ -41,6 +46,7 @@ protected:
 	
 private:
 	std::map<uint64_t, std::pair<std::function<void(::vnx::TypeCode)>, std::function<void(const std::exception&)>>> vnx_queue_vnx_get_type_code;
+	std::map<uint64_t, std::pair<std::function<void(::vnx::search::UrlInfo)>, std::function<void(const std::exception&)>>> vnx_queue_load;
 	std::map<uint64_t, std::pair<std::function<void(std::shared_ptr<const ::vnx::search::FetchResult>)>, std::function<void(const std::exception&)>>> vnx_queue_fetch;
 	std::map<uint64_t, std::pair<std::function<void()>, std::function<void(const std::exception&)>>> vnx_queue_register_parser;
 	
