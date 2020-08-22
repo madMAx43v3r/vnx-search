@@ -22,13 +22,15 @@ module SearchEngine {
 	
 	int num_update_threads = 4;
 	
+	int commit_delay = 100;					// [sec]
+	
 	int link_commit_interval = 60;			// [sec]
 	
 	int word_commit_interval = 3600;		// [sec]
 	
 	int lock_timeout = 100;					// [sec]
 	
-	int queue_interval_ms = 10;		// [ms]
+	int queue_interval_ms = 10;				// queue check interval [ms]
 	
 	int stats_interval_ms = 10000;
 	

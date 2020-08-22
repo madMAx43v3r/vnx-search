@@ -269,12 +269,10 @@ private:
 									std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void check_queues();
-	
 	void check_load_queue();
-	
 	void check_link_queue();
-	
 	void check_word_queue();
+	void check_page_queue();
 	
 	void link_update_callback_0(std::shared_ptr<link_cache_t> cache,
 								std::shared_ptr<const keyvalue::Entry> entry);
@@ -339,6 +337,7 @@ private:
 	std::queue<std::shared_ptr<page_update_job_t>> load_queue;
 	std::queue<std::shared_ptr<word_process_job_t>> load_queue_2;
 	std::multimap<int64_t, std::shared_ptr<link_cache_t>> link_queue;
+	std::multimap<int64_t, std::shared_ptr<page_cache_t>> page_queue;
 	std::multimap<int64_t, uint32_t> word_queue;
 	
 	mutable std::shared_mutex index_mutex;

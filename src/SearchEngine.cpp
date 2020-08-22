@@ -632,7 +632,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 					cache->rem_reverse_links.push_back(url_key);
 				}
 			}
-			p_link_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
+			p_link_cache->schedule_time_us = (vnx::get_wall_time_seconds() + commit_delay) * 1000000;
 		}
 	}
 	if(page_info->word_version)
@@ -693,7 +693,7 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 			}
 			p_new_cache->add_reverse_links.push_back(parent_key);
 		}
-		p_new_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
+		p_new_cache->schedule_time_us = (vnx::get_wall_time_seconds() + commit_delay) * 1000000;
 		
 		delete_page_async(org_url_key);
 	}
@@ -1044,7 +1044,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 			p_link_cache->add_links.push_back(link_key);
 		}
 		// make sure our link cache is saved last
-		p_link_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
+		p_link_cache->schedule_time_us = (vnx::get_wall_time_seconds() + commit_delay) * 1000000;
 	}
 	
 	// update word index if version is greater and previous update has finished
@@ -1087,6 +1087,7 @@ void SearchEngine::check_queues()
 {
 	check_link_queue();
 	check_word_queue();
+	check_page_queue();
 	check_load_queue();
 }
 
@@ -1168,6 +1169,25 @@ void SearchEngine::check_word_queue()
 	}
 }
 
+void SearchEngine::check_page_queue()
+{
+	const auto now = vnx::get_wall_time_seconds();
+	while(!page_queue.empty()
+			&& page_info_async->vnx_get_num_pending() < max_num_pending)
+	{
+		const auto iter = page_queue.begin();
+		if(now - iter->first >= 0)
+		{
+			auto cached = iter->second;
+			page_info_async->get_value_locked(Variant(cached->url_key), lock_timeout * 1000,
+					std::bind(&SearchEngine::page_word_update_callback, this, cached, std::placeholders::_1));
+			page_queue.erase(iter);
+		} else {
+			break;
+		}
+	}
+}
+
 void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cache,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
@@ -1233,8 +1253,7 @@ void SearchEngine::page_word_update_finished(uint32_t page_id)
 		const auto cached = iter->second;
 		if(cached->words_pending == 0)
 		{
-			page_info_async->get_value_locked(Variant(cached->url_key), lock_timeout * 1000,
-					std::bind(&SearchEngine::page_word_update_callback, this, cached, std::placeholders::_1));
+			page_queue.emplace(vnx::get_wall_time_seconds() + commit_delay, cached);
 			page_cache.erase(iter);
 		}
 	}
