@@ -1310,7 +1310,7 @@ void SearchEngine::query_task_0(std::shared_ptr<query_job_t> job) const noexcept
 	const uint32_t num_words = job->context.size();
 	
 	size_t num_found = 0;
-	std::vector<uint32_t> found(max_query_pages);
+	std::vector<uint32_t> found(job->options.max_results);
 	
 	if(num_words > 1)
 	{
@@ -1355,11 +1355,11 @@ void SearchEngine::query_task_0(std::shared_ptr<query_job_t> job) const noexcept
 		}
 		num_found = list.size();
 	}
-	if(num_found >= max_query_pages) {
+	if(num_found >= job->options.max_results) {
 		job->result->has_more = true;
 	}
 	
-	job->tmp_results.reserve(max_query_pages);
+	job->tmp_results.reserve(job->options.max_results);
 	{
 		std::shared_lock lock(index_mutex);
 		
