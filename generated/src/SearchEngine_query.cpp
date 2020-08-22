@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchEngine_query::VNX_TYPE_HASH(0x14a6c3ff80018ce8ull);
-const vnx::Hash64 SearchEngine_query::VNX_CODE_HASH(0x14e969245a05885bull);
+const vnx::Hash64 SearchEngine_query::VNX_CODE_HASH(0x61b2644057bed05aull);
 
 vnx::Hash64 SearchEngine_query::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -133,7 +133,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_query::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchEngine.query";
 	type_code->type_hash = vnx::Hash64(0x14a6c3ff80018ce8ull);
-	type_code->code_hash = vnx::Hash64(0x14e969245a05885bull);
+	type_code->code_hash = vnx::Hash64(0x61b2644057bed05aull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
