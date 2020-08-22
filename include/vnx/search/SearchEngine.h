@@ -110,8 +110,10 @@ protected:
 		query_options_t options;
 		request_id_t req_id;
 		int64_t time_begin = 0;
-		std::atomic<size_t> num_left;
+		std::atomic<size_t> num_left {0};
+		std::atomic<size_t> num_found {0};
 		std::vector<Variant> url_keys;
+		std::vector<uint32_t> found;
 		std::vector<tmp_result_t> tmp_results;
 		std::unordered_map<uint32_t, uint32_t> word_set;
 		std::shared_ptr<SearchResult> result;
@@ -294,7 +296,8 @@ private:
 	
 	void write_info();
 	
-	void query_task_0(std::shared_ptr<query_job_t> job) const noexcept;
+	void query_task_0(	std::shared_ptr<query_job_t> job,
+						uint32_t num_threads, uint32_t index) const noexcept;
 	
 	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 						std::shared_ptr<const WordArray> word_array) const noexcept;
