@@ -4,9 +4,6 @@
 [submodule "keyvalue"]
 	path = keyvalue
 	url = https://github.com/madMAx43v3r/vnx-keyvalue.git
-[submodule "lib/url-cpp"]
-	path = lib/url-cpp
-	url = https://github.com/seomoz/url-cpp.git
 [submodule "lib/libxmlplusplus"]
 	path = lib/libxmlplusplus
 	url = https://github.com/madMAx43v3r/libxmlplusplus.git

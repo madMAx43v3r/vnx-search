@@ -17,7 +17,6 @@ find_library(JEMALLOC_LIBRARY jemalloc REQUIRED)
 pkg_check_modules(PC_GLIBMM glibmm-2.4)
 
 file(GLOB GENERATED_SOURCE_FILES generated/src/*.cpp)
-file(GLOB URL_CPP_SOURCE_FILES lib/url-cpp/src/*.cpp)
 
 add_library(xmlpp SHARED IMPORTED GLOBAL)
 set_target_properties(xmlpp PROPERTIES
@@ -29,7 +28,6 @@ set_target_properties(robotstxt PROPERTIES
 
 add_library(vnx_search SHARED
 	${GENERATED_SOURCE_FILES}
-	${URL_CPP_SOURCE_FILES}
 	src/CrawlFrontend.cpp
 	src/HtmlParser.cpp
 	src/CrawlProcessor.cpp
@@ -43,7 +41,6 @@ target_include_directories(vnx_search
 	PUBLIC
 		include
 		generated/include
-		lib/url-cpp/include
 		lib/libstx/include
 	PRIVATE
 		lib/libxmlplusplus
@@ -54,7 +51,7 @@ target_include_directories(vnx_search
 )
 target_link_libraries(vnx_search
 	vnx_keyvalue vnx_addons vnx_base
-	xmlpp robotstxt curl
+	url_cpp xmlpp robotstxt curl
 	${LIBXML2_LIBRARIES}
 	${PC_GLIBMM_LIBRARIES}
 	${JEMALLOC_LIBRARY}
