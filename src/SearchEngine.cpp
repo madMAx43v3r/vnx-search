@@ -246,7 +246,7 @@ void SearchEngine::query_callback_3(std::shared_ptr<query_job_t> job) const
 		job->result->compute_time_us += time_mid - job->time_begin;
 		job->time_begin = time_mid;
 	}
-	page_info_async->get_values(job->url_keys,
+	page_index_async->get_values(job->url_keys,
 			std::bind(&SearchEngine::query_callback_4, this, job, std::placeholders::_1),
 			job->error_callback);
 }
@@ -260,9 +260,9 @@ void SearchEngine::query_callback_4(std::shared_ptr<query_job_t> job,
 		job->time_begin = now;
 	}
 	for(size_t i = 0; i < entries.size(); ++i) {
-		auto info = std::dynamic_pointer_cast<const PageInfo>(entries[i]->value);
-		if(info) {
-			job->result->items[i].title = info->title;
+		auto index = std::dynamic_pointer_cast<const PageIndex>(entries[i]->value);
+		if(index) {
+			job->result->items[i].title = index->title;
 		}
 	}
 	page_content_async->get_values(job->url_keys,
