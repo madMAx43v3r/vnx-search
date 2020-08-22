@@ -94,7 +94,6 @@ protected:
 		std::vector<std::string> add_links;
 		std::vector<std::string> rem_reverse_links;
 		std::vector<std::string> add_reverse_links;
-		std::map<std::string, int> add_reverse_domains;
 	};
 	
 	struct tmp_result_t {

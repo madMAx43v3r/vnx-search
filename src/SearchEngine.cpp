@@ -630,7 +630,6 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 				const auto cache = get_link_cache(child_key);
 				if(cache) {
 					cache->rem_reverse_links.push_back(url_key);
-					cache->add_reverse_domains[page_info->domain]--;
 				}
 			}
 			p_link_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
@@ -693,9 +692,6 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 				cache->rem_links.push_back(org_url_key);
 			}
 			p_new_cache->add_reverse_links.push_back(parent_key);
-		}
-		for(const auto& entry : org_page_info->reverse_domains) {
-			p_new_cache->add_reverse_domains[entry.first] += entry.second;
 		}
 		p_new_cache->schedule_time_us = vnx::get_wall_time_micros() + 1000000;
 		
@@ -1033,7 +1029,6 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 					auto cached = get_link_cache(link_key);
 					if(cached) {
 						cached->rem_reverse_links.push_back(url_key);
-						cached->add_reverse_domains[domain]--;
 					}
 					p_link_cache->rem_links.push_back(link_key);
 				}
@@ -1045,7 +1040,6 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 			auto cached = get_link_cache(link_key);
 			if(cached) {
 				cached->add_reverse_links.push_back(url_key);
-				cached->add_reverse_domains[domain]++;
 			}
 			p_link_cache->add_links.push_back(link_key);
 		}
@@ -1486,15 +1480,10 @@ void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noex
 	for(const auto& parent_key : cache->add_reverse_links) {
 		unique_push_back(info->reverse_links, parent_key);
 	}
-	for(const auto& entry : cache->add_reverse_domains) {
-		info->reverse_domains[entry.first] += entry.second;
-	}
-	for(auto iter = info->reverse_domains.begin(); iter != info->reverse_domains.end();) {
-		if(iter->second <= 0) {
-			iter = info->reverse_domains.erase(iter);
-		} else {
-			iter++;
-		}
+	info->reverse_domains.clear();
+	for(const auto& link_key : info->reverse_links) {
+		const Url::Url parsed(link_key);
+		info->reverse_domains[parsed.host()]++;
 	}
 	job->result = info;
 	
