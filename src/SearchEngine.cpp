@@ -89,7 +89,6 @@ void SearchEngine::main()
 	set_timer_millis(600 * 1000, std::bind(&SearchEngine::write_info, this));
 	
 	page_info_async->sync_all(input_page_info_sync);
-	word_context_async->sync_all(input_word_context_sync);
 	
 	query_threads = std::make_shared<ThreadPool>(num_query_threads);
 	update_threads = std::make_shared<ThreadPool>(num_update_threads);
@@ -824,6 +823,11 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		if(value->collection == "page_info")
 		{
 			log(INFO).out << "Loaded " << page_index.size() << " page infos.";
+		}
+		if(init_sync_count == 1)
+		{
+			word_context_async->sync_all(input_word_context_sync);
+			log(INFO).out << "Starting WordContext sync ...";
 		}
 		if(init_sync_count == 2)
 		{
