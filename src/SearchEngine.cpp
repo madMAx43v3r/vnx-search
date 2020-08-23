@@ -169,7 +169,7 @@ void SearchEngine::query_callback_1(std::shared_ptr<query_job_t> job) const
 			item.page_id = page->id;
 			item.domain_id = page->domain_id;
 			item.url_key = page->url_key;
-			item.score = page->reverse_domains;
+			item.score = page->rank_value;
 			job->tmp_results.push_back(item);
 		}
 	}
@@ -714,6 +714,27 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 	}
 }
 
+void SearchEngine::update_page_rank(page_t* page, std::shared_ptr<const PageInfo> info)
+{
+	page->reverse_domains = info->reverse_domains.size();
+	page->rank_value = page->reverse_domains;
+	
+	for(const auto& url_key : info->links)
+	{
+		auto* child = find_page_url(url_key);
+		if(child) {
+			child->rank_value = std::max(child->reverse_domains, page->reverse_domains / 2);
+		}
+	}
+	for(const auto& url_key : info->reverse_links)
+	{
+		const auto* parent = find_page_url(url_key);
+		if(parent) {
+			page->rank_value = std::max(page->reverse_domains, parent->reverse_domains / 2);
+		}
+	}
+}
+
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 {
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
@@ -746,10 +767,12 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 				page.array_version = info->array_version;
 				page.reverse_links = info->reverse_links.size();
 				page.reverse_domains = info->reverse_domains.size();
-				
-				auto& domain = get_domain(parsed.host());
-				page.domain_id = domain.id;
-				domain.pages.push_back(page.id);
+				{
+					auto& domain = get_domain(parsed.host());
+					page.domain_id = domain.id;
+					domain.pages.push_back(page.id);
+				}
+				update_page_rank(&page, info);
 				
 				next_page_id = std::max(next_page_id, info->id + 1);
 			}
@@ -1547,11 +1570,18 @@ void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noex
 	}
 	info->reverse_domains.clear();
 	for(const auto& link_key : info->reverse_links) {
-		const Url::Url parsed(link_key);
-		info->reverse_domains[parsed.host()]++;
+		info->reverse_domains[Url::Url(link_key).host()]++;
 	}
 	job->result = info;
 	
+	if(info->id) {
+		std::shared_lock lock(index_mutex);
+		
+		auto* page = find_page(info->id);
+		if(page) {
+			update_page_rank(page, info);
+		}
+	}
 	add_task(std::bind(&SearchEngine::link_update_callback_1, this, job));
 }
 
@@ -1642,7 +1672,7 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 		{
 			const auto* page = find_page(page_id);
 			if(page) {
-				list.emplace_back(std::make_pair(page->reverse_domains, page->reverse_links), page_id);
+				list.emplace_back(std::make_pair(page->rank_value.load(), page->reverse_links), page_id);
 			}
 			if(i++ % 8192 == 8000) {
 				lock.unlock();

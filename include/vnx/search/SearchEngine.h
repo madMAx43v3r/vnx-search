@@ -61,6 +61,7 @@ protected:
 		uint32_t domain_id = 0;
 		uint32_t reverse_links = 0;
 		uint32_t reverse_domains = 0;
+		std::atomic<uint32_t> rank_value {0};
 		uint64_t index_version = 0;
 		uint64_t link_version = 0;
 		uint64_t word_version = 0;
@@ -223,6 +224,8 @@ private:
 	std::shared_ptr<link_cache_t> get_link_cache(const std::string& url_key);
 	
 	std::shared_ptr<word_cache_t> get_word_cache(uint32_t word_id);
+	
+	void update_page_rank(page_t* page, std::shared_ptr<const PageInfo> info);
 	
 	void query_callback_0(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
