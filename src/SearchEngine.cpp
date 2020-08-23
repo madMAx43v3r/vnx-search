@@ -625,12 +625,12 @@ void SearchEngine::delete_page_async(const std::string& url_key)
 void SearchEngine::delete_page_callback(const std::string& url_key,
 										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	const auto page_info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-	if(!page_info) {
+	const auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
+	if(!info) {
 		page_info_async->unlock(entry->key);
 		return;
 	}
-	if(page_info->link_version)
+	if(info->link_version)
 	{
 		const auto p_link_cache = get_link_cache(url_key);
 		if(p_link_cache)
@@ -638,9 +638,9 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 			p_link_cache->link_version = 0;
 			p_link_cache->is_page_update = true;
 			p_link_cache->add_links.clear();
-			p_link_cache->rem_links = page_info->links;
+			p_link_cache->rem_links = info->links;
 			
-			for(const auto& child_key : page_info->links)
+			for(const auto& child_key : info->links)
 			{
 				const auto cache = get_link_cache(child_key);
 				if(cache) {
@@ -650,36 +650,36 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 			p_link_cache->schedule_time_us = (vnx::get_wall_time_seconds() + commit_delay) * 1000000;
 		}
 	}
-	if(page_info->word_version)
+	if(info->word_version)
 	{
-		auto& p_page_cache = page_cache[page_info->id];
+		auto& p_page_cache = page_cache[info->id];
 		if(!p_page_cache) {
 			p_page_cache = std::make_shared<page_cache_t>();
 			p_page_cache->word_version = 0;
 			p_page_cache->url_key = url_key;
 			
-			for(const auto word_id : page_info->words)
+			for(const auto word_id : info->words)
 			{
 				const auto cache = get_word_cache(word_id);
 				if(cache) {
-					cache->rem_pages.push_back(page_info->id);
+					cache->rem_pages.push_back(info->id);
 					p_page_cache->words_pending++;
 				}
 			}
 			if(p_page_cache->words_pending == 0) {
-				page_word_update_finished(page_info->id);
+				page_word_update_finished(info->id);
 			}
 		}
 	}
-	if(page_info->id)
+	if(info->id)
 	{
 		std::unique_lock lock(index_mutex);
-		page_index.erase(page_info->id);
+		page_index.erase(info->id);
 		page_map.erase(url_key);
 	}
-	if(!page_info->is_deleted)
+	if(!info->is_deleted)
 	{
-		auto copy = vnx::clone(page_info);
+		auto copy = vnx::clone(info);
 		copy->is_deleted = true;
 		copy->array_version = 0;
 		page_info_async->store_value(entry->key, copy);
