@@ -44,7 +44,6 @@ public:
 protected:
 	struct url_t {
 		std::string domain;
-		uint64_t request_id = -1;
 		int depth = 0;
 		bool is_reload = false;
 	};
@@ -68,6 +67,13 @@ protected:
 		int64_t robot_start_time = 0;		// [sec]
 		int num_pending = 0;
 		robots_txt_state_e robots_state = ROBOTS_TXT_UNKNOWN;
+	};
+	
+	struct url_update_job_t {
+		std::string url_key;
+		std::string new_scheme;
+		int new_depth;
+		UrlInfo info;
 	};
 	
 	void init() override;
@@ -97,19 +103,19 @@ private:
 	void delete_page(const std::string& url_key);
 	
 	domain_t& get_domain(const std::string& host);
-	
 	domain_t* find_domain(const std::string& host);
 	
 	bool filter_url(const Url::Url& parsed) const;
 	
 	int enqueue(const std::string& url, const int depth, int64_t load_time = 0);
 	
-	void check_queue();
+	void check_queues();
+	void check_fetch_queue();
+	void check_url_update_queue();
 	
 	void check_url(const Url::Url& url, const int depth, std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void check_all_urls();
-	
 	void check_root_urls();
 	
 	void check_page_callback(	const std::string& url_key,
@@ -130,24 +136,22 @@ private:
 	
 	void url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result);
 	
+	void check_result_callback(	std::shared_ptr<const FetchResult> result,
+								std::shared_ptr<const keyvalue::Entry> entry);
+	
 	void url_update(	const std::string& url_key,
 						const std::string& new_scheme,
 						const int new_depth,
-						const UrlInfo& info,
-						std::shared_ptr<const TextResponse> response = nullptr);
+						const UrlInfo& info);
 	
-	void url_update_callback(	const std::string& url_key,
-								const std::string& new_scheme,
-								const int new_depth,
-								const UrlInfo& info,
-								std::shared_ptr<const TextResponse> response,
+	void url_update_callback(	std::shared_ptr<url_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void robots_txt_callback(	const std::string& url_key,
 								robots_txt_state_e missing_state,
 								std::shared_ptr<const keyvalue::Entry> value);
 	
-	void url_fetch_error(uint64_t request_id, const std::exception& ex);
+	void url_fetch_error(const std::string& url, const std::exception& ex);
 	
 	void url_index_error(uint64_t request_id, const std::exception& ex);
 	
@@ -163,7 +167,7 @@ private:
 	
 private:
 	std::shared_ptr<ThreadPool> work_threads;
-	std::map<uint64_t, std::string> pending_urls;
+	std::multimap<int64_t, std::shared_ptr<url_update_job_t>> url_update_queue;
 	
 	std::unordered_map<std::string, url_t> url_map;
 	std::unordered_map<std::string, domain_t> domain_map;

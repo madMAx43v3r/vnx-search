@@ -39,6 +39,8 @@ module CrawlProcessor {
 	
 	int robots_reload_interval = 2678400;	// [sec]
 	
+	int commit_delay = 100;					// [sec]
+	
 	int lock_timeout = 100;					// [sec]
 	
 	float reload_power = 4;
@@ -47,7 +49,7 @@ module CrawlProcessor {
 	
 	bool do_reprocess = false;				// if to reprocess all pages
 	
-	bool inititial_sync = false;			// if to perform initial sync
+	bool inititial_sync = false;			// if to perform initial url sync
 	
 	string user_agent = "Googlebot";		// for robots.txt matching
 	
