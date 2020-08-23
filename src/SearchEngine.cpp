@@ -994,8 +994,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		copy->is_deleted = false;
 		copy->index_version = job->index_version;
 		page_info_async->store_value(Variant(url_key), copy);
-	}
-	else {
+	} else {
 		page_info_async->unlock(Variant(url_key));
 	}
 	
@@ -1087,8 +1086,9 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 void SearchEngine::check_queues()
 {
 	check_link_queue();
-	check_word_queue();
 	check_page_queue();
+	check_word_queue();
+	check_word_queue_2();
 	check_load_queue();
 }
 
@@ -1189,13 +1189,31 @@ void SearchEngine::check_page_queue()
 	}
 }
 
+void SearchEngine::check_word_queue_2()
+{
+	const auto now = vnx::get_wall_time_seconds();
+	while(!word_queue_2.empty()
+			&& page_info_async->vnx_get_num_pending() < max_num_pending)
+	{
+		const auto iter = word_queue_2.begin();
+		if(now - iter->first >= 0)
+		{
+			auto job = iter->second;
+			page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
+					std::bind(&SearchEngine::word_process_callback_2, this, job, std::placeholders::_1));
+			word_queue_2.erase(iter);
+		} else {
+			break;
+		}
+	}
+}
+
 void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cache,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	auto job = std::make_shared<link_update_job_t>();
 	job->cached = cache;
 	job->info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-	
 	update_threads->add_task(std::bind(&SearchEngine::link_update_task, this, job));
 }
 
@@ -1303,8 +1321,7 @@ void SearchEngine::word_process_callback_1(std::shared_ptr<word_process_job_t> j
 	const auto* page = find_page_url(job->url_key);
 	if(!page || page->array_version != job->content_version)
 	{
-		page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
-				std::bind(&SearchEngine::word_process_callback_2, this, job, std::placeholders::_1));
+		word_queue_2.emplace(vnx::get_wall_time_seconds() + commit_delay, job);
 	}
 }
 
@@ -1312,10 +1329,15 @@ void SearchEngine::word_process_callback_2(	std::shared_ptr<word_process_job_t> 
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-	auto copy = info ? vnx::clone(info) : PageInfo::create();
-	copy->array_version = job->content_version;
-	page_info_async->store_value(entry->key, copy);
-	page_update_counter++;
+	if(!info || !info->is_deleted)
+	{
+		auto copy = info ? vnx::clone(info) : PageInfo::create();
+		copy->array_version = job->content_version;
+		page_info_async->store_value(entry->key, copy);
+		page_update_counter++;
+	} else {
+		page_info_async->unlock(entry->key);
+	}
 }
 
 void SearchEngine::print_stats()
