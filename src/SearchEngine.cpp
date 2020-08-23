@@ -967,7 +967,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	page.link_version = job->index_version;
 	page.word_version = job->index_version;
 	page.scheme = url_index->scheme;
-	page.last_modified = url_index->last_modified;
+	page.last_modified = index->last_modified;
 	
 	if(!page.domain_id) {
 		auto& r_domain = get_domain(domain);
@@ -988,7 +988,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		copy->is_deleted = false;
 		copy->index_version = job->index_version;
 		copy->first_seen = url_index->first_seen;
-		copy->last_modified = url_index->last_modified;
+		copy->last_modified = index->last_modified;
 		copy->scheme = url_index->scheme;
 		copy->domain = domain;
 		copy->title = index->title;
