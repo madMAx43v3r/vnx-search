@@ -46,7 +46,7 @@ public:
 protected:
 	struct word_t {
 		uint32_t id = 0;
-		std::atomic<uint32_t> num_pages {0};
+		uint32_t num_pages = 0;
 		stx::sstring value;
 	};
 	
