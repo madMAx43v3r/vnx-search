@@ -1357,7 +1357,7 @@ void write_info_callback(void* file, const char* data)
 
 void SearchEngine::write_info()
 {
-	FILE* file = fopen("malloc_info.txt", "w");
+	FILE* file = fopen("engine_malloc_info.txt", "w");
 	malloc_stats_print(&write_info_callback, file, 0);
 	fclose(file);
 }
