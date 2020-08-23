@@ -804,9 +804,9 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		job->index_version = entry->version;
 		
 		const auto* page = find_page_url(job->url_key);
-		job->update_info = !page || job->index_version > page->index_version;
-		job->update_links = !page || job->index_version > page->link_version || update_page_info;
-		job->update_words = !page || job->index_version > page->word_version || update_word_context;
+		job->update_info = !page || job->index_version != page->index_version;
+		job->update_links = !page || job->index_version != page->link_version || update_page_info;
+		job->update_words = !page || job->index_version != page->word_version || update_word_context;
 		
 		if(job->update_info || job->update_links || job->update_words) {
 			load_queue.emplace(job);
@@ -819,7 +819,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		const auto url_key = entry->key.to_string_value();
 		const auto* page = find_page_url(url_key);
 		
-		if(!page || entry->version > page->array_version || update_word_array)
+		if(!page || entry->version != page->array_version || update_word_array)
 		{
 			if(!is_robots_txt(Url::Url(url_key)))
 			{
@@ -880,12 +880,6 @@ void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> jo
 		return;
 	}
 	job->index = index;
-	job->index_version = entry->version;
-	
-	const auto* page = find_page_url(job->url_key);
-	job->update_info = !page || job->index_version > page->index_version;
-	job->update_links = !page || job->index_version > page->link_version;
-	job->update_words = !page || job->index_version > page->word_version;
 	
 	std::vector<Variant> link_keys;
 	if(job->update_links) {
