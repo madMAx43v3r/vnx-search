@@ -767,7 +767,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		if(page) {
 			page->scheme = url_index->scheme;
 			page->first_seen = url_index->first_seen;
-			page->last_modified = url_index->last_modified;
 		}
 		if(!url_index->redirect.empty())
 		{
@@ -871,6 +870,33 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 	}
 }
 
+void SearchEngine::update_page_callback_0(	std::shared_ptr<page_update_job_t> job,
+											std::shared_ptr<const keyvalue::Entry> entry)
+{
+	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
+	if(url_index) {
+		if(!url_index->redirect.empty())
+		{
+			const Url::Url parsed_redir(url_index->redirect);
+			if(job->url_key != get_url_key(parsed_redir))
+			{
+				delete_page_async(job->url_key);
+				return;
+			} else {
+				job->scheme = parsed_redir.scheme();
+			}
+		} else {
+			job->scheme = url_index->scheme;
+		}
+	} else {
+		job->scheme = "http";
+	}
+	job->url_index = url_index;
+	
+	page_index_async->get_value(Variant(job->url_key),
+			std::bind(&SearchEngine::update_page_callback_1, this, job, std::placeholders::_1));
+}
+
 void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> job,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
@@ -946,6 +972,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	
 	const auto info = job->info;
 	const auto index = job->index;
+	const auto url_index = job->url_index;
 	const auto url_key = job->url_key;
 	const Url::Url parsed(url_key);
 	const auto domain = parsed.host();
@@ -967,6 +994,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	page.index_version = job->index_version;
 	page.link_version = job->index_version;
 	page.word_version = job->index_version;
+	page.scheme = job->scheme;
 	page.last_modified = index->last_modified;
 	
 	if(!page.domain_id) {
@@ -978,6 +1006,9 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		page.array_version = info->array_version;
 		page.reverse_links = info->reverse_links.size();
 		page.reverse_domains = info->reverse_domains.size();
+	}
+	if(url_index) {
+		page.first_seen = url_index->first_seen;
 	}
 	
 	if(job->update_info)
@@ -1089,7 +1120,7 @@ void SearchEngine::check_queues()
 void SearchEngine::check_load_queue()
 {
 	while((!load_queue.empty() || !load_queue_2.empty())
-			&& page_index_async->vnx_get_num_pending() < max_num_pending
+			&& url_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_content_async->vnx_get_num_pending() < max_num_pending
 			&& update_threads->get_num_pending() < max_num_pending
 			&& link_cache.size() <= 1.1 * max_link_cache
@@ -1097,8 +1128,8 @@ void SearchEngine::check_load_queue()
 	{
 		if(!load_queue.empty()) {
 			const auto job = load_queue.front();
-			page_index_async->get_value(Variant(job->url_key),
-					std::bind(&SearchEngine::update_page_callback_1, this, job, std::placeholders::_1));
+			url_index_async->get_value(Variant(job->url_key),
+					std::bind(&SearchEngine::update_page_callback_0, this, job, std::placeholders::_1));
 			load_queue.pop();
 		}
 		if(!load_queue_2.empty()) {
@@ -1114,8 +1145,7 @@ void SearchEngine::check_link_queue()
 {
 	const auto now = vnx::get_wall_time_micros();
 	while(!link_queue.empty()
-			&& page_info_async->vnx_get_num_pending() < max_num_pending
-			&& update_threads->get_num_pending() < max_num_pending)
+			&& page_info_async->vnx_get_num_pending() < max_num_pending)
 	{
 		const auto iter = link_queue.begin();
 		if(now - iter->first >= int64_t(link_commit_interval) * 1000000
@@ -1141,8 +1171,7 @@ void SearchEngine::check_word_queue()
 {
 	const auto now = vnx::get_wall_time_seconds();
 	while(!word_queue.empty()
-			&& word_context_async->vnx_get_num_pending() < max_num_pending
-			&& update_threads->get_num_pending() < max_num_pending)
+			&& word_context_async->vnx_get_num_pending() < max_num_pending)
 	{
 		const auto iter = word_queue.begin();
 		if(now - iter->first >= word_commit_interval || word_cache.size() > max_word_cache)
