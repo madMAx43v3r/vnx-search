@@ -20,11 +20,6 @@ public:
 	uint64_t link_version = 0;
 	uint64_t word_version = 0;
 	uint64_t array_version = 0;
-	int64_t first_seen = 0;
-	int64_t last_modified = 0;
-	std::string scheme;
-	std::string domain;
-	std::string title;
 	std::vector<uint32_t> words;
 	std::vector<std::string> links;
 	std::vector<std::string> reverse_links;

@@ -65,8 +65,9 @@ protected:
 		uint64_t link_version = 0;
 		uint64_t word_version = 0;
 		uint64_t array_version = 0;
+		int64_t first_seen = 0;
 		int64_t last_modified = 0;
-		stx::fstring<8> scheme;
+		stx::fstring<8> scheme = std::string("http");
 		stx::pstring url_key;
 		std::string get_url() const { return scheme.str() + ":" + url_key.str(); }
 	};
@@ -129,7 +130,6 @@ protected:
 		std::string url_key;
 		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageIndex> index;
-		std::shared_ptr<const UrlIndex> url_index;
 		std::vector<std::string> links;
 		std::map<std::string, std::string> redirects;
 		std::map<uint32_t, int> words;
@@ -203,6 +203,9 @@ protected:
 private:
 	page_t* find_page(uint32_t page_id);
 	const page_t* find_page(uint32_t page_id) const;
+	
+	template<typename T>
+	page_t* find_page_url(const T& url_key);
 	template<typename T>
 	const page_t* find_page_url(const T& url_key) const;
 	
@@ -243,9 +246,6 @@ private:
 	void redirect_callback(	const std::string& org_url_key,
 							const std::string& new_url_key,
 							std::shared_ptr<const keyvalue::Entry> entry);
-	
-	void update_page_callback_0(std::shared_ptr<page_update_job_t> job,
-								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void update_page_callback_1(std::shared_ptr<page_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);

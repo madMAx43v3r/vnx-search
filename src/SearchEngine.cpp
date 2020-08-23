@@ -364,17 +364,22 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 {
 	Object result;
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
+	const auto* page = info ? find_page(info->id) : nullptr;
 	if(info) {
-		result["url"] = info->scheme + ":" + url_key;
-		result["title"] = info->title;
-		result["last_modified"] = info->last_modified;
-		result["first_seen"] = info->first_seen;
-		result["domain"] = info->domain;
 		result["is_deleted"] = info->is_deleted;
 		result["words"] = info->words.size();
 		result["links"] = info->links.size();
 		result["reverse_links"] = info->reverse_links.size();
 		result["reverse_domains"] = info->reverse_domains.size();
+	}
+	if(page) {
+		result["url"] = page->get_url();
+		result["last_modified"] = page->last_modified;
+		result["first_seen"] = page->first_seen;
+		const auto* domain = find_domain(page->domain_id);
+		if(domain) {
+			result["domain"] = domain->host.str();
+		}
 	}
 	get_page_info_async_return(req_id, result);
 }
@@ -495,6 +500,16 @@ const SearchEngine::page_t* SearchEngine::find_page(uint32_t page_id) const
 	const auto iter = page_index.find(page_id);
 	if(iter != page_index.end()) {
 		return &iter->second;
+	}
+	return nullptr;
+}
+
+template<typename T>
+SearchEngine::page_t* SearchEngine::find_page_url(const T& url_key)
+{
+	const auto iter = page_map.find(url_key);
+	if(iter != page_map.end()) {
+		return find_page(iter->second);
 	}
 	return nullptr;
 }
@@ -720,20 +735,19 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 			if(!page.id)
 			{
 				const stx::pstring url_key = entry->key.to_string_value();
+				const Url::Url parsed(url_key.str());
 				page_map[url_key] = info->id;
 				
 				page.id = info->id;
-				page.scheme = info->scheme;
 				page.url_key = url_key;
 				page.index_version = info->index_version;
 				page.link_version = info->link_version;
 				page.word_version = info->word_version;
 				page.array_version = info->array_version;
-				page.last_modified = info->last_modified;
 				page.reverse_links = info->reverse_links.size();
 				page.reverse_domains = info->reverse_domains.size();
 				
-				auto& domain = get_domain(info->domain);
+				auto& domain = get_domain(parsed.host());
 				page.domain_id = domain.id;
 				domain.pages.push_back(page.id);
 				
@@ -743,12 +757,20 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		return;
 	}
 	
-	if(entry->collection == "url_index")
+	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
+	if(url_index)
 	{
-		auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
-		if(url_index && !url_index->redirect.empty())
+		std::unique_lock lock(index_mutex);
+		
+		const auto org_url_key = entry->key.to_string_value();
+		auto* page = find_page_url(org_url_key);
+		if(page) {
+			page->scheme = url_index->scheme;
+			page->first_seen = url_index->first_seen;
+			page->last_modified = url_index->last_modified;
+		}
+		if(!url_index->redirect.empty())
 		{
-			const auto org_url_key = entry->key.to_string_value();
 			const auto new_url_key = get_url_key(url_index->redirect);
 			if(new_url_key != org_url_key)
 			{
@@ -849,19 +871,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 	}
 }
 
-void SearchEngine::update_page_callback_0(	std::shared_ptr<page_update_job_t> job,
-											std::shared_ptr<const keyvalue::Entry> entry)
-{
-	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
-	if(!url_index || url_index->depth < 0) {
-		delete_page_async(job->url_key);
-		return;
-	}
-	job->url_index = url_index;
-	page_index_async->get_value(Variant(job->url_key),
-			std::bind(&SearchEngine::update_page_callback_1, this, job, std::placeholders::_1));
-}
-
 void SearchEngine::update_page_callback_1(	std::shared_ptr<page_update_job_t> job,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
@@ -944,16 +953,14 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	const auto info = job->info;
 	const auto index = job->index;
 	const auto url_key = job->url_key;
-	const auto url_index = job->url_index;
+	const Url::Url parsed(url_key);
+	const auto domain = parsed.host();
 	
 	uint32_t page_id = 0;
-	std::string domain;
 	if(info && info->id) {
 		page_id = info->id;
-		domain = info->domain;
 	} else {
 		page_id = next_page_id++;
-		domain = Url::Url(url_key).host();
 	}
 	
 	auto& page = page_index[page_id];
@@ -966,7 +973,6 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	page.index_version = job->index_version;
 	page.link_version = job->index_version;
 	page.word_version = job->index_version;
-	page.scheme = url_index->scheme;
 	page.last_modified = index->last_modified;
 	
 	if(!page.domain_id) {
@@ -987,11 +993,6 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		copy->id = page_id;
 		copy->is_deleted = false;
 		copy->index_version = job->index_version;
-		copy->first_seen = url_index->first_seen;
-		copy->last_modified = index->last_modified;
-		copy->scheme = url_index->scheme;
-		copy->domain = domain;
-		copy->title = index->title;
 		page_info_async->store_value(Variant(url_key), copy);
 	}
 	else {
@@ -1094,7 +1095,7 @@ void SearchEngine::check_queues()
 void SearchEngine::check_load_queue()
 {
 	while((!load_queue.empty() || !load_queue_2.empty())
-			&& url_index_async->vnx_get_num_pending() < max_num_pending
+			&& page_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_content_async->vnx_get_num_pending() < max_num_pending
 			&& update_threads->get_num_pending() < max_num_pending
 			&& link_cache.size() <= 1.1 * max_link_cache
@@ -1102,8 +1103,8 @@ void SearchEngine::check_load_queue()
 	{
 		if(!load_queue.empty()) {
 			const auto job = load_queue.front();
-			url_index_async->get_value(Variant(job->url_key),
-					std::bind(&SearchEngine::update_page_callback_0, this, job, std::placeholders::_1));
+			page_index_async->get_value(Variant(job->url_key),
+					std::bind(&SearchEngine::update_page_callback_1, this, job, std::placeholders::_1));
 			load_queue.pop();
 		}
 		if(!load_queue_2.empty()) {

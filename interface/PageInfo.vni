@@ -11,13 +11,6 @@ class PageInfo {
 	ulong word_version;				// word context version
 	ulong array_version;			// word array version
 	
-	long first_seen;
-	long last_modified;
-	
-	string scheme;
-	string domain;
-	string title;
-	
 	vector<uint> words;						// word ids
 	
 	vector<string> links;					// url key
