@@ -38,6 +38,8 @@ public:
 	int32_t queue_interval_ms = 10;
 	int32_t stats_interval_ms = 10000;
 	vnx::bool_t update_word_array = 0;
+	vnx::bool_t update_word_context = 0;
+	vnx::bool_t update_page_info = 0;
 	std::vector<std::string> protocols;
 	
 	typedef ::vnx::Module Super;

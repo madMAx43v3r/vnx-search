@@ -805,8 +805,8 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		
 		const auto* page = find_page_url(job->url_key);
 		job->update_info = !page || job->index_version > page->index_version;
-		job->update_links = !page || job->index_version > page->link_version;
-		job->update_words = !page || job->index_version > page->word_version;
+		job->update_links = !page || job->index_version > page->link_version || update_page_info;
+		job->update_words = !page || job->index_version > page->word_version || update_word_context;
 		
 		if(job->update_info || job->update_links || job->update_words) {
 			load_queue.emplace(job);

@@ -35,6 +35,8 @@ module SearchEngine {
 	int stats_interval_ms = 10000;
 	
 	bool update_word_array;					// if to re-compute word_array data
+	bool update_word_context;				// if to re-compute word_context data
+	bool update_page_info;					// if to re-compute page_info data
 	
 	vector<string> protocols;				// protocols to allow as links
 	
