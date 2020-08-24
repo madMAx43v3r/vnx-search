@@ -16,6 +16,8 @@
 #include <vnx/search/SearchEngine_get_domain_list_return.hxx>
 #include <vnx/search/SearchEngine_get_page_info.hxx>
 #include <vnx/search/SearchEngine_get_page_info_return.hxx>
+#include <vnx/search/SearchEngine_get_page_ranks.hxx>
+#include <vnx/search/SearchEngine_get_page_ranks_return.hxx>
 #include <vnx/search/SearchEngine_query.hxx>
 #include <vnx/search/SearchEngine_query_return.hxx>
 #include <vnx/search/SearchEngine_reverse_domain_lookup.hxx>
@@ -83,6 +85,15 @@ uint64_t SearchEngineAsyncClient::get_page_info(const std::string& url_key, cons
 	return _request_id;
 }
 
+uint64_t SearchEngineAsyncClient::get_page_ranks(const std::vector<std::string>& url_keys, const std::function<void(std::vector<vnx::float32_t>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::search::SearchEngine_get_page_ranks::create();
+	_method->url_keys = url_keys;
+	const auto _request_id = vnx_request(_method);
+	vnx_queue_get_page_ranks[_request_id] = std::make_pair(_callback, _error_callback);
+	vnx_num_pending++;
+	return _request_id;
+}
+
 uint64_t SearchEngineAsyncClient::get_domain_list(const int32_t& limit, const uint32_t& offset, const std::function<void(std::vector<::vnx::Object>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchEngine_get_domain_list::create();
 	_method->limit = limit;
@@ -145,6 +156,9 @@ std::vector<uint64_t> SearchEngineAsyncClient::vnx_get_pending_ids() const {
 	for(const auto& entry : vnx_queue_get_page_info) {
 		_list.push_back(entry.first);
 	}
+	for(const auto& entry : vnx_queue_get_page_ranks) {
+		_list.push_back(entry.first);
+	}
 	for(const auto& entry : vnx_queue_get_domain_list) {
 		_list.push_back(entry.first);
 	}
@@ -201,6 +215,16 @@ void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id, const std:
 				_iter->second.second(_ex);
 			}
 			vnx_queue_get_page_info.erase(_iter);
+			vnx_num_pending--;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_get_page_ranks.find(_request_id);
+		if(_iter != vnx_queue_get_page_ranks.end()) {
+			if(_iter->second.second) {
+				_iter->second.second(_ex);
+			}
+			vnx_queue_get_page_ranks.erase(_iter);
 			vnx_num_pending--;
 		}
 	}
@@ -318,6 +342,23 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 		if(_iter != vnx_queue_get_page_info.end()) {
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_get_page_info.erase(_iter);
+			vnx_num_pending--;
+			if(_callback) {
+				_callback(_result->_ret_0);
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0xc6eb5d8851e2c4aaull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_ranks_return>(_value);
+		if(!_result) {
+			throw std::logic_error("SearchEngineAsyncClient: !_result");
+		}
+		const auto _iter = vnx_queue_get_page_ranks.find(_request_id);
+		if(_iter != vnx_queue_get_page_ranks.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_get_page_ranks.erase(_iter);
 			vnx_num_pending--;
 			if(_callback) {
 				_callback(_result->_ret_0);

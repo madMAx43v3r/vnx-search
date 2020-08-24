@@ -39,6 +39,10 @@ public:
 			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
+	uint64_t get_page_ranks(const std::vector<std::string>& url_keys, 
+			const std::function<void(std::vector<vnx::float32_t>)>& _callback = std::function<void(std::vector<vnx::float32_t>)>(),
+			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
+	
 	uint64_t get_domain_list(const int32_t& limit, const uint32_t& offset, 
 			const std::function<void(std::vector<::vnx::Object>)>& _callback = std::function<void(std::vector<::vnx::Object>)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
@@ -71,6 +75,7 @@ private:
 	std::map<uint64_t, std::pair<std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>, std::function<void(const std::exception&)>>> vnx_queue_query;
 	std::map<uint64_t, std::pair<std::function<void(::vnx::Object)>, std::function<void(const std::exception&)>>> vnx_queue_get_domain_info;
 	std::map<uint64_t, std::pair<std::function<void(::vnx::Object)>, std::function<void(const std::exception&)>>> vnx_queue_get_page_info;
+	std::map<uint64_t, std::pair<std::function<void(std::vector<vnx::float32_t>)>, std::function<void(const std::exception&)>>> vnx_queue_get_page_ranks;
 	std::map<uint64_t, std::pair<std::function<void(std::vector<::vnx::Object>)>, std::function<void(const std::exception&)>>> vnx_queue_get_domain_list;
 	std::map<uint64_t, std::pair<std::function<void(std::vector<std::string>)>, std::function<void(const std::exception&)>>> vnx_queue_reverse_lookup;
 	std::map<uint64_t, std::pair<std::function<void(std::vector<std::pair<std::string, uint32_t>>)>, std::function<void(const std::exception&)>>> vnx_queue_reverse_domain_lookup;

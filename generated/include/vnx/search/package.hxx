@@ -41,6 +41,8 @@ class SearchEngine_get_domain_list;
 class SearchEngine_get_domain_list_return;
 class SearchEngine_get_page_info;
 class SearchEngine_get_page_info_return;
+class SearchEngine_get_page_ranks;
+class SearchEngine_get_page_ranks_return;
 class SearchEngine_query;
 class SearchEngine_query_return;
 class SearchEngine_reverse_domain_lookup;
@@ -91,6 +93,8 @@ extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_l
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup; ///< \private
@@ -147,6 +151,8 @@ void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_list& value, con
 void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchEngine_query& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchEngine_query_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -197,6 +203,8 @@ void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_list& v
 void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchEngine_query& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchEngine_query_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -247,6 +255,8 @@ void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_list& value);
 void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_list_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchEngine_get_page_info& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchEngine_get_page_info_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchEngine_query& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchEngine_query_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchEngine_reverse_domain_lookup& value); ///< \private
@@ -297,6 +307,8 @@ void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_list&
 void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_list_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_info& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_info_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchEngine_query& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchEngine_query_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_domain_lookup& value); ///< \private
@@ -347,6 +359,8 @@ void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_list&
 void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_list_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_info& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_info_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchEngine_query& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchEngine_query_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_domain_lookup& value); ///< \private
@@ -1006,6 +1020,52 @@ struct type<::vnx::search::SearchEngine_get_page_info_return> {
 		vnx::write(out, value);
 	}
 	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_info_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchEngine_get_page_ranks> {
+	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchEngine_get_page_ranks_return> {
+	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks_return& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {

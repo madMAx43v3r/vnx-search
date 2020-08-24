@@ -16,6 +16,8 @@
 #include <vnx/search/SearchEngine_get_domain_list_return.hxx>
 #include <vnx/search/SearchEngine_get_page_info.hxx>
 #include <vnx/search/SearchEngine_get_page_info_return.hxx>
+#include <vnx/search/SearchEngine_get_page_ranks.hxx>
+#include <vnx/search/SearchEngine_get_page_ranks_return.hxx>
 #include <vnx/search/SearchEngine_query.hxx>
 #include <vnx/search/SearchEngine_query_return.hxx>
 #include <vnx/search/SearchEngine_reverse_domain_lookup.hxx>
@@ -85,6 +87,17 @@ std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(con
 	_method->url_key = url_key;
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_info_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("SearchEngineClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+std::vector<vnx::float32_t> SearchEngineClient::get_page_ranks(const std::vector<std::string>& url_keys) {
+	auto _method = ::vnx::search::SearchEngine_get_page_ranks::create();
+	_method->url_keys = url_keys;
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_ranks_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
 	}

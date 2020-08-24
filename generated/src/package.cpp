@@ -29,6 +29,8 @@
 #include <vnx/search/SearchEngine_get_domain_list_return.hxx>
 #include <vnx/search/SearchEngine_get_page_info.hxx>
 #include <vnx/search/SearchEngine_get_page_info_return.hxx>
+#include <vnx/search/SearchEngine_get_page_ranks.hxx>
+#include <vnx/search/SearchEngine_get_page_ranks_return.hxx>
 #include <vnx/search/SearchEngine_query.hxx>
 #include <vnx/search/SearchEngine_query_return.hxx>
 #include <vnx/search/SearchEngine_reverse_domain_lookup.hxx>
@@ -88,6 +90,8 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::SearchEngine_get_domain_list_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngine_get_page_info::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngine_get_page_info_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchEngine_get_page_ranks::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchEngine_get_page_ranks_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngine_query::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngine_query_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngine_reverse_domain_lookup::static_create_type_code());
@@ -145,6 +149,8 @@ const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list = v
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list_return = vnx::get_type_code(vnx::Hash64(0xa06392efe70f0679ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info = vnx::get_type_code(vnx::Hash64(0x8f4b73a7bd7a8effull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info_return = vnx::get_type_code(vnx::Hash64(0xa79acda144d4c33bull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks = vnx::get_type_code(vnx::Hash64(0x5149b749f6676a3bull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks_return = vnx::get_type_code(vnx::Hash64(0xc6eb5d8851e2c4aaull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query = vnx::get_type_code(vnx::Hash64(0x14a6c3ff80018ce8ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query_return = vnx::get_type_code(vnx::Hash64(0xc4adbd01e9504960ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup = vnx::get_type_code(vnx::Hash64(0x70967f585e137c7dull));
