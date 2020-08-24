@@ -6,6 +6,8 @@ class PageInfo {
 	
 	bool is_deleted;
 	
+	float rank_value;				// page rank
+	
 	ulong index_version;			// version regarding title, etc
 	ulong link_version;				// version regarding links
 	ulong word_version;				// word context version

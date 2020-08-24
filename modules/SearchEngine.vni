@@ -12,7 +12,7 @@ module SearchEngine {
 	string page_index_server = "PageIndex";
 	string page_content_server = "PageContent";
 	
-	int max_link_cache = 100000;
+	int max_link_cache = 500000;
 	
 	int max_word_cache = 500000;
 	
@@ -34,6 +34,8 @@ module SearchEngine {
 	
 	int stats_interval_ms = 10000;
 	
+	float rank_decay = 0.5;
+	
 	bool update_word_array;					// if to re-compute word_array data
 	bool update_word_context;				// if to re-compute word_context data
 	bool update_page_info;					// if to re-compute page_info data
@@ -46,6 +48,8 @@ module SearchEngine {
 	Object get_domain_info(string host, int limit, uint offset) const async;
 	
 	Object get_page_info(string url_key) const async;
+	
+	vector<float> get_page_ranks(vector<string> url_keys) const async;
 	
 	vector<Object> get_domain_list(int limit, uint offset) const;
 	

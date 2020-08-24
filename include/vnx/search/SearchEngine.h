@@ -9,6 +9,7 @@
 #define INCLUDE_VNX_SEARCH_SEARCHENGINE_H_
 
 #include <vnx/search/SearchEngineBase.hxx>
+#include <vnx/search/SearchEngineAsyncClient.hxx>
 #include <vnx/search/WordContext.hxx>
 #include <vnx/search/WordArray.hxx>
 #include <vnx/search/PageInfo.hxx>
@@ -61,7 +62,7 @@ protected:
 		uint32_t domain_id = 0;
 		uint32_t reverse_links = 0;
 		uint32_t reverse_domains = 0;
-		std::atomic<uint32_t> rank_value {0};
+		float rank_value = 0;
 		uint64_t index_version = 0;
 		uint64_t link_version = 0;
 		uint64_t word_version = 0;
@@ -189,6 +190,8 @@ protected:
 	
 	void get_page_info_async(const std::string& url_key, const request_id_t& req_id) const;
 	
+	void get_page_ranks_async(const std::vector<std::string>& url_keys, const request_id_t& req_id) const;
+	
 	std::vector<Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const;
 	
 	void reverse_lookup_async(const std::string& url_key, const request_id_t& req_id) const;
@@ -224,8 +227,6 @@ private:
 	std::shared_ptr<link_cache_t> get_link_cache(const std::string& url_key);
 	
 	std::shared_ptr<word_cache_t> get_word_cache(uint32_t word_id);
-	
-	void update_page_rank(page_t* page, std::shared_ptr<const PageInfo> info);
 	
 	void query_callback_0(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
@@ -288,6 +289,9 @@ private:
 	
 	void link_update_callback_1(std::shared_ptr<link_update_job_t> job);
 	
+	void link_update_callback_2(std::shared_ptr<link_update_job_t> job,
+								std::vector<float> rank_values);
+	
 	void word_update_callback(	std::shared_ptr<word_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
@@ -308,6 +312,9 @@ private:
 	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 						std::shared_ptr<const WordArray> word_array) const noexcept;
 	
+	void page_rank_task(const std::vector<std::string>& url_keys,
+						const request_id_t& req_id) const noexcept;
+	
 	void link_update_task(std::shared_ptr<link_update_job_t> job) noexcept;
 	
 	void word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept;
@@ -324,6 +331,7 @@ private:
 	std::shared_ptr<ThreadPool> query_threads;
 	std::shared_ptr<ThreadPool> update_threads;
 	
+	std::shared_ptr<SearchEngineAsyncClient> search_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> page_info_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> page_index_async;

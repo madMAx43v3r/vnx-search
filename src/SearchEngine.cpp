@@ -70,6 +70,7 @@ void SearchEngine::main()
 	module_word_array->collection = "word_array";
 	module_word_array.start();
 	
+	search_async = std::make_shared<SearchEngineAsyncClient>(vnx_name);
 	page_info_async = std::make_shared<keyvalue::ServerAsyncClient>("PageInfo");
 	word_context_async = std::make_shared<keyvalue::ServerAsyncClient>("WordContext");
 	word_array_async = std::make_shared<keyvalue::ServerAsyncClient>("WordArray");
@@ -77,6 +78,7 @@ void SearchEngine::main()
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
 	page_content_async = std::make_shared<keyvalue::ServerAsyncClient>(page_content_server);
 	
+	add_async_client(search_async);
 	add_async_client(page_info_async);
 	add_async_client(word_context_async);
 	add_async_client(word_array_async);
@@ -382,6 +384,11 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 		}
 	}
 	get_page_info_async_return(req_id, result);
+}
+
+void SearchEngine::get_page_ranks_async(const std::vector<std::string>& url_keys, const request_id_t& req_id) const
+{
+	update_threads->add_task(std::bind(&SearchEngine::page_rank_task, this, url_keys, req_id));
 }
 
 std::vector<Object> SearchEngine::get_domain_list(const int32_t& limit, const uint32_t& offset) const
@@ -714,27 +721,6 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 	}
 }
 
-void SearchEngine::update_page_rank(page_t* page, std::shared_ptr<const PageInfo> info)
-{
-	page->reverse_domains = info->reverse_domains.size();
-	page->rank_value = page->reverse_domains;
-	
-	for(const auto& url_key : info->links)
-	{
-		auto* child = find_page_url(url_key);
-		if(child) {
-			child->rank_value = std::max(child->reverse_domains, page->reverse_domains / 2);
-		}
-	}
-	for(const auto& url_key : info->reverse_links)
-	{
-		const auto* parent = find_page_url(url_key);
-		if(parent) {
-			page->rank_value = std::max(page->reverse_domains, parent->reverse_domains / 2);
-		}
-	}
-}
-
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 {
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
@@ -744,6 +730,10 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 			{
 				auto* page = find_page(info->id);
 				if(page) {
+					for(auto word_id : info->words) {
+						get_word_cache(word_id);	// update words with new rank_value
+					}
+					page->rank_value = info->rank_value;
 					page->array_version = info->array_version;
 					page->reverse_links = info->reverse_links.size();
 					page->reverse_domains = info->reverse_domains.size();
@@ -761,6 +751,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 				
 				page.id = info->id;
 				page.url_key = url_key;
+				page.rank_value = fmaxf(info->rank_value, info->reverse_domains.size());
 				page.index_version = info->index_version;
 				page.link_version = info->link_version;
 				page.word_version = info->word_version;
@@ -772,8 +763,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 					page.domain_id = domain.id;
 					domain.pages.push_back(page.id);
 				}
-				update_page_rank(&page, info);
-				
 				next_page_id = std::max(next_page_id, info->id + 1);
 			}
 		}
@@ -1026,6 +1015,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		r_domain.pages.push_back(page.id);
 	}
 	if(info) {
+		page.rank_value = info->rank_value;
 		page.array_version = info->array_version;
 		page.reverse_links = info->reverse_links.size();
 		page.reverse_domains = info->reverse_domains.size();
@@ -1265,7 +1255,19 @@ void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cache,
 
 void SearchEngine::link_update_callback_1(std::shared_ptr<link_update_job_t> job)
 {
-	page_info_async->store_value(Variant(job->cached->url_key), job->result);
+	search_async->get_page_ranks(job->result->reverse_links,
+			std::bind(&SearchEngine::link_update_callback_2, this, job, std::placeholders::_1));
+}
+
+void SearchEngine::link_update_callback_2(	std::shared_ptr<link_update_job_t> job,
+											std::vector<float> rank_values)
+{
+	auto result = job->result;
+	result->rank_value = result->reverse_domains.size();
+	for(auto value : rank_values) {
+		result->rank_value = fmaxf(result->rank_value, value * rank_decay);
+	}
+	page_info_async->store_value(Variant(job->cached->url_key), result);
 	page_update_counter++;
 }
 
@@ -1546,6 +1548,26 @@ void SearchEngine::query_task_1(std::shared_ptr<query_job_t> job, size_t index,
 	}
 }
 
+void SearchEngine::page_rank_task(const std::vector<std::string>& url_keys, const request_id_t& req_id) const noexcept
+{
+	std::shared_lock lock(index_mutex);
+	
+	std::vector<float> result;
+	result.resize(url_keys.size());
+	for(size_t i = 0; i < url_keys.size(); ++i)
+	{
+		const auto* page = find_page_url(url_keys[i]);
+		if(page) {
+			result[i] = page->rank_value;
+		}
+		if(i++ % 8192 == 8191) {
+			lock.unlock();
+			lock.lock();
+		}
+	}
+	get_page_ranks_async_return(req_id, result);
+}
+
 void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noexcept
 {
 	auto cache = job->cached;
@@ -1574,14 +1596,6 @@ void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noex
 	}
 	job->result = info;
 	
-	if(info->id) {
-		std::shared_lock lock(index_mutex);
-		
-		auto* page = find_page(info->id);
-		if(page) {
-			update_page_rank(page, info);
-		}
-	}
 	add_task(std::bind(&SearchEngine::link_update_callback_1, this, job));
 }
 
@@ -1663,7 +1677,7 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 		}
 	}
 	
-	std::vector<std::pair<std::pair<uint32_t, uint32_t>, uint32_t>> list;
+	std::vector<std::pair<float, uint32_t>> list;
 	{
 		std::shared_lock lock(index_mutex);
 		
@@ -1672,16 +1686,16 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 		{
 			const auto* page = find_page(page_id);
 			if(page) {
-				list.emplace_back(std::make_pair(page->rank_value.load(), page->reverse_links), page_id);
+				list.emplace_back(page->rank_value, page_id);
 			}
-			if(i++ % 8192 == 8000) {
+			if(i++ % 8192 == 8191) {
 				lock.unlock();
 				lock.lock();
 			}
 		}
 		job->num_pages = list.size();
 	}
-	std::sort(list.begin(), list.end(), std::greater<std::pair<std::pair<uint32_t, uint32_t>, uint32_t>>());
+	std::sort(list.begin(), list.end(), std::greater<std::pair<float, uint32_t>>());
 	
 	auto result = WordContext::create();
 	result->id = word_id;
