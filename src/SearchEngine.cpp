@@ -97,6 +97,10 @@ void SearchEngine::main()
 	
 	query_threads->close();
 	update_threads->close();
+	
+	module_page_info.close();
+	module_word_context.close();
+	module_word_array.close();
 }
 
 void SearchEngine::query_async(	const std::vector<std::string>& words,
