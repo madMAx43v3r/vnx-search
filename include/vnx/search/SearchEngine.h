@@ -324,6 +324,7 @@ private:
 	void word_update_task(std::shared_ptr<word_update_job_t> job) noexcept;
 	
 private:
+	Hash64 private_addr;
 	Handle<keyvalue::Server> module_page_info;
 	Handle<keyvalue::Server> module_word_context;
 	Handle<keyvalue::Server> module_word_array;

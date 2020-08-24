@@ -43,6 +43,8 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 
 void SearchEngine::init()
 {
+	private_addr = Hash64::rand();
+	vnx::open_pipe(private_addr, this, UNLIMITED);
 	vnx::open_pipe(vnx_name, this, 100);
 }
 
@@ -70,7 +72,7 @@ void SearchEngine::main()
 	module_word_array->collection = "word_array";
 	module_word_array.start();
 	
-	search_async = std::make_shared<SearchEngineAsyncClient>(vnx_name);
+	search_async = std::make_shared<SearchEngineAsyncClient>(private_addr);
 	page_info_async = std::make_shared<keyvalue::ServerAsyncClient>("PageInfo");
 	word_context_async = std::make_shared<keyvalue::ServerAsyncClient>("WordContext");
 	word_array_async = std::make_shared<keyvalue::ServerAsyncClient>("WordArray");
