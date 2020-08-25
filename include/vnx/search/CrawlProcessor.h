@@ -69,6 +69,20 @@ protected:
 		robots_txt_state_e robots_state = ROBOTS_TXT_UNKNOWN;
 	};
 	
+	struct process_job_t {
+		int depth = -1;
+		bool is_reprocess = false;
+		std::string url_key;
+		std::string content;
+		std::string base_url;
+		std::vector<std::string> links;
+		std::vector<std::string> images;
+		std::shared_ptr<PageIndex> index;
+		std::shared_ptr<const FetchResult> result;
+		std::shared_ptr<const TextResponse> response;
+		std::shared_ptr<const PageContent> robots;
+	};
+	
 	struct url_update_job_t {
 		std::string url_key;
 		std::string new_scheme;
@@ -82,23 +96,12 @@ protected:
 	
 	Object get_stats(const int32_t& limit) const override;
 	
-	void handle(std::shared_ptr<const TextResponse> value) override;
-	
 	void handle(std::shared_ptr<const keyvalue::SyncUpdate> value) override;
 	
 private:
-	void process_page(	const std::string& url,
-						std::shared_ptr<PageIndex> index,
-						const std::string& content,
-						const std::string& base_url,
-						const std::vector<std::string>& links,
-						const std::vector<std::string>& images,
-						std::shared_ptr<const PageContent> robots_txt,
-						bool is_reprocess);
-	
-	void page_process_callback(	const std::string& url_key,
-								std::shared_ptr<const PageIndex> index,
-								const bool& is_reprocess);
+	void process_new(std::shared_ptr<process_job_t> job);
+	void process_task(std::shared_ptr<process_job_t> job) noexcept;
+	void process_callback(std::shared_ptr<process_job_t> job);
 	
 	void delete_page(const std::string& url_key);
 	
@@ -118,15 +121,9 @@ private:
 	void check_all_urls();
 	void check_root_urls();
 	
-	void check_page_callback(	const std::string& url_key,
-								std::shared_ptr<const keyvalue::Entry> entry,
-								std::shared_ptr<const PageIndex> page_index);
-	
-	void reproc_page_callback(	const std::string& url_key,
-								std::shared_ptr<const keyvalue::Entry> entry,
-								std::shared_ptr<const PageIndex> page_index_);
-	
-	void check_page(const std::string& url_key, int depth, std::shared_ptr<const PageIndex> index);
+	void check_page(	int depth,
+						const std::string& url_key,
+						std::shared_ptr<const PageIndex> index);
 	
 	void reproc_page(	const std::string& url_key,
 						std::shared_ptr<const PageIndex> index,
@@ -136,8 +133,12 @@ private:
 	
 	void url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result);
 	
-	void check_result_callback(	std::shared_ptr<const FetchResult> result,
+	void check_result_callback(	std::shared_ptr<process_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
+	
+	void reproc_page_callback(	const std::string& url_key,
+								std::shared_ptr<const keyvalue::Entry> entry,
+								std::shared_ptr<const PageIndex> index);
 	
 	void url_update(	const std::string& url_key,
 						const std::string& new_scheme,
@@ -168,6 +169,7 @@ private:
 private:
 	std::shared_ptr<ThreadPool> work_threads;
 	std::multimap<int64_t, std::shared_ptr<url_update_job_t>> url_update_queue;
+	std::unordered_map<std::string, std::shared_ptr<url_update_job_t>> url_update_buffer;
 	
 	std::unordered_map<std::string, url_t> url_map;
 	std::unordered_map<std::string, domain_t> domain_map;

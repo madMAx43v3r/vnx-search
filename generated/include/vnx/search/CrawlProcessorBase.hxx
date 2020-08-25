@@ -9,7 +9,6 @@
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/SyncUpdate.hxx>
-#include <vnx/search/TextResponse.hxx>
 
 
 namespace vnx {
@@ -82,8 +81,6 @@ public:
 	
 protected:
 	virtual ::vnx::Object get_stats(const int32_t& limit) const = 0;
-	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
-	virtual void handle(std::shared_ptr<const ::vnx::search::TextResponse> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value) {}
 	

@@ -68,8 +68,6 @@ module CrawlProcessor {
 	
 	vnx.Object get_stats(int limit) const;
 	
-	void handle(TextResponse sample);
-	
 	void handle(vnx.keyvalue.SyncUpdate sample);
 	
 }

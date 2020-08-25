@@ -101,70 +101,52 @@ void CrawlProcessor::main()
 	work_threads->close();
 }
 
-void CrawlProcessor::handle(std::shared_ptr<const TextResponse> value)
+void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 {
-	const Url::Url parent(value->url);
-	const auto url_key = get_url_key(parent);
-	
-	if(value->url.size() > max_url_length || !filter_url(parent)) {
+	const auto& url = job->response->url;
+	const Url::Url parsed(url);
+	if(url.size() > max_url_length || !filter_url(parsed)) {
 		return;
 	}
+	auto response = job->response;
+	
 	auto content = PageContent::create();
-	content->text = value->text;
+	content->text = response->text;
+	page_content_async->store_value(Variant(job->url_key), content);
 	
-	page_content_async->store_value(Variant(url_key), content);
-	
-	if(is_robots_txt(parent)) {
+	if(is_robots_txt(parsed))
+	{
 		auto entry = keyvalue::Entry::create();
-		entry->key = Variant(url_key);
+		entry->key = Variant(job->url_key);
 		entry->value = content;
-		robots_txt_callback(url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, entry);
+		robots_txt_callback(job->url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, entry);
 		return;
 	}
 	
-	std::shared_ptr<const PageContent> robots_txt;
-	auto* domain = find_domain(parent.host());
+	auto* domain = find_domain(parsed.host());
 	if(domain) {
-		robots_txt = domain->robots_txt;
+		job->robots = domain->robots_txt;
 	}
-	
 	auto index = PageIndex::create();
-	index->title = value->title;
-	index->last_modified = value->last_modified;
+	index->title = response->title;
+	index->last_modified = response->last_modified;
 	
-	work_threads->add_task(std::bind(&CrawlProcessor::process_page, this, value->url, index,
-									value->text, value->base_url, value->links, value->images, robots_txt, false));
+	job->index = index;
+	job->content = response->text;
+	job->base_url = response->base_url;
+	job->links = response->links;
+	job->images = response->images;
+	
+	work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
 }
 
-void CrawlProcessor::page_process_callback(	const std::string& url_key,
-											std::shared_ptr<const PageIndex> index,
-											const bool& is_reprocess)
+void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 {
-	page_index_async->store_value(Variant(url_key), index);
+	auto index = job->index;
 	
-	if(is_reprocess) {
-		reproc_counter++;
-	} else {
-		url_index_async->get_value(Variant(url_key),
-						std::bind(&CrawlProcessor::check_page_callback, this, url_key, std::placeholders::_1, index));
-		
-		log(INFO).out << "Processed '" << url_key << "': " << index->words.size() << " index words, "
-				<< index->links.size() << " links, " << index->images.size() << " images";
-	}
-}
-
-void CrawlProcessor::process_page(	const std::string& url,
-									std::shared_ptr<PageIndex> index,
-									const std::string& content,
-									const std::string& base_url,
-									const std::vector<std::string>& links,
-									const std::vector<std::string>& images,
-									std::shared_ptr<const PageContent> robots_txt,
-									bool is_reprocess)
-{
 	std::map<std::string, size_t> word_set;
 	try {
-		const auto words = parse_text(content);
+		const auto words = parse_text(job->content);
 		for(const auto& word : words) {
 			word_set[word]++;
 		}
@@ -172,8 +154,8 @@ void CrawlProcessor::process_page(	const std::string& url,
 		log(WARN) << ex.what();
 	}
 	
-	const Url::Url parent(url);
-	const Url::Url base(base_url);
+	const Url::Url parent(job->url_key);
+	const Url::Url base(job->base_url);
 	googlebot::RobotsMatcher matcher;
 	
 	size_t word_count = 0;
@@ -185,15 +167,15 @@ void CrawlProcessor::process_page(	const std::string& url,
 		}
 	}
 	
-	for(const auto& link : links)
+	for(const auto& link : job->links)
 	{
 		try {
 			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
 			if(full_link.size() <= max_url_length && filter_url(parsed))
 			{
-				if(parsed.host() != parent.host() || !robots_txt
-					|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
+				if(parsed.host() != parent.host() || !job->robots
+					|| matcher.OneAgentAllowedByRobots(job->robots->text, user_agent, full_link))
 				{
 					index->links.push_back(full_link);
 				}
@@ -203,15 +185,15 @@ void CrawlProcessor::process_page(	const std::string& url,
 		}
 	}
 	
-	for(const auto& link : images)
+	for(const auto& link : job->images)
 	{
 		try {
 			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
 			if(full_link.size() <= max_url_length && filter_url(parsed))
 			{
-				if(parsed.host() != parent.host() || !robots_txt
-					|| matcher.OneAgentAllowedByRobots(robots_txt->text, user_agent, full_link))
+				if(parsed.host() != parent.host() || !job->robots
+					|| matcher.OneAgentAllowedByRobots(job->robots->text, user_agent, full_link))
 				{
 					index->images.push_back(full_link);
 				}
@@ -227,7 +209,21 @@ void CrawlProcessor::process_page(	const std::string& url,
 	index->word_count = std::min(word_count, size_t(0xFFFFFFFF));
 	index->version = index_version;
 	
-	add_task(std::bind(&CrawlProcessor::page_process_callback, this, get_url_key(url), index, is_reprocess));
+	add_task(std::bind(&CrawlProcessor::process_callback, this, job));
+}
+
+void CrawlProcessor::process_callback(std::shared_ptr<process_job_t> job)
+{
+	page_index_async->store_value(Variant(job->url_key), job->index);
+	
+	if(job->is_reprocess) {
+		reproc_counter++;
+	} else {
+		check_page(job->depth, job->url_key, job->index);
+		
+		log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
+				<< job->index->links.size() << " links, " << job->index->images.size() << " images";
+	}
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::SyncUpdate> entry)
@@ -490,6 +486,7 @@ void CrawlProcessor::check_url_update_queue()
 			url_index_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
 					std::bind(&CrawlProcessor::url_update_callback, this, job, std::placeholders::_1));
 			url_update_queue.erase(iter);
+			url_update_buffer.erase(job->url_key);
 		} else {
 			break;
 		}
@@ -569,27 +566,19 @@ void CrawlProcessor::check_url(const Url::Url& parsed, const int depth, std::sha
 	}
 }
 
-void CrawlProcessor::check_page_callback(	const std::string& url_key,
-											std::shared_ptr<const keyvalue::Entry> entry,
-											std::shared_ptr<const PageIndex> page_index_)
-{
-	auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
-	if(index) {
-		check_page(url_key, index->depth, page_index_);
-	}
-}
-
 void CrawlProcessor::reproc_page_callback(	const std::string& url_key,
 											std::shared_ptr<const keyvalue::Entry> entry,
-											std::shared_ptr<const PageIndex> page_index_)
+											std::shared_ptr<const PageIndex> index)
 {
 	auto content = std::dynamic_pointer_cast<const PageContent>(entry->value);
 	if(content) {
-		reproc_page(url_key, page_index_, content);
+		reproc_page(url_key, index, content);
 	}
 }
 
-void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shared_ptr<const PageIndex> index)
+void CrawlProcessor::check_page(	int depth,
+									const std::string& url_key,
+									std::shared_ptr<const PageIndex> index)
 {
 	if(depth < 0) {
 		return;		// don't follow links in this case
@@ -611,8 +600,12 @@ void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shar
 			if(is_over_depth) {
 				last_slow_fetch += 60 * 1000 * 1000 / slow_crawl_per_minute;
 			}
-			url_index_async->get_value(Variant(get_url_key(parsed)),
-					std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
+			const auto url_key = get_url_key(parsed);
+			if(!url_update_buffer.count(url_key))
+			{
+				url_index_async->get_value(Variant(url_key),
+						std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
+			}
 		}
 	}
 }
@@ -626,13 +619,24 @@ void CrawlProcessor::reproc_page(	const std::string& url_key,
 	new_index->links.clear();
 	new_index->images.clear();
 	
-	work_threads->add_task(std::bind(&CrawlProcessor::process_page, this, url_key, new_index,
-									content->text, "", index->links, index->images, nullptr, true));
+	auto job = std::make_shared<process_job_t>();
+	job->is_reprocess = true;
+	job->url_key = url_key;
+	job->index = new_index;
+	job->content = content->text;
+	job->links = index->links;
+	job->images = index->images;
+	
+	work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
 }
 
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key, bool is_fail)
 {
-	const auto entry = url_map[url_key];
+	const auto iter = url_map.find(url_key);
+	if(iter == url_map.end()) {
+		throw std::logic_error("url_fetch_done(): invalid url_key: '" + url_key + "'");
+	}
+	const auto entry = iter->second;
 	auto* domain = find_domain(entry.domain);
 	if(domain) {
 		domain->num_pending--;
@@ -651,7 +655,7 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key,
 		fetch_counter++;
 	}
 	reload_counter += entry.is_reload ? 1 : 0;
-	url_map.erase(url_key);
+	url_map.erase(iter);
 	return entry;
 }
 
@@ -661,9 +665,18 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	const auto org_url_key = get_url_key(parsed);
 	const auto entry = url_fetch_done(org_url_key, result->is_fail);
 	
-	auto new_scheme = parsed.scheme();
-	auto url_key = org_url_key;
-	url_update(org_url_key, new_scheme, entry.depth, *result);
+	if(result->response)
+	{
+		auto job = std::make_shared<process_job_t>();
+		job->depth = entry.depth;
+		job->url_key = get_url_key(result->response->url);
+		job->result = result;
+		job->response = result->response;
+		
+		url_index_async->get_value(Variant(job->url_key),
+				std::bind(&CrawlProcessor::check_result_callback, this, job, std::placeholders::_1));
+	}
+	url_update(org_url_key, parsed.scheme(), entry.depth, *result);
 	
 	if(!result->redirect.empty())
 	{
@@ -672,7 +685,6 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		
 		if(new_url_key != org_url_key)
 		{
-			url_key = new_url_key;
 			page_index_async->delete_value(Variant(org_url_key));
 			page_content_async->delete_value(Variant(org_url_key));
 			log(INFO).out << "Deleted obsolete '" << org_url_key << "'";
@@ -684,24 +696,17 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 				info.redirect.clear();
 				url_update(new_url_key, parsed_redir.scheme(), entry.depth, info);
 			}
-		} else {
-			new_scheme = parsed_redir.scheme();
 		}
 	}
-	url_index_async->get_value(Variant(url_key),
-			std::bind(&CrawlProcessor::check_result_callback, this, result, std::placeholders::_1));
 }
 
-void CrawlProcessor::check_result_callback(	std::shared_ptr<const FetchResult> result,
+void CrawlProcessor::check_result_callback(	std::shared_ptr<process_job_t> job,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	auto previous = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
-	if(!previous || result->last_fetched > previous->last_fetched + reload_interval / 2)
+	if(!previous || job->result->last_fetched > previous->last_fetched + reload_interval / 2)
 	{
-		auto response = result->response;
-		if(response) {
-			handle(response);
-		}
+		process_new(job);
 	}
 }
 
@@ -716,6 +721,7 @@ void CrawlProcessor::url_update(	const std::string& url_key,
 	job->new_depth = new_depth;
 	job->info = info;
 	url_update_queue.emplace(vnx::get_wall_time_seconds() + commit_delay, job);
+	url_update_buffer[url_key] = job;
 }
 
 void CrawlProcessor::url_update_callback(	std::shared_ptr<url_update_job_t> job,

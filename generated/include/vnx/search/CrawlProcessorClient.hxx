@@ -9,7 +9,6 @@
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/SyncUpdate.hxx>
-#include <vnx/search/TextResponse.hxx>
 
 
 namespace vnx {

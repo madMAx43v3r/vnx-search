@@ -12,7 +12,6 @@
 #include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/CrawlProcessor_get_stats.hxx>
 #include <vnx/search/CrawlProcessor_get_stats_return.hxx>
-#include <vnx/search/TextResponse.hxx>
 
 #include <vnx/vnx.h>
 
@@ -749,13 +748,6 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessorBase::static_create_type_code() {
 }
 
 void CrawlProcessorBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
-	{
-		auto _value = std::dynamic_pointer_cast<const ::vnx::search::TextResponse>(_sample->value);
-		if(_value) {
-			handle(_value, _sample);
-			return;
-		}
-	}
 	{
 		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::SyncUpdate>(_sample->value);
 		if(_value) {

@@ -11,7 +11,6 @@
 #include <vnx/keyvalue/SyncUpdate.hxx>
 #include <vnx/search/CrawlProcessor_get_stats.hxx>
 #include <vnx/search/CrawlProcessor_get_stats_return.hxx>
-#include <vnx/search/TextResponse.hxx>
 
 #include <vnx/vnx.h>
 
