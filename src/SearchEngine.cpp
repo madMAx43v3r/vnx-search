@@ -371,6 +371,7 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 	const auto* page = info ? find_page(info->id) : nullptr;
 	if(info) {
 		result["is_deleted"] = info->is_deleted;
+		result["rank_value"] = info->rank_value;
 		result["words"] = info->words.size();
 		result["links"] = info->links.size();
 		result["reverse_links"] = info->reverse_links.size();
@@ -378,6 +379,7 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 	}
 	if(page) {
 		result["url"] = page->get_url();
+		result["rank_value"] = page->rank_value;
 		result["last_modified"] = page->last_modified;
 		result["first_seen"] = page->first_seen;
 		const auto* domain = find_domain(page->domain_id);
@@ -774,13 +776,12 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
 	if(url_index)
 	{
-		std::unique_lock lock(index_mutex);
-		
 		const auto org_url_key = entry->key.to_string_value();
 		auto* page = find_page_url(org_url_key);
 		if(page) {
 			page->scheme = url_index->scheme;
 			page->first_seen = url_index->first_seen;
+			page->last_modified = url_index->last_modified;
 		}
 		if(!url_index->redirect.empty())
 		{
