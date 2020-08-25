@@ -1161,7 +1161,8 @@ void SearchEngine::check_link_queue()
 {
 	const auto now = vnx::get_wall_time_micros();
 	while(!link_queue.empty()
-			&& page_info_async->vnx_get_num_pending() < max_num_pending)
+			&& page_info_async->vnx_get_num_pending() < max_num_pending
+			&& update_threads->get_num_pending() < max_num_pending)
 	{
 		const auto iter = link_queue.begin();
 		if(now - iter->first >= int64_t(link_commit_interval) * 1000000
@@ -1187,7 +1188,8 @@ void SearchEngine::check_word_queue()
 {
 	const auto now = vnx::get_wall_time_seconds();
 	while(!word_queue.empty()
-			&& word_context_async->vnx_get_num_pending() < max_num_pending)
+			&& word_context_async->vnx_get_num_pending() < max_num_pending
+			&& update_threads->get_num_pending() < max_num_pending)
 	{
 		const auto iter = word_queue.begin();
 		if(now - iter->first >= word_commit_interval || word_cache.size() > max_word_cache)
