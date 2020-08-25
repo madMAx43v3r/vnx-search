@@ -92,6 +92,7 @@ void CrawlProcessor::main()
 	if(do_reprocess) {
 		page_index_async->sync_all(input_page_index_sync);
 	}
+	last_slow_fetch = vnx::get_wall_time_micros();
 	
 	work_threads = std::make_shared<ThreadPool>(num_threads, 100);
 	
@@ -331,9 +332,6 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed) const
 
 int CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t load_time)
 {
-	if(depth > max_depth) {
-		return 0;
-	}
 	if(url.size() > max_url_length) {
 		return 0;
 	}
@@ -605,9 +603,14 @@ void CrawlProcessor::check_page(const std::string& url_key, int depth, std::shar
 			continue;
 		}
 		const auto link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
+		const bool is_over_depth = link_depth > max_depth;
+		const bool can_slow_fetch = (vnx::get_wall_time_micros() - last_slow_fetch) > 60 * 1000 * 1000 / slow_crawl_per_minute;
 		
-		if(link_depth <= max_depth)
+		if(!is_over_depth || can_slow_fetch)
 		{
+			if(is_over_depth) {
+				last_slow_fetch += 60 * 1000 * 1000 / slow_crawl_per_minute;
+			}
 			url_index_async->get_value(Variant(get_url_key(parsed)),
 					std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
 		}
@@ -642,6 +645,9 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key,
 	if(is_fail) {
 		error_counter++;
 	} else {
+		if(entry.depth > max_depth) {
+			slow_fetch_counter++;
+		}
 		fetch_counter++;
 	}
 	reload_counter += entry.is_reload ? 1 : 0;
@@ -848,7 +854,7 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << url_map.size() << " queued, "
 			<< crawl_frontend_async->vnx_get_num_pending() << " pending, "
 			<< queue_block_count << " blocking, "
-			<< fetch_counter << " fetched, " << error_counter << " failed, "
+			<< fetch_counter << " fetched, " << slow_fetch_counter << " slow, " << error_counter << " failed, "
 			<< delete_counter << " deleted, " << reload_counter << " reload, "
 			<< active_domains << " domains, " << average_depth << " depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "

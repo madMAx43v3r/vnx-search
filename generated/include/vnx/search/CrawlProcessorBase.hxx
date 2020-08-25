@@ -40,6 +40,7 @@ public:
 	int32_t robots_reload_interval = 2678400;
 	int32_t commit_delay = 100;
 	int32_t lock_timeout = 100;
+	int32_t slow_crawl_per_minute = 60;
 	vnx::float32_t reload_power = 4;
 	uint32_t index_version = 0;
 	vnx::bool_t do_reprocess = false;
