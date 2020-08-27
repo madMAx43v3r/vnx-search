@@ -149,7 +149,8 @@ void limited_emplace(T& queue, const K& key, const V& value, size_t limit)
 {
 	if(queue.size() < limit) {
 		queue.emplace(key, value);
-	} else {
+	}
+	else if(!queue.empty()) {
 		const auto back = std::prev(queue.end());
 		typename T::key_compare compare;
 		if(compare(key, back->first)) {
