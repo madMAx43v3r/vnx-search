@@ -182,10 +182,8 @@ private:
 	
 	std::shared_ptr<googlebot::RobotsMatcher> matcher;
 	std::vector<std::regex> regex_blacklist_;
-	int64_t last_slow_fetch = 0;
 	
 	int64_t fetch_counter = 0;
-	int64_t slow_fetch_counter = 0;
 	int64_t error_counter = 0;
 	int64_t reload_counter = 0;
 	int64_t reproc_counter = 0;

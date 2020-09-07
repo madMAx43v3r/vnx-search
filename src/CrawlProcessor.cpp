@@ -92,7 +92,6 @@ void CrawlProcessor::main()
 	if(do_reprocess) {
 		page_index_async->sync_all(input_page_index_sync);
 	}
-	last_slow_fetch = vnx::get_wall_time_micros();
 	
 	work_threads = std::make_shared<ThreadPool>(num_threads, 100);
 	
@@ -591,17 +590,10 @@ void CrawlProcessor::check_page(	int depth,
 		if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
 			continue;
 		}
-		const auto* domain = find_domain(parsed.host());
 		const auto link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
-		const bool is_over_depth = link_depth > max_depth;
-		const bool can_slow_fetch = vnx::get_wall_time_micros() > last_slow_fetch
-				&& (!domain || domain->queue.size() < 10);
 		
-		if(!is_over_depth || can_slow_fetch)
+		if(link_depth <= max_depth)
 		{
-			if(is_over_depth) {
-				last_slow_fetch += 60 * 1000 * 1000 / slow_crawl_per_minute;
-			}
 			const auto url_key = get_url_key(parsed);
 			if(!url_update_buffer.count(url_key))
 			{
@@ -651,9 +643,6 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key,
 	if(is_fail) {
 		error_counter++;
 	} else {
-		if(entry.depth > max_depth) {
-			slow_fetch_counter++;
-		}
 		fetch_counter++;
 	}
 	reload_counter += entry.is_reload ? 1 : 0;
@@ -862,7 +851,7 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << url_map.size() << " queued, "
 			<< crawl_frontend_async->vnx_get_num_pending() << " pending, "
 			<< queue_block_count << " blocking, "
-			<< fetch_counter << " fetched, " << slow_fetch_counter << " slow, " << error_counter << " failed, "
+			<< fetch_counter << " fetched, " << error_counter << " failed, "
 			<< delete_counter << " deleted, " << reload_counter << " reload, "
 			<< active_domains << " domains, " << average_depth << " depth";
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "

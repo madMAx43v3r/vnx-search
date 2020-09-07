@@ -43,8 +43,6 @@ module CrawlProcessor {
 	
 	int lock_timeout = 100;					// [sec]
 	
-	int slow_crawl_per_minute = 60;			// total max pages/min for over depth pages
-	
 	float reload_power = 4;
 	
 	uint index_version = 0;					// increase to re-process all content
