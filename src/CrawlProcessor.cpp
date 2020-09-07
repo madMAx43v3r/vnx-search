@@ -591,9 +591,11 @@ void CrawlProcessor::check_page(	int depth,
 		if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
 			continue;
 		}
+		const auto* domain = find_domain(parsed.host());
 		const auto link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
 		const bool is_over_depth = link_depth > max_depth;
-		const bool can_slow_fetch = vnx::get_wall_time_micros() > last_slow_fetch;
+		const bool can_slow_fetch = vnx::get_wall_time_micros() > last_slow_fetch
+				&& (!domain || domain->queue.size() < 10);
 		
 		if(!is_over_depth || can_slow_fetch)
 		{
