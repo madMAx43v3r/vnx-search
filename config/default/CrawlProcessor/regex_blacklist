@@ -103,6 +103,7 @@
 	"-post[0-9]{5,}\\.html",
 	"-print\\.html",
 	"-(prev|next)-thread\\.html",
+	"=field_video_tags",
 	"[\\/.]energeticforum\\.com\\/.*?[&?]p=[0-9]+",
 	"[\\/.]overunity\\.com\\/.*?\\/msg[0-9]+\\/",
 	"[\\/.]voat\\.co\\/[^\\/]+\\/[^\\/]+\\/[0-9]+\\/[0-9]+$",
