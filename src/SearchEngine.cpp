@@ -1565,7 +1565,7 @@ void SearchEngine::page_rank_task(const std::vector<std::string>& url_keys, cons
 		if(page) {
 			result[i] = page->rank_value;
 		}
-		if(i++ % 8192 == 8191) {
+		if(i % 8192 == 8191) {
 			lock.unlock();
 			lock.lock();
 		}
