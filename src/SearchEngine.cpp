@@ -755,7 +755,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 				
 				page.id = info->id;
 				page.url_key = url_key;
-				page.rank_value = fmaxf(info->rank_value, info->reverse_domains.size());
+				page.rank_value = info->rank_value;
 				page.index_version = info->index_version;
 				page.link_version = info->link_version;
 				page.word_version = info->word_version;
