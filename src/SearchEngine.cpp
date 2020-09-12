@@ -429,19 +429,17 @@ void SearchEngine::reverse_lookup_callback(	const std::string& url_key,
 											std::shared_ptr<const keyvalue::Entry> entry,
 											const request_id_t& req_id) const
 {
-	std::vector<std::pair<std::pair<uint32_t, uint32_t>, std::string>> sorted;
-	
+	std::vector<std::pair<uint32_t, std::string>> sorted;
 	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	if(info) {
 		for(const auto& link_key : info->reverse_links) {
 			const auto* parent = find_page_url(link_key);
 			if(parent) {
-				sorted.emplace_back(std::make_pair(parent->reverse_domains, parent->reverse_links), parent->url_key.str());
+				sorted.emplace_back(parent->reverse_domains, parent->url_key.str());
 			}
 		}
 	}
-	std::sort(sorted.begin(), sorted.end(),
-					std::greater<std::pair<std::pair<uint32_t, uint32_t>, std::string>>());
+	std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<uint32_t, std::string>>());
 	
 	std::vector<std::string> result;
 	for(auto& entry : sorted) {
