@@ -367,7 +367,6 @@ int CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t loa
 void CrawlProcessor::check_queues()
 {
 	check_fetch_queue();
-	check_url_update_queue();
 }
 
 void CrawlProcessor::check_fetch_queue()
@@ -469,25 +468,6 @@ void CrawlProcessor::check_fetch_queue()
 			if(url.depth >= 0) {
 				average_depth = url.depth * 0.01 + average_depth * 0.99;
 			}
-		}
-	}
-}
-
-void CrawlProcessor::check_url_update_queue()
-{
-	const auto now = vnx::get_wall_time_seconds();
-	while(!url_update_queue.empty())
-	{
-		const auto iter = url_update_queue.begin();
-		if(now >= iter->first)
-		{
-			auto job = iter->second;
-			url_index_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
-					std::bind(&CrawlProcessor::url_update_callback, this, job, std::placeholders::_1));
-			url_update_queue.erase(iter);
-			url_update_buffer.erase(job->url_key);
-		} else {
-			break;
 		}
 	}
 }
@@ -595,11 +575,8 @@ void CrawlProcessor::check_page(	int depth,
 		if(link_depth <= max_depth)
 		{
 			const auto url_key = get_url_key(parsed);
-			if(!url_update_buffer.count(url_key))
-			{
-				url_index_async->get_value(Variant(url_key),
-						std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
-			}
+			url_index_async->get_value(Variant(url_key),
+					std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
 		}
 	}
 }
@@ -707,12 +684,12 @@ void CrawlProcessor::url_update(	const std::string& url_key,
 									const UrlInfo& info)
 {
 	auto job = std::make_shared<url_update_job_t>();
-	job->url_key = url_key;
 	job->new_scheme = new_scheme;
 	job->new_depth = new_depth;
 	job->info = info;
-	url_update_queue.emplace(vnx::get_wall_time_seconds() + commit_delay, job);
-	url_update_buffer[url_key] = job;
+	
+	url_index_async->get_value_locked(Variant(url_key), lock_timeout * 1000,
+			std::bind(&CrawlProcessor::url_update_callback, this, job, std::placeholders::_1));
 }
 
 void CrawlProcessor::url_update_callback(	std::shared_ptr<url_update_job_t> job,
@@ -736,7 +713,7 @@ void CrawlProcessor::url_update_callback(	std::shared_ptr<url_update_job_t> job,
 		index->first_seen = index->last_fetched;
 		index->fetch_count = 1;
 	}
-	url_index_async->store_value(entry->key, index);
+	url_index_async->store_value_delay(entry->key, index, commit_delay * 1000);
 }
 
 void CrawlProcessor::url_fetch_error(const std::string& url, const std::exception& ex)

@@ -84,7 +84,6 @@ protected:
 	};
 	
 	struct url_update_job_t {
-		std::string url_key;
 		std::string new_scheme;
 		int new_depth;
 		UrlInfo info;
@@ -114,7 +113,6 @@ private:
 	
 	void check_queues();
 	void check_fetch_queue();
-	void check_url_update_queue();
 	
 	void check_url(const Url::Url& url, const int depth, std::shared_ptr<const keyvalue::Entry> entry);
 	
@@ -168,8 +166,6 @@ private:
 	
 private:
 	std::shared_ptr<ThreadPool> work_threads;
-	std::multimap<int64_t, std::shared_ptr<url_update_job_t>> url_update_queue;
-	std::unordered_map<std::string, std::shared_ptr<url_update_job_t>> url_update_buffer;
 	
 	std::unordered_map<std::string, url_t> url_map;
 	std::unordered_map<std::string, domain_t> domain_map;

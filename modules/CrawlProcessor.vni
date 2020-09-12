@@ -39,7 +39,7 @@ module CrawlProcessor {
 	
 	int robots_reload_interval = 2678400;	// [sec]
 	
-	int commit_delay = 100;					// [sec]
+	int commit_delay = 10;					// [sec]
 	
 	int lock_timeout = 100;					// [sec]
 	
