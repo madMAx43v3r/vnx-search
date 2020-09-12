@@ -669,10 +669,12 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 			
 			for(const auto word_id : info->words)
 			{
-				const auto cache = get_word_cache(word_id);
-				if(cache) {
+				try {
+					const auto cache = get_word_cache(word_id);
 					cache->rem_pages.push_back(info->id);
 					p_page_cache->words_pending++;
+				} catch(...) {
+					// ignore
 				}
 			}
 			if(p_page_cache->words_pending == 0) {
@@ -733,7 +735,11 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 				auto* page = find_page(info->id);
 				if(page) {
 					for(auto word_id : info->words) {
-						get_word_cache(word_id);	// update words with new rank_value
+						try {
+							get_word_cache(word_id);	// update words with new rank_value
+						} catch(...) {
+							// ignore
+						}
 					}
 					page->rank_value = info->rank_value;
 					page->array_version = info->array_version;
@@ -1096,24 +1102,26 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		}
 		
 		auto& p_page_cache = page_cache[page_id];
-		if(p_page_cache) {
-			throw std::logic_error("p_page_cache not null");
+		if(!p_page_cache) {
+			p_page_cache = std::make_shared<page_cache_t>();
 		}
-		p_page_cache = std::make_shared<page_cache_t>();
 		p_page_cache->word_version = job->index_version;
 		p_page_cache->url_key = url_key;
 		
-		for(const auto& entry : job->words)
-		{
-			const auto word_id = entry.first;
-			const auto p_word_cache = get_word_cache(word_id);
-			if(entry.second >= 0) {
-				p_word_cache->add_pages.push_back(page_id);
-				p_page_cache->words_pending++;
-			}
-			if(entry.second <= 0) {
-				p_word_cache->rem_pages.push_back(page_id);
-				p_page_cache->words_pending++;
+		for(const auto& entry : job->words) {
+			try {
+				const auto word_id = entry.first;
+				const auto p_word_cache = get_word_cache(word_id);
+				if(entry.second >= 0) {
+					p_word_cache->add_pages.push_back(page_id);
+					p_page_cache->words_pending++;
+				}
+				if(entry.second <= 0) {
+					p_word_cache->rem_pages.push_back(page_id);
+					p_page_cache->words_pending++;
+				}
+			} catch(const std::exception& ex) {
+				log(WARN) << "update_page(): " << ex.what();
 			}
 		}
 		if(p_page_cache->words_pending == 0) {
