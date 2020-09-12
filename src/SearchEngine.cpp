@@ -658,7 +658,7 @@ void SearchEngine::delete_page_callback(const std::string& url_key,
 					cache->rem_reverse_links.push_back(url_key);
 				}
 			}
-			p_link_cache->schedule_time_us = (vnx::get_wall_time_seconds() + commit_delay) * 1000000;
+			p_link_cache->schedule_time_us = vnx::get_wall_time_micros();
 		}
 	}
 	if(info->word_version)
@@ -719,7 +719,7 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 			}
 			p_new_cache->add_reverse_links.push_back(parent_key);
 		}
-		p_new_cache->schedule_time_us = (vnx::get_wall_time_seconds() + commit_delay) * 1000000;
+		p_new_cache->schedule_time_us = vnx::get_wall_time_micros();
 		
 		delete_page_async(org_url_key);
 	}
@@ -1085,7 +1085,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 			p_link_cache->add_links.push_back(link_key);
 		}
 		// make sure our link cache is saved last
-		p_link_cache->schedule_time_us = (vnx::get_wall_time_seconds() + commit_delay) * 1000000;
+		p_link_cache->schedule_time_us = vnx::get_wall_time_micros();
 	}
 	
 	// update word index if version is greater and previous update has finished
@@ -1127,9 +1127,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 void SearchEngine::check_queues()
 {
 	check_link_queue();
-	check_page_queue();
 	check_word_queue();
-	check_word_queue_2();
 	check_load_queue();
 }
 
@@ -1211,49 +1209,11 @@ void SearchEngine::check_word_queue()
 	}
 }
 
-void SearchEngine::check_page_queue()
-{
-	const auto now = vnx::get_wall_time_seconds();
-	while(!page_queue.empty()
-			&& page_info_async->vnx_get_num_pending() < max_num_pending)
-	{
-		const auto iter = page_queue.begin();
-		if(now - iter->first >= 0)
-		{
-			auto cached = iter->second;
-			page_info_async->get_value_locked(Variant(cached->url_key), lock_timeout * 1000,
-					std::bind(&SearchEngine::page_word_update_callback, this, cached, std::placeholders::_1));
-			page_queue.erase(iter);
-		} else {
-			break;
-		}
-	}
-}
-
-void SearchEngine::check_word_queue_2()
-{
-	const auto now = vnx::get_wall_time_seconds();
-	while(!word_queue_2.empty()
-			&& page_info_async->vnx_get_num_pending() < max_num_pending)
-	{
-		const auto iter = word_queue_2.begin();
-		if(now - iter->first >= 0)
-		{
-			auto job = iter->second;
-			page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
-					std::bind(&SearchEngine::word_process_callback_2, this, job, std::placeholders::_1));
-			word_queue_2.erase(iter);
-		} else {
-			break;
-		}
-	}
-}
-
-void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cache,
+void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cached,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
 	auto job = std::make_shared<link_update_job_t>();
-	job->cached = cache;
+	job->cached = cached;
 	job->info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
 	update_threads->add_task(std::bind(&SearchEngine::link_update_task, this, job));
 }
@@ -1267,12 +1227,13 @@ void SearchEngine::link_update_callback_1(std::shared_ptr<link_update_job_t> job
 void SearchEngine::link_update_callback_2(	std::shared_ptr<link_update_job_t> job,
 											std::vector<float> rank_values)
 {
+	auto cached = job->cached;
 	auto result = job->result;
 	result->rank_value = result->reverse_domains.size();
 	for(auto value : rank_values) {
 		result->rank_value = fmaxf(result->rank_value, value * rank_decay);
 	}
-	page_info_async->store_value(Variant(job->cached->url_key), result);
+	page_info_async->store_value_delay(Variant(cached->url_key), result, cached->is_page_update ? commit_delay * 1000 : 0);
 	page_update_counter++;
 }
 
@@ -1325,7 +1286,8 @@ void SearchEngine::page_word_update_finished(uint32_t page_id)
 		const auto cached = iter->second;
 		if(cached->words_pending == 0)
 		{
-			page_queue.emplace(vnx::get_wall_time_seconds() + commit_delay, cached);
+			page_info_async->get_value_locked(Variant(cached->url_key), lock_timeout * 1000,
+					std::bind(&SearchEngine::page_word_update_callback, this, cached, std::placeholders::_1));
 			page_cache.erase(iter);
 		}
 	}
@@ -1338,7 +1300,7 @@ void SearchEngine::page_word_update_callback(	std::shared_ptr<page_cache_t> cach
 	if(info) {
 		info->word_version = cached->word_version;
 		info->words = std::vector<uint32_t>(cached->words.begin(), cached->words.end());
-		page_info_async->store_value(entry->key, info);
+		page_info_async->store_value_delay(entry->key, info, commit_delay * 1000);
 		page_update_counter++;
 	} else {
 		page_info_async->unlock(entry->key);
@@ -1369,13 +1331,15 @@ void SearchEngine::word_process_callback_1(std::shared_ptr<word_process_job_t> j
 			}
 		}
 	}
-	word_array_async->store_value(Variant(job->url_key), job->word_array);
-	
-	const auto* page = find_page_url(job->url_key);
-	if(!page || page->array_version != job->content_version)
-	{
-		word_queue_2.emplace(vnx::get_wall_time_seconds() + commit_delay, job);
-	}
+	word_array_async->store_value(Variant(job->url_key), job->word_array,
+		[this, job]() {
+			const auto* page = find_page_url(job->url_key);
+			if(!page || page->array_version != job->content_version)
+			{
+				page_info_async->get_value_locked(Variant(job->url_key), lock_timeout * 1000,
+						std::bind(&SearchEngine::word_process_callback_2, this, job, std::placeholders::_1));
+			}
+		});
 }
 
 void SearchEngine::word_process_callback_2(	std::shared_ptr<word_process_job_t> job,
@@ -1386,7 +1350,7 @@ void SearchEngine::word_process_callback_2(	std::shared_ptr<word_process_job_t> 
 	{
 		auto copy = info ? vnx::clone(info) : PageInfo::create();
 		copy->array_version = job->content_version;
-		page_info_async->store_value(entry->key, copy);
+		page_info_async->store_value_delay(entry->key, copy, commit_delay * 1000);
 		page_update_counter++;
 	} else {
 		page_info_async->unlock(entry->key);

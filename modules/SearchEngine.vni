@@ -22,7 +22,7 @@ module SearchEngine {
 	
 	int num_update_threads = 4;
 	
-	int commit_delay = 100;					// [sec]
+	int commit_delay = 10;					// [sec]
 	
 	int link_commit_interval = 60;			// [sec]
 	
