@@ -55,7 +55,9 @@ function on_result()
 		output.innerHTML = "HTTP Error: " + this.status;
 		return;
 	}
-	var result = JSON.parse(this.responseText);
+	var json = this.responseText.replace(/\t/g, ' ');
+	var result = JSON.parse(json);
+	//console.log(json);
 	
 	output.innerHTML = "";
 	
