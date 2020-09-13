@@ -36,8 +36,6 @@
 	<input type="submit" value="Submit" style="font-size: 100%;">
 </form>
 
-<hr>
-
 <div id="results"></div>
 
 <div id="stats" style="display: none">
@@ -53,6 +51,10 @@ var output = document.getElementById("results");
 
 function on_result()
 {
+	if(this.status != 200) {
+		output.innerHTML = "HTTP Error: " + this.status;
+		return;
+	}
 	var result = JSON.parse(this.responseText);
 	
 	output.innerHTML = "";
@@ -70,7 +72,6 @@ function on_result()
 			<span class="context">${item.context}</span><br>
 		`
 		output.appendChild(div);
-		console.log(item);
 	}
 	
 	document.getElementById("load_time").textContent = result.load_time_us / 1000;
