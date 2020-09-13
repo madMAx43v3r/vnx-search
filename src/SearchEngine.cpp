@@ -1252,36 +1252,38 @@ void SearchEngine::word_update_callback(std::shared_ptr<word_update_job_t> job,
 
 void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 {
-	word_context_async->store_value(Variant(job->cached->word), job->result);
-	word_update_counter++;
-	
-	for(const auto& page_id : job->cached->add_pages)
-	{
-		const auto iter = page_cache.find(page_id);
-		if(iter != page_cache.end())
-		{
-			auto p_page_cache = iter->second;
-			p_page_cache->words.insert(job->cached->word_id);
-			if(--(p_page_cache->words_pending) == 0) {
-				page_word_update_finished(page_id);
+	word_context_async->store_value(Variant(job->cached->word), job->result,
+		[this, job]() {
+			word_update_counter++;
+			
+			for(const auto& page_id : job->cached->add_pages)
+			{
+				const auto iter = page_cache.find(page_id);
+				if(iter != page_cache.end())
+				{
+					auto p_page_cache = iter->second;
+					p_page_cache->words.insert(job->cached->word_id);
+					if(--(p_page_cache->words_pending) == 0) {
+						page_word_update_finished(page_id);
+					}
+				}
 			}
-		}
-	}
-	for(const auto page_id : job->cached->rem_pages)
-	{
-		const auto iter = page_cache.find(page_id);
-		if(iter != page_cache.end())
-		{
-			auto p_page_cache = iter->second;
-			if(--(p_page_cache->words_pending) == 0) {
-				page_word_update_finished(page_id);
+			for(const auto page_id : job->cached->rem_pages)
+			{
+				const auto iter = page_cache.find(page_id);
+				if(iter != page_cache.end())
+				{
+					auto p_page_cache = iter->second;
+					if(--(p_page_cache->words_pending) == 0) {
+						page_word_update_finished(page_id);
+					}
+				}
 			}
-		}
-	}
-	const auto iter = word_index.find(job->cached->word_id);
-	if(iter != word_index.end()) {
-		iter->second.num_pages = job->num_pages;
-	}
+			const auto iter = word_index.find(job->cached->word_id);
+			if(iter != word_index.end()) {
+				iter->second.num_pages = job->num_pages;
+			}
+		});
 }
 
 void SearchEngine::page_word_update_finished(uint32_t page_id)
