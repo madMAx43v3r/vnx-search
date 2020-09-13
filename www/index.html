@@ -1,7 +1,92 @@
+<!DOCTYPE html>
 <html>
-
+<head>
+<title>fcknwo.com - Search Engine</title>
+<style>
+	body {
+		margin: 20px;
+	}
+	.item {
+		margin-top: 30px;
+		margin-bottom: 30px;
+	}
+	.title {
+		font-size: 120%;
+		line-height: 150%;
+	}
+	.url {
+		color: rgb(0,100,0);
+	}
+	.date {
+		color: rgb(0,0,0);
+	}
+	.context {
+		color: rgb(50,50,50);
+	}
+	#stats {
+		color: rgb(80,80,80);
+		font-size: 100%
+	}
+</style>
+</head>
 <body>
-TEST
-</body>
 
+<form onsubmit="submit_query(); return false">
+	<input id="query" type="text" value="corbett report" style="font-size: 100%;" size="50">
+	<input type="submit" value="Submit" style="font-size: 100%;">
+</form>
+
+<hr>
+
+<div id="results"></div>
+
+<div id="stats" style="display: none">
+<hr>
+Load: <span id="load_time">???</span> ms | 
+Compute: <span id="compute_time">???</span> ms |
+Total: <span id="total_time">???</span> ms
+</div>
+
+<script language="javascript">
+var input = document.getElementById("query");
+var output = document.getElementById("results");
+
+function on_result()
+{
+	var result = JSON.parse(this.responseText);
+	
+	output.innerHTML = "";
+	
+	for(var i = 0; i < result.items.length; ++i)
+	{
+		var item = result.items[i];
+		var date = new Date(item.last_modified * 1000);
+		var div = document.createElement("div");
+		div.className = "item";
+		div.innerHTML = `
+			<span class="url">${item.url}</span><br>
+			<a class="title" href="${item.url}">${item.title}</a><br>
+			<span class="date">${date.toDateString()} | </span>
+			<span class="context">${item.context}</span><br>
+		`
+		output.appendChild(div);
+		console.log(item);
+	}
+	
+	document.getElementById("load_time").textContent = result.load_time_us / 1000;
+	document.getElementById("compute_time").textContent = result.compute_time_us / 1000;
+	document.getElementById("total_time").textContent = (result.load_time_us + result.compute_time_us) / 1000;
+	document.getElementById("stats").style.display = "block";
+}
+
+function submit_query()
+{
+	var req = new XMLHttpRequest();
+	req.addEventListener("load", on_result);
+	req.open("GET", "/search/query?t=" + encodeURIComponent(input.value));
+	req.send(null);
+}
+</script>
+
+</body>
 </html>
