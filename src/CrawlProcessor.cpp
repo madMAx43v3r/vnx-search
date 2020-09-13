@@ -111,32 +111,33 @@ void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 	
 	auto content = PageContent::create();
 	content->text = response->text;
-	page_content_async->store_value(Variant(job->url_key), content);
 	
-	if(is_robots_txt(parsed))
-	{
-		auto entry = keyvalue::Entry::create();
-		entry->key = Variant(job->url_key);
-		entry->value = content;
-		robots_txt_callback(job->url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, entry);
-		return;
-	}
+	auto index = PageIndex::create();
+	index->title = response->title;
+	index->last_modified = response->last_modified;
 	
 	auto* domain = find_domain(parsed.host());
 	if(domain) {
 		job->robots = domain->robots_txt;
 	}
-	auto index = PageIndex::create();
-	index->title = response->title;
-	index->last_modified = response->last_modified;
-	
 	job->index = index;
 	job->content = response->text;
 	job->base_url = response->base_url;
 	job->links = response->links;
 	job->images = response->images;
 	
-	work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
+	if(is_robots_txt(parsed)) {
+		auto entry = keyvalue::Entry::create();
+		entry->key = Variant(job->url_key);
+		entry->value = content;
+		robots_txt_callback(job->url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, entry);
+		page_content_async->store_value(Variant(job->url_key), content);
+	} else {
+		page_content_async->store_value(Variant(job->url_key), content,
+			[this, job]() {
+				work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
+			});
+	}
 }
 
 void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
@@ -165,9 +166,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 			word_count += word.second;
 		}
 	}
-	
-	for(const auto& link : job->links)
-	{
+	for(const auto& link : job->links) {
 		try {
 			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
@@ -183,9 +182,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 			// ignore bad links
 		}
 	}
-	
-	for(const auto& link : job->images)
-	{
+	for(const auto& link : job->images) {
 		try {
 			const auto parsed = process_link(Url::Url(link), base);
 			const auto full_link = parsed.str();
@@ -201,10 +198,8 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 			// ignore bad links
 		}
 	}
-	
 	index->links = get_unique(index->links);
 	index->images = get_unique(index->images);
-	
 	index->word_count = std::min(word_count, size_t(0xFFFFFFFF));
 	index->version = index_version;
 	
@@ -213,16 +208,16 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 
 void CrawlProcessor::process_callback(std::shared_ptr<process_job_t> job)
 {
-	page_index_async->store_value(Variant(job->url_key), job->index);
-	
-	if(job->is_reprocess) {
-		reproc_counter++;
-	} else {
-		check_page(job->depth, job->url_key, job->index);
-		
-		log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
-				<< job->index->links.size() << " links, " << job->index->images.size() << " images";
-	}
+	page_index_async->store_value(Variant(job->url_key), job->index,
+		[this, job]() {
+			if(job->is_reprocess) {
+				reproc_counter++;
+			} else {
+				check_page(job->depth, job->url_key, job->index);
+			}
+		});
+	log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
+			<< job->index->links.size() << " links, " << job->index->images.size() << " images";
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::SyncUpdate> entry)
