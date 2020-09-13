@@ -31,7 +31,7 @@ public:
 	int32_t max_num_pending = 100;
 	int32_t num_query_threads = 4;
 	int32_t num_update_threads = 4;
-	int32_t commit_delay = 100;
+	int32_t commit_delay = 10;
 	int32_t link_commit_interval = 60;
 	int32_t word_commit_interval = 3600;
 	int32_t lock_timeout = 100;

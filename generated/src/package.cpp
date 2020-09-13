@@ -41,6 +41,7 @@
 #include <vnx/search/SearchEngine_suggest_domains_return.hxx>
 #include <vnx/search/SearchEngine_suggest_words.hxx>
 #include <vnx/search/SearchEngine_suggest_words_return.hxx>
+#include <vnx/search/SearchFrontendBase.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/TextResponse.hxx>
 #include <vnx/search/UrlIndex.hxx>
@@ -102,6 +103,7 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::SearchEngine_suggest_domains_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngine_suggest_words::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngine_suggest_words_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchFrontendBase::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchResult::static_create_type_code());
 	vnx::register_type_code(::vnx::search::TextResponse::static_create_type_code());
 	vnx::register_type_code(::vnx::search::UrlIndex::static_create_type_code());
@@ -161,6 +163,7 @@ const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains = v
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains_return = vnx::get_type_code(vnx::Hash64(0x385aae88fe3df753ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words = vnx::get_type_code(vnx::Hash64(0x7124d7bfda1b31f2ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words_return = vnx::get_type_code(vnx::Hash64(0xcf74c35d3594cc90ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchFrontendBase = vnx::get_type_code(vnx::Hash64(0x7de65cc9f49e8667ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchResult = vnx::get_type_code(vnx::Hash64(0x659ce58d97581ddull));
 const vnx::TypeCode* const vnx_native_type_code_TextResponse = vnx::get_type_code(vnx::Hash64(0x7cee1cd5b88ec569ull));
 const vnx::TypeCode* const vnx_native_type_code_UrlIndex = vnx::get_type_code(vnx::Hash64(0xab26319d1802d1b6ull));
