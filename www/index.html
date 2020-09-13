@@ -69,7 +69,7 @@ function on_result()
 		div.className = "item";
 		div.innerHTML = `
 			<span class="url">${item.url}</span><br>
-			<a class="title" href="${item.url}">${item.title}</a><br>
+			<a class="title" href="${item.url}" target="_blank">${item.title}</a><br>
 			<span class="date">${date.toDateString()} | </span>
 			<span class="context">${item.context}</span><br>
 		`
