@@ -1,0 +1,6 @@
+{
+	"port": 8080,
+	"max_payload_size": 1024,
+	"output_request": "http.request",
+	"output_response": "http.response"
+}

@@ -7,4 +7,4 @@ cd $(dirname "$0")
 ./addons/codegen.sh
 ./keyvalue/codegen.sh
 
-vnxcppcodegen --cleanup generated/ vnx.search interface/ modules/ ${VNX_INTERFACE_DIR}/vnx/ keyvalue/interface/
+vnxcppcodegen --cleanup generated/ vnx.search interface/ modules/ ${VNX_INTERFACE_DIR}/vnx/ addons/interface/ keyvalue/interface/

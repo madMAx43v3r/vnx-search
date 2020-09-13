@@ -1,0 +1,4 @@
+{
+	"www_root": "./www/",
+	"directory_files": ["index.html"]
+}

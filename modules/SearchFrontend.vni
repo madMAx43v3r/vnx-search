@@ -1,0 +1,7 @@
+package vnx.search;
+
+module SearchFrontend implements vnx.addons.HttpComponent {
+	
+	string engine_server = "SearchEngine";
+	
+}
