@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	options["s"] = "engine";
 	options["engine"] = "engine server url";
 	
-	vnx::init("vnx_search_httpd", argc, argv);
+	vnx::init("vnx_search_httpd", argc, argv, options);
 	
 	std::string engine = ".vnx_search_engine.sock";
 	vnx::read_config("engine", engine);
