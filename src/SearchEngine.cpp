@@ -117,8 +117,10 @@ void SearchEngine::query_async(	const std::vector<std::string>& words,
 	job->result = result;
 	job->time_begin = vnx::get_wall_time_micros();
 	job->error_callback =
-			[this, job](const std::exception& ex) {
-				vnx_async_return(job->req_id, vnx::InternalError::from_what(ex.what()));
+			[this, wjob = std::weak_ptr<query_job_t>(job)](const std::exception& ex) {
+				if(auto job = wjob.lock()) {
+					vnx_async_return(job->req_id, vnx::InternalError::from_what(ex.what()));
+				}
 			};
 	
 	word_context_async->get_values(
