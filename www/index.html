@@ -81,6 +81,9 @@ function on_result()
 		`
 		output.appendChild(div);
 	}
+	if(!result.items.length) {
+		output.innerHTML = "<br>No Results!";
+	}
 	
 	document.getElementById("load_time").textContent = result.load_time_us / 1000;
 	document.getElementById("compute_time").textContent = result.compute_time_us / 1000;
