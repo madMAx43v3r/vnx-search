@@ -51,6 +51,7 @@ void SearchFrontend::http_request_async(const std::shared_ptr<const addons::Http
 		}
 		query_options_t options;
 		options.limit = 20;
+		options.context = 30;
 		
 		engine_async->query(words, options,
 			[this, req_id](std::shared_ptr<const SearchResult> result) {
