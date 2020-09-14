@@ -614,7 +614,7 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		get_page_ranks_async(_args->url_keys, _request_id);
+		get_page_ranks_async(_args->url_keys, _args->direct, _request_id);
 		return 0;
 	} else if(_type_hash == vnx::Hash64(0x6852b566cb5e7ba5ull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_domain_list>(_method);

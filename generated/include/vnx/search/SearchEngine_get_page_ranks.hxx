@@ -15,6 +15,7 @@ class SearchEngine_get_page_ranks : public ::vnx::Value {
 public:
 	
 	std::vector<std::string> url_keys;
+	vnx::bool_t direct = 0;
 	
 	typedef ::vnx::Value Super;
 	

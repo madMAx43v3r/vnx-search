@@ -390,9 +390,11 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 	get_page_info_async_return(req_id, result);
 }
 
-void SearchEngine::get_page_ranks_async(const std::vector<std::string>& url_keys, const request_id_t& req_id) const
+void SearchEngine::get_page_ranks_async(const std::vector<std::string>& url_keys,
+										const vnx::bool_t& direct,
+										const request_id_t& req_id) const
 {
-	update_threads->add_task(std::bind(&SearchEngine::page_rank_task, this, url_keys, req_id));
+	update_threads->add_task(std::bind(&SearchEngine::page_rank_task, this, url_keys, direct, req_id));
 }
 
 std::vector<Object> SearchEngine::get_domain_list(const int32_t& limit, const uint32_t& offset) const
@@ -1226,7 +1228,7 @@ void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cached,
 
 void SearchEngine::link_update_callback_1(std::shared_ptr<link_update_job_t> job)
 {
-	search_async->get_page_ranks(job->result->reverse_links,
+	search_async->get_page_ranks(job->result->reverse_links, update_page_info,
 			std::bind(&SearchEngine::link_update_callback_2, this, job, std::placeholders::_1));
 }
 
@@ -1525,7 +1527,7 @@ void SearchEngine::query_task_1(std::shared_ptr<query_job_t> job, size_t index,
 	}
 }
 
-void SearchEngine::page_rank_task(const std::vector<std::string>& url_keys, const request_id_t& req_id) const noexcept
+void SearchEngine::page_rank_task(const std::vector<std::string>& url_keys, const bool direct, const request_id_t& req_id) const noexcept
 {
 	std::shared_lock lock(index_mutex);
 	
@@ -1535,7 +1537,7 @@ void SearchEngine::page_rank_task(const std::vector<std::string>& url_keys, cons
 	{
 		const auto* page = find_page_url(url_keys[i]);
 		if(page) {
-			result[i] = page->rank_value;
+			result[i] = direct ? page->reverse_domains : page->rank_value;
 		}
 		if(i % 8192 == 8191) {
 			lock.unlock();

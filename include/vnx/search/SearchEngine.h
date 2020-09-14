@@ -190,7 +190,9 @@ protected:
 	
 	void get_page_info_async(const std::string& url_key, const request_id_t& req_id) const;
 	
-	void get_page_ranks_async(const std::vector<std::string>& url_keys, const request_id_t& req_id) const;
+	void get_page_ranks_async(	const std::vector<std::string>& url_keys,
+								const vnx::bool_t& direct,
+								const request_id_t& req_id) const;
 	
 	std::vector<Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const;
 	
@@ -311,6 +313,7 @@ private:
 						std::shared_ptr<const WordArray> word_array) const noexcept;
 	
 	void page_rank_task(const std::vector<std::string>& url_keys,
+						const bool direct,
 						const request_id_t& req_id) const noexcept;
 	
 	void link_update_task(std::shared_ptr<link_update_job_t> job) noexcept;

@@ -39,7 +39,7 @@ public:
 			const std::function<void(::vnx::Object)>& _callback = std::function<void(::vnx::Object)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	
-	uint64_t get_page_ranks(const std::vector<std::string>& url_keys, 
+	uint64_t get_page_ranks(const std::vector<std::string>& url_keys, const vnx::bool_t& direct, 
 			const std::function<void(std::vector<vnx::float32_t>)>& _callback = std::function<void(std::vector<vnx::float32_t>)>(),
 			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
 	

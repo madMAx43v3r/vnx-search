@@ -31,7 +31,7 @@ public:
 	
 	::vnx::Object get_page_info(const std::string& url_key);
 	
-	std::vector<vnx::float32_t> get_page_ranks(const std::vector<std::string>& url_keys);
+	std::vector<vnx::float32_t> get_page_ranks(const std::vector<std::string>& url_keys, const vnx::bool_t& direct);
 	
 	std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset);
 	

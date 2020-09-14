@@ -78,7 +78,7 @@ protected:
 	void get_domain_info_async_return(const vnx::request_id_t& _request_id, const ::vnx::Object& _ret_0) const;
 	virtual void get_page_info_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;
 	void get_page_info_async_return(const vnx::request_id_t& _request_id, const ::vnx::Object& _ret_0) const;
-	virtual void get_page_ranks_async(const std::vector<std::string>& url_keys, const vnx::request_id_t& _request_id) const = 0;
+	virtual void get_page_ranks_async(const std::vector<std::string>& url_keys, const vnx::bool_t& direct, const vnx::request_id_t& _request_id) const = 0;
 	void get_page_ranks_async_return(const vnx::request_id_t& _request_id, const std::vector<vnx::float32_t>& _ret_0) const;
 	virtual std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const = 0;
 	virtual void reverse_lookup_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;

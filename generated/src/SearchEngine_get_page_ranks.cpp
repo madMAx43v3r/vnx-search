@@ -14,7 +14,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchEngine_get_page_ranks::VNX_TYPE_HASH(0x5149b749f6676a3bull);
-const vnx::Hash64 SearchEngine_get_page_ranks::VNX_CODE_HASH(0x5bc9cb0ed736dd06ull);
+const vnx::Hash64 SearchEngine_get_page_ranks::VNX_CODE_HASH(0xdbacffafb3d3e0c2ull);
 
 vnx::Hash64 SearchEngine_get_page_ranks::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -47,12 +47,14 @@ void SearchEngine_get_page_ranks::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchEngine_get_page_ranks;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, url_keys);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, direct);
 	_visitor.type_end(*_type_code);
 }
 
 void SearchEngine_get_page_ranks::write(std::ostream& _out) const {
 	_out << "{\"__type\": \"vnx.search.SearchEngine.get_page_ranks\"";
 	_out << ", \"url_keys\": "; vnx::write(_out, url_keys);
+	_out << ", \"direct\": "; vnx::write(_out, direct);
 	_out << "}";
 }
 
@@ -60,7 +62,9 @@ void SearchEngine_get_page_ranks::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "url_keys") {
+		if(_entry.first == "direct") {
+			vnx::from_string(_entry.second, direct);
+		} else if(_entry.first == "url_keys") {
 			vnx::from_string(_entry.second, url_keys);
 		}
 	}
@@ -70,12 +74,15 @@ vnx::Object SearchEngine_get_page_ranks::to_object() const {
 	vnx::Object _object;
 	_object["__type"] = "vnx.search.SearchEngine.get_page_ranks";
 	_object["url_keys"] = url_keys;
+	_object["direct"] = direct;
 	return _object;
 }
 
 void SearchEngine_get_page_ranks::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "url_keys") {
+		if(_entry.first == "direct") {
+			_entry.second.to(direct);
+		} else if(_entry.first == "url_keys") {
 			_entry.second.to(url_keys);
 		}
 	}
@@ -85,12 +92,17 @@ vnx::Variant SearchEngine_get_page_ranks::get_field(const std::string& _name) co
 	if(_name == "url_keys") {
 		return vnx::Variant(url_keys);
 	}
+	if(_name == "direct") {
+		return vnx::Variant(direct);
+	}
 	return vnx::Variant();
 }
 
 void SearchEngine_get_page_ranks::set_field(const std::string& _name, const vnx::Variant& _value) {
 	if(_name == "url_keys") {
 		_value.to(url_keys);
+	} else if(_name == "direct") {
+		_value.to(direct);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -120,18 +132,23 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_get_page_ranks::static_create_type_c
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchEngine.get_page_ranks";
 	type_code->type_hash = vnx::Hash64(0x5149b749f6676a3bull);
-	type_code->code_hash = vnx::Hash64(0x5bc9cb0ed736dd06ull);
+	type_code->code_hash = vnx::Hash64(0xdbacffafb3d3e0c2ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchEngine_get_page_ranks>(); };
 	type_code->return_type = ::vnx::search::SearchEngine_get_page_ranks_return::static_get_type_code();
-	type_code->fields.resize(1);
+	type_code->fields.resize(2);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "url_keys";
 		field.code = {12, 32};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[1];
+		field.name = "direct";
+		field.code = {31};
 	}
 	type_code->build();
 	return type_code;
@@ -170,7 +187,14 @@ void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks& value, cons
 			default: vnx::skip(in, type_code, code); return;
 		}
 	}
+	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
+		{
+			const vnx::TypeField* const _field = type_code->field_map[1];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.direct, _field->code.data());
+			}
+		}
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
@@ -189,6 +213,8 @@ void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks& va
 	if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
+	char* const _buf = out.write(1);
+	vnx::write_value(_buf + 0, value.direct);
 	vnx::write(out, value.url_keys, type_code, type_code->fields[0].code.data());
 }
 

@@ -93,9 +93,10 @@ std::shared_ptr<const ::vnx::search::SearchResult> SearchEngineClient::query(con
 	return _result->_ret_0;
 }
 
-std::vector<vnx::float32_t> SearchEngineClient::get_page_ranks(const std::vector<std::string>& url_keys) {
+std::vector<vnx::float32_t> SearchEngineClient::get_page_ranks(const std::vector<std::string>& url_keys, const vnx::bool_t& direct) {
 	auto _method = ::vnx::search::SearchEngine_get_page_ranks::create();
 	_method->url_keys = url_keys;
+	_method->direct = direct;
 	auto _return_value = vnx_request(_method);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_ranks_return>(_return_value);
 	if(!_result) {

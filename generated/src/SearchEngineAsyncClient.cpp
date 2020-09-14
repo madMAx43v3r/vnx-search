@@ -85,9 +85,10 @@ uint64_t SearchEngineAsyncClient::get_page_info(const std::string& url_key, cons
 	return _request_id;
 }
 
-uint64_t SearchEngineAsyncClient::get_page_ranks(const std::vector<std::string>& url_keys, const std::function<void(std::vector<vnx::float32_t>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+uint64_t SearchEngineAsyncClient::get_page_ranks(const std::vector<std::string>& url_keys, const vnx::bool_t& direct, const std::function<void(std::vector<vnx::float32_t>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchEngine_get_page_ranks::create();
 	_method->url_keys = url_keys;
+	_method->direct = direct;
 	const auto _request_id = vnx_request(_method);
 	vnx_queue_get_page_ranks[_request_id] = std::make_pair(_callback, _error_callback);
 	vnx_num_pending++;
