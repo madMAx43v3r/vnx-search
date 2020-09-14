@@ -25,15 +25,23 @@
 	}
 	#stats {
 		color: rgb(80,80,80);
-		font-size: 100%
+		font-size: 100%;
+	}
+	div#page_list {
+		font-size: 120%;
+		text-align: center
+	}
+	a#page {
+		margin-left: 5px;
+		margin-right: 5px;
 	}
 </style>
 </head>
-<body>
+<body onload="on_load();">
 
-<form onsubmit="submit_query(); return false">
+<form onsubmit="page=0; submit_query(); return false;">
 	<span style="font-size: 100%;">Search: </span>
-	<input id="query" type="text" value="" style="font-size: 100%;" size="40">
+	<input id="query" name="t" type="text" value="" style="font-size: 100%;" size="40">
 	<input type="submit" value="Submit" style="font-size: 100%;">
 </form>
 
@@ -47,28 +55,59 @@ Total: <span id="total_time">???</span> ms
 </div>
 
 <script language="javascript">
+var page = 0;
 var input = document.getElementById("query");
 var output = document.getElementById("results");
+
+function get_query()
+{
+	return "t=" + encodeURIComponent(input.value) + "&p=" + page;
+}
+
+function get_query_page(index)
+{
+	return "t=" + encodeURIComponent(input.value) + "&p=" + index;
+}
+
+function on_load()
+{
+	if(window.location.hash)
+	{
+		let query = window.location.hash.substring(1);
+		let entries = query.split('&');
+		for(let i = 0; i < entries.length; i++) {
+	        let pair = entries[i].split('=');
+			if(pair[0] == "t") {
+				input.value = decodeURIComponent(pair[1]);
+			} else if(pair[0] == "p") {
+				page = parseInt(pair[1]);
+			}
+	    }
+		if(input.value) {
+			submit_query();
+		}
+	}
+}
 
 function on_result()
 {
 	if(this.status != 200) {
-		output.innerHTML = "HTTP Error: " + this.status;
+		output.innerHTML = "<br>HTTP Error: " + this.status;
 		return;
 	}
-	var json = this.responseText.replace(/\t/g, ' ');
-	var result = JSON.parse(json);
-	//console.log(json);
+	let json = this.responseText.replace(/\t/g, ' ');
+	let result = JSON.parse(json);
+	console.log(json);
 	
 	output.innerHTML = "";
 	
-	for(var i = 0; i < result.items.length; ++i)
+	for(let i = 0; i < result.items.length; ++i)
 	{
-		var item = result.items[i];
-		var date = new Date(item.last_modified * 1000);
-		var div = document.createElement("div");
-		var url_str = item.url.replace(/(^\w+:|^)\/\//, '');
-		var title = item.title;
+		let item = result.items[i];
+		let date = new Date(item.last_modified * 1000);
+		let div = document.createElement("div");
+		let url_str = item.url.replace(/(^\w+:|^)\/\//, '');
+		let title = item.title;
 		if(!title.length) {
 			title = url_str;
 		}
@@ -81,10 +120,24 @@ function on_result()
 		`
 		output.appendChild(div);
 	}
+	if(result.num_results_total)
+	{
+		let div = document.createElement("div");
+		div.id = "page_list";
+		div.innerHTML = "Page: ";
+		for(let i = 0; i < 10; ++i) {
+			if(i != page) {
+				div.innerHTML += `<a class="page" href="#${get_query_page(i)}" onclick="page=${i}; submit_query();">${i+1}</a> `
+			} else {
+				div.innerHTML += `${i+1} `;
+			}
+		}
+		div.innerHTML += `<a class="page" href="#${get_query_page(page+1)}" onclick="page=${page+1}; submit_query();">Next</a> `
+		output.appendChild(div);
+	}
 	if(!result.items.length) {
 		output.innerHTML = "<br>No Results!";
 	}
-	
 	document.getElementById("load_time").textContent = result.load_time_us / 1000;
 	document.getElementById("compute_time").textContent = result.compute_time_us / 1000;
 	document.getElementById("total_time").textContent = (result.load_time_us + result.compute_time_us) / 1000;
@@ -96,10 +149,14 @@ function submit_query()
 	output.innerHTML = "<br>Loading ...";
 	document.getElementById("stats").style.display = "none";
 	
-	var req = new XMLHttpRequest();
+	let query = get_query();
+	
+	let req = new XMLHttpRequest();
 	req.addEventListener("load", on_result);
-	req.open("GET", "/search/query?t=" + encodeURIComponent(input.value));
+	req.open("GET", "/search/query?" + query);
 	req.send(null);
+	
+	location.href = "#" + query;
 }
 </script>
 

@@ -37,11 +37,19 @@ void SearchFrontend::http_request_async(const std::shared_ptr<const addons::Http
 {
 	if(sub_path == "/query")
 	{
+		int page = 0;
 		std::string text;
 		{
 			const auto iter = request->query_params.find("t");
 			if(iter != request->query_params.end()) {
 				text = iter->second;
+			}
+		}
+		{
+			const auto iter = request->query_params.find("p");
+			if(iter != request->query_params.end()) {
+				vnx::from_string(iter->second, page);
+				page = std::max(page, 0);
 			}
 		}
 		const auto words = parse_text(text);
@@ -51,6 +59,7 @@ void SearchFrontend::http_request_async(const std::shared_ptr<const addons::Http
 		}
 		query_options_t options;
 		options.limit = 20;
+		options.offset = page * options.limit;
 		options.context = 30;
 		
 		engine_async->query(words, options,
