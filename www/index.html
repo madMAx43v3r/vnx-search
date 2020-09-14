@@ -32,7 +32,8 @@
 <body>
 
 <form onsubmit="submit_query(); return false">
-	<input id="query" type="text" value="" style="font-size: 100%;" size="50">
+	<span style="font-size: 100%;">Search: </span>
+	<input id="query" type="text" value="" style="font-size: 100%;" size="40">
 	<input type="submit" value="Submit" style="font-size: 100%;">
 </form>
 
@@ -66,10 +67,15 @@ function on_result()
 		var item = result.items[i];
 		var date = new Date(item.last_modified * 1000);
 		var div = document.createElement("div");
+		var url_str = item.url.replace(/(^\w+:|^)\/\//, '');
+		var title = item.title;
+		if(!title.length) {
+			title = url_str;
+		}
 		div.className = "item";
 		div.innerHTML = `
-			<span class="url">${item.url}</span><br>
-			<a class="title" href="${item.url}" target="_blank">${item.title}</a><br>
+			<span class="url">${url_str}</span><br>
+			<a class="title" href="${item.url}" target="_blank">${title}</a><br>
 			<span class="date">${date.toDateString()} | </span>
 			<span class="context">${item.context}</span><br>
 		`
@@ -84,6 +90,9 @@ function on_result()
 
 function submit_query()
 {
+	output.innerHTML = "<br>Loading ...";
+	document.getElementById("stats").style.display = "none";
+	
 	var req = new XMLHttpRequest();
 	req.addEventListener("load", on_result);
 	req.open("GET", "/search/query?t=" + encodeURIComponent(input.value));
