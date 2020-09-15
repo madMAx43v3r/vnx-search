@@ -1,6 +1,6 @@
 package vnx.search;
 
-module QueryEngine {
+module QueryEngine implements QueryInterface {
 	
 	string page_index_server = "PageIndex";
 	string page_content_server = "PageContent";
@@ -9,7 +9,5 @@ module QueryEngine {
 	string search_engine_server = "SearchEngine";
 	
 	int num_threads = 16;
-	
-	SearchResult* query(vector<string> words, query_options_t options) const async;
 	
 }

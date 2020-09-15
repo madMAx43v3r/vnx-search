@@ -1,8 +1,6 @@
 package vnx.search;
 
-import vnx.Object;
-
-module SearchEngine {
+module SearchEngine implements SearchInterface {
 	
 	vnx.TopicPtr input_url_index = "backend.url_index.updates";
 	vnx.TopicPtr input_page_index = "backend.page_index.key_updates";
@@ -42,28 +40,12 @@ module SearchEngine {
 	
 	vector<string> protocols;				// protocols to allow as links
 	
-	
-	Object get_domain_info(string host, int limit, uint offset) const async;
-	
-	Object get_page_info(string url_key) const async;
-	
+	/*
+	 * Note: may return less items in case of unknown ids
+	 */
 	vector<page_entry_t> get_page_entries(vector<uint> page_ids) const async;
 	
-	vector<float> get_page_ranks(vector<string> url_keys, bool direct) const async;
-	
-	vector<Object> get_domain_list(int limit, uint offset) const;
-	
-	vector<string> reverse_lookup(string url_key) const async;
-	
-	vector<pair<string, uint>> reverse_domain_lookup(string url_key) const async;
-	
-	vector<string> suggest_words(string prefix, int limit) const;
-	
-	vector<string> suggest_domains(string prefix, int limit) const;
-	
-	
 	void handle(vnx.keyvalue.SyncUpdate sample);
-	
 	void handle(vnx.keyvalue.SyncInfo sample);
 	
 }

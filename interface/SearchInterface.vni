@@ -1,0 +1,23 @@
+package vnx.search;
+
+import vnx.Object;
+
+interface SearchInterface {
+	
+	Object get_domain_info(string host, int limit, uint offset) const async;
+	
+	Object get_page_info(string url_key) const async;
+	
+	vector<float> get_page_ranks(vector<string> url_keys, bool direct) const async;
+	
+	vector<Object> get_domain_list(int limit, uint offset) const;
+	
+	vector<string> reverse_lookup(string url_key) const async;
+	
+	vector<pair<string, uint>> reverse_domain_lookup(string url_key) const async;
+	
+	vector<string> suggest_words(string prefix, int limit) const;
+	
+	vector<string> suggest_domains(string prefix, int limit) const;
+	
+}
