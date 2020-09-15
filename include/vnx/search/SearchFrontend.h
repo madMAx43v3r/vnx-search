@@ -6,7 +6,7 @@
  */
 
 #include <vnx/search/SearchFrontendBase.hxx>
-#include <vnx/search/SearchEngineAsyncClient.hxx>
+#include <vnx/search/QueryEngineAsyncClient.hxx>
 
 
 namespace vnx {
@@ -26,7 +26,7 @@ protected:
 							const vnx::request_id_t& req_id) const override;
 	
 private:
-	std::shared_ptr<SearchEngineAsyncClient> engine_async;
+	std::shared_ptr<QueryEngineAsyncClient> engine_async;
 	
 };
 

@@ -24,7 +24,7 @@ void SearchFrontend::init()
 
 void SearchFrontend::main()
 {
-	engine_async = std::make_shared<SearchEngineAsyncClient>(engine_server);
+	engine_async = std::make_shared<QueryEngineAsyncClient>(engine_server);
 	
 	add_async_client(engine_async);
 	
