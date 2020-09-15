@@ -47,7 +47,7 @@ module SearchEngine {
 	
 	Object get_page_info(string url_key) const async;
 	
-	vector<page_entry_t> get_page_entries(vector<uint> ids) const async;
+	vector<page_entry_t> get_page_entries(vector<uint> page_ids) const async;
 	
 	vector<float> get_page_ranks(vector<string> url_keys, bool direct) const async;
 	

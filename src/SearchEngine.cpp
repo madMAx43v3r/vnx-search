@@ -165,6 +165,22 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 	get_page_info_async_return(req_id, result);
 }
 
+void SearchEngine::get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& req_id) const
+{
+	std::vector<page_entry_t> result;
+	for(auto page_id : page_ids) {
+		const auto* page = find_page(page_id);
+		if(page) {
+			page_entry_t entry;
+			entry.id = page->id;
+			entry.rank_value = page->rank_value;
+			entry.url = page->get_url();
+			result.emplace_back(std::move(entry));
+		}
+	}
+	get_page_entries_async_return(req_id, result);
+}
+
 void SearchEngine::get_page_ranks_async(const std::vector<std::string>& url_keys,
 										const vnx::bool_t& direct,
 										const request_id_t& req_id) const

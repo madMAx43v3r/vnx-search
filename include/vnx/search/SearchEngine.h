@@ -160,6 +160,8 @@ protected:
 	
 	void get_page_info_async(const std::string& url_key, const request_id_t& req_id) const;
 	
+	void get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& req_id) const;
+	
 	void get_page_ranks_async(	const std::vector<std::string>& url_keys,
 								const vnx::bool_t& direct,
 								const request_id_t& req_id) const;
