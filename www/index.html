@@ -27,6 +27,11 @@
 		color: rgb(80,80,80);
 		font-size: 100%;
 	}
+	div#header {
+		color: rgb(50,50,50);
+		font-size: 100%;
+		margin-top: 20px;
+	}
 	div#page_list {
 		font-size: 120%;
 		text-align: center
@@ -39,12 +44,14 @@
 </head>
 <body onload="on_load();">
 
-<form onsubmit="page=0; submit_query(); return false;">
+<form method="get">
 	<span style="font-size: 100%;">Search: </span>
 	<input id="query" name="t" type="text" value="" style="font-size: 100%;" size="40">
+	<input id="page" name="p" value="0" type="hidden">
 	<input type="submit" value="Submit" style="font-size: 100%;">
 </form>
 
+<div id="header"></div>
 <div id="results"></div>
 
 <div id="stats" style="display: none">
@@ -56,34 +63,36 @@ Total: <span id="total_time">???</span> ms
 
 <script language="javascript">
 var page = 0;
-var input = document.getElementById("query");
+var query = "";
+var header = document.getElementById("header");
 var output = document.getElementById("results");
 
 function get_query()
 {
-	return "t=" + encodeURIComponent(input.value) + "&p=" + page;
+	return "t=" + encodeURIComponent(query) + "&p=" + page;
 }
 
 function get_query_page(index)
 {
-	return "t=" + encodeURIComponent(input.value) + "&p=" + index;
+	return "t=" + encodeURIComponent(query) + "&p=" + index;
 }
 
 function on_load()
 {
-	if(window.location.hash)
+	if(location.search)
 	{
-		let query = window.location.hash.substring(1);
-		let entries = query.split('&');
+		let entries = location.search.substring(1).split('&');
 		for(let i = 0; i < entries.length; i++) {
 	        let pair = entries[i].split('=');
 			if(pair[0] == "t") {
-				input.value = decodeURIComponent(pair[1]);
+				query = decodeURIComponent(pair[1].replace(/\+/g, '%20'));
 			} else if(pair[0] == "p") {
 				page = parseInt(pair[1]);
 			}
 	    }
-		if(input.value) {
+		document.getElementById("query").value = query;
+		
+		if(query) {
 			submit_query();
 		}
 	}
@@ -98,6 +107,15 @@ function on_result()
 	let json = this.responseText.replace(/\t/g, ' ');
 	let result = JSON.parse(json);
 	console.log(json);
+	
+	let more = "";
+	if(result.has_more) {
+		more = ">";
+	}
+	
+	header.innerHTML = `
+		Page ${page + 1} of ${more + result.num_results_total} results
+	`
 	
 	output.innerHTML = "";
 	
@@ -127,12 +145,12 @@ function on_result()
 		div.innerHTML = "Page: ";
 		for(let i = 0; i < 10; ++i) {
 			if(i != page) {
-				div.innerHTML += `<a class="page" href="#${get_query_page(i)}" onclick="page=${i}; submit_query();">${i+1}</a> `
+				div.innerHTML += `<a class="page" href="?${get_query_page(i)}" onclick="page=${i}; submit_query();">${i+1}</a> `
 			} else {
 				div.innerHTML += `${i+1} `;
 			}
 		}
-		div.innerHTML += `<a class="page" href="#${get_query_page(page+1)}" onclick="page=${page+1}; submit_query();">Next</a> `
+		div.innerHTML += `<a class="page" href="?${get_query_page(page+1)}" onclick="page=${page+1}; submit_query();">Next</a> `
 		output.appendChild(div);
 	}
 	if(!result.items.length) {
@@ -146,17 +164,10 @@ function on_result()
 
 function submit_query()
 {
-	output.innerHTML = "<br>Loading ...";
-	document.getElementById("stats").style.display = "none";
-	
-	let query = get_query();
-	
 	let req = new XMLHttpRequest();
 	req.addEventListener("load", on_result);
-	req.open("GET", "/search/query?" + query);
+	req.open("GET", "/search/query?" + get_query());
 	req.send(null);
-	
-	location.href = "#" + query;
 }
 </script>
 
