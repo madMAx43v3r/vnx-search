@@ -31,9 +31,6 @@ void PlainTextParser::main()
 
 void PlainTextParser::update()
 {
-	// always try to connect so frontend can reach us (non-blocking)
-	vnx::connect(service_pipe, vnx::get_pipe(frontend_server), 0);
-	
 	frontend->register_parser_async(service_pipe->get_mac_addr(), {"text", "text/", "text/plain"}, 1);
 }
 
