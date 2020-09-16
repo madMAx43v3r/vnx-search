@@ -46,9 +46,13 @@ int main(int argc, char** argv)
 	
 	auto result = client.get_domain_list(limit, limit >= 0 ? page * limit : 0);
 	
-	for(const auto& domain : result) {
+	for(const auto& domain : result)
+	{
 		bool found = false;
-		const auto host = domain["host"].to_string_value();
+		auto host = domain["host"].to_string_value();
+		if(host.size() > 4 && host.substr(0, 4) == "www.") {
+			host = host.substr(4);
+		}
 		for(const auto& url : root_urls) {
 			if(url.find(host) != std::string::npos) {
 				found = true;
