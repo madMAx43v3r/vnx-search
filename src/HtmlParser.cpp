@@ -35,9 +35,6 @@ void HtmlParser::main()
 
 void HtmlParser::update()
 {
-	// always try to connect so frontend can reach us (non-blocking)
-	vnx::connect(service_pipe, vnx::get_pipe(frontend_server), 0);
-	
 	frontend->register_parser_async(service_pipe->get_mac_addr(),
 			std::vector<std::string>(g_html_content_types.begin(), g_html_content_types.end()), 1);
 }
