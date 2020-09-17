@@ -1230,7 +1230,7 @@ void SearchEngine::link_update_callback_0(	std::shared_ptr<link_cache_t> cached,
 
 void SearchEngine::link_update_callback_1(std::shared_ptr<link_update_job_t> job)
 {
-	search_async->get_page_ranks(job->result->reverse_links, update_page_info,
+	search_async->get_page_ranks(job->result->reverse_links, reset_rank_values,
 			std::bind(&SearchEngine::link_update_callback_2, this, job, std::placeholders::_1));
 }
 
