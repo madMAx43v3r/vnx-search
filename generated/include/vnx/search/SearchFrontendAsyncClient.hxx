@@ -8,6 +8,7 @@
 #include <vnx/Module.h>
 #include <vnx/addons/HttpRequest.hxx>
 #include <vnx/addons/HttpResponse.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 
 namespace vnx {

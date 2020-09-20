@@ -8,6 +8,7 @@
 #include <vnx/Module.h>
 #include <vnx/addons/HttpRequest.hxx>
 #include <vnx/addons/HttpResponse.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 
 namespace vnx {
@@ -17,6 +18,7 @@ class SearchFrontendBase : public ::vnx::Module {
 public:
 	
 	std::string engine_server = "QueryEngine";
+	::vnx::search::query_options_t options;
 	
 	typedef ::vnx::Module Super;
 	

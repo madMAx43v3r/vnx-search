@@ -10,6 +10,7 @@
 #include <vnx/addons/HttpComponent_http_request_return.hxx>
 #include <vnx/addons/HttpRequest.hxx>
 #include <vnx/addons/HttpResponse.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 #include <vnx/vnx.h>
 

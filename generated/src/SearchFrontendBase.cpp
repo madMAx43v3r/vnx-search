@@ -11,6 +11,7 @@
 #include <vnx/addons/HttpComponent_http_request_return.hxx>
 #include <vnx/addons/HttpRequest.hxx>
 #include <vnx/addons/HttpResponse.hxx>
+#include <vnx/search/query_options_t.hxx>
 
 #include <vnx/vnx.h>
 
@@ -20,12 +21,13 @@ namespace search {
 
 
 const vnx::Hash64 SearchFrontendBase::VNX_TYPE_HASH(0x7de65cc9f49e8667ull);
-const vnx::Hash64 SearchFrontendBase::VNX_CODE_HASH(0x5a25743bdcef30e7ull);
+const vnx::Hash64 SearchFrontendBase::VNX_CODE_HASH(0x80103f288c57a0cdull);
 
 SearchFrontendBase::SearchFrontendBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
 	vnx::read_config(vnx_name + ".engine_server", engine_server);
+	vnx::read_config(vnx_name + ".options", options);
 }
 
 vnx::Hash64 SearchFrontendBase::get_type_hash() const {
@@ -43,12 +45,14 @@ void SearchFrontendBase::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchFrontendBase;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, engine_server);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, options);
 	_visitor.type_end(*_type_code);
 }
 
 void SearchFrontendBase::write(std::ostream& _out) const {
 	_out << "{";
 	_out << "\"engine_server\": "; vnx::write(_out, engine_server);
+	_out << ", \"options\": "; vnx::write(_out, options);
 	_out << "}";
 }
 
@@ -58,6 +62,8 @@ void SearchFrontendBase::read(std::istream& _in) {
 	for(const auto& _entry : _object) {
 		if(_entry.first == "engine_server") {
 			vnx::from_string(_entry.second, engine_server);
+		} else if(_entry.first == "options") {
+			vnx::from_string(_entry.second, options);
 		}
 	}
 }
@@ -65,6 +71,7 @@ void SearchFrontendBase::read(std::istream& _in) {
 vnx::Object SearchFrontendBase::to_object() const {
 	vnx::Object _object;
 	_object["engine_server"] = engine_server;
+	_object["options"] = options;
 	return _object;
 }
 
@@ -72,6 +79,8 @@ void SearchFrontendBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
 		if(_entry.first == "engine_server") {
 			_entry.second.to(engine_server);
+		} else if(_entry.first == "options") {
+			_entry.second.to(options);
 		}
 	}
 }
@@ -80,12 +89,17 @@ vnx::Variant SearchFrontendBase::get_field(const std::string& _name) const {
 	if(_name == "engine_server") {
 		return vnx::Variant(engine_server);
 	}
+	if(_name == "options") {
+		return vnx::Variant(options);
+	}
 	return vnx::Variant();
 }
 
 void SearchFrontendBase::set_field(const std::string& _name, const vnx::Variant& _value) {
 	if(_name == "engine_server") {
 		_value.to(engine_server);
+	} else if(_name == "options") {
+		_value.to(options);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -115,18 +129,26 @@ std::shared_ptr<vnx::TypeCode> SearchFrontendBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchFrontend";
 	type_code->type_hash = vnx::Hash64(0x7de65cc9f49e8667ull);
-	type_code->code_hash = vnx::Hash64(0x5a25743bdcef30e7ull);
+	type_code->code_hash = vnx::Hash64(0x80103f288c57a0cdull);
 	type_code->is_native = true;
+	type_code->depends.resize(1);
+	type_code->depends[0] = ::vnx::search::query_options_t::static_get_type_code();
 	type_code->methods.resize(2);
 	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
 	type_code->methods[1] = ::vnx::addons::HttpComponent_http_request::static_get_type_code();
-	type_code->fields.resize(1);
+	type_code->fields.resize(2);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "engine_server";
 		field.value = vnx::to_string("QueryEngine");
 		field.code = {32};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[1];
+		field.is_extended = true;
+		field.name = "options";
+		field.code = {19, 0};
 	}
 	type_code->build();
 	return type_code;
@@ -203,6 +225,7 @@ void read(TypeInput& in, ::vnx::search::SearchFrontendBase& value, const TypeCod
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.engine_server, type_code, _field->code.data()); break;
+			case 1: vnx::read(in, value.options, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -218,6 +241,7 @@ void write(TypeOutput& out, const ::vnx::search::SearchFrontendBase& value, cons
 		type_code = type_code->depends[code[1]];
 	}
 	vnx::write(out, value.engine_server, type_code, type_code->fields[0].code.data());
+	vnx::write(out, value.options, type_code, type_code->fields[1].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::SearchFrontendBase& value) {

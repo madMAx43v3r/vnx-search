@@ -19,6 +19,7 @@ struct query_options_t {
 	int32_t limit = 10;
 	uint32_t offset = 0;
 	int32_t context = 20;
+	int32_t max_group_size = 1;
 	uint32_t max_results = 1000;
 	::vnx::search::score_type_e score_type = ::vnx::search::score_type_e::AVG_SCORE;
 	std::vector<::vnx::search::search_flags_e> flags;

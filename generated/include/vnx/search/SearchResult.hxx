@@ -6,6 +6,7 @@
 
 #include <vnx/search/package.hxx>
 #include <vnx/Value.h>
+#include <vnx/search/query_options_t.hxx>
 #include <vnx/search/result_item_t.hxx>
 
 
@@ -21,6 +22,7 @@ public:
 	int32_t load_time_us = 0;
 	int32_t compute_time_us = 0;
 	std::string error_msg;
+	::vnx::search::query_options_t options;
 	std::vector<std::string> words;
 	std::vector<::vnx::search::result_item_t> items;
 	
