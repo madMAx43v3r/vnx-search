@@ -4,4 +4,6 @@ module SearchFrontend implements vnx.addons.HttpComponent {
 	
 	string engine_server = "QueryEngine";
 	
+	query_options_t options;
+	
 }

@@ -8,6 +8,8 @@ struct query_options_t {
 	
 	int context = 20;				// number of words
 	
+	int max_group_size = 1;			// when grouping results
+	
 	uint max_results = 1000;		// max number of results for computation
 	
 	score_type_e score_type = AVG_SCORE;

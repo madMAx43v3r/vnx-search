@@ -66,6 +66,8 @@ void QueryEngine::query_async(	const std::vector<std::string>& words,
 	
 	auto result = SearchResult::create();
 	result->is_fail = true;
+	result->options = options;
+	
 	job->result = result;
 	job->time_begin = vnx::get_wall_time_micros();
 	job->error_callback =
@@ -102,17 +104,44 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 	}
 	if(job->word_context.empty()) {
 		query_async_return(job->req_id, job->result);
-	} else {
-		job->num_left = num_threads;
-		job->found.resize(job->options.max_results);
-		for(int i = 0; i < num_threads; ++i) {
-			query_threads->add_task(std::bind(&QueryEngine::query_task_0, this, job, num_threads, i));
+		return;
+	}
+	job->found.resize(job->options.max_results);
+	
+	const uint32_t num_words = job->word_context.size();
+	std::unordered_map<uint32_t, uint32_t> page_hits;
+	std::vector<std::vector<uint32_t>::const_iterator> iter(num_words);
+	std::vector<std::vector<uint32_t>::const_iterator> end(num_words);
+	for(uint32_t i = 0; i < num_words; ++i) {
+		iter[i] = job->word_context[i]->pages.begin();
+		end[i] = job->word_context[i]->pages.end();
+	}
+	uint32_t k = 0;
+	uint32_t num_iter = num_words;
+	
+	while(num_iter > 0 && job->num_found < job->found.size())
+	{
+		for(int i = 0; iter[k] != end[k] && i < 10; ++iter[k], ++i)
+		{
+			const auto page_id = *iter[k];
+			if(++page_hits[page_id] == num_words) {
+				const auto index = job->num_found++;
+				if(index < job->found.size()) {
+					job->found[index] = page_id;
+				}
+			}
+		}
+		if(iter[k] == end[k]) {
+			iter.erase(iter.begin() + k);
+			end.erase(end.begin() + k);
+			num_iter--;
+		} else {
+			k++;
+		}
+		if(k >= num_iter) {
+			k = 0;
 		}
 	}
-}
-
-void QueryEngine::query_callback_1(std::shared_ptr<query_job_t> job) const
-{
 	{
 		const auto now = vnx::get_wall_time_micros();
 		job->result->compute_time_us += now - job->time_begin;
@@ -122,26 +151,37 @@ void QueryEngine::query_callback_1(std::shared_ptr<query_job_t> job) const
 		job->result->has_more = true;
 	}
 	search_engine_async->get_page_entries(job->found,
-		std::bind(&QueryEngine::query_callback_2, this, job, std::placeholders::_1),
-		job->error_callback);
+			std::bind(&QueryEngine::query_callback_2, this, job, std::placeholders::_1),
+			job->error_callback);
 }
 
 void QueryEngine::query_callback_2(std::shared_ptr<query_job_t> job,
 									std::vector<page_entry_t> entries) const
 {
-	for(const auto& entry : entries)
 	{
-		const Url::Url parsed(entry.url);
+		const auto now = vnx::get_wall_time_micros();
+		job->result->compute_time_us += now - job->time_begin;
+		job->time_begin = now;
+	}
+	std::multimap<float, const page_entry_t*, std::greater<float>> selected;
+	
+	for(const auto& entry : entries) {
+		limited_emplace(selected, entry.rank_value, &entry, job->options.max_results);
+	}
+	for(const auto& pair : selected)
+	{
+		const auto* entry = pair.second;
+		const Url::Url parsed(entry->url);
 		auto& domain_id = job->domain_set[parsed.host()];
 		if(!domain_id) {
 			domain_id = job->domain_set.size();
 		}
 		result_t item;
-		item.page_id = entry.id;
+		item.page_id = entry->id;
 		item.domain_id = domain_id;
 		item.scheme = parsed.scheme();
 		item.url_key = get_url_key(parsed);
-		item.score = entry.rank_value;
+		item.score = entry->rank_value;
 		job->items.push_back(item);
 	}
 	std::vector<Variant> keys;
@@ -191,17 +231,17 @@ void QueryEngine::query_callback_4(std::shared_ptr<query_job_t> job) const
 	
 	if(has_flag(job->options.flags, search_flags_e::GROUP_BY_DOMAIN))
 	{
-		std::unordered_map<uint32_t, std::pair<float, const result_t*>> best_of;
+		std::unordered_map<uint32_t, std::multimap<float, const result_t*, std::greater<float>>> best_of;
 		
 		for(const auto& item : job->items) {
-			auto& current = best_of[item.domain_id];
-			if(!current.second || item.score > current.first) {
-				current.first = item.score;
-				current.second = &item;
-			}
+			best_of[item.domain_id].emplace(item.score, &item);
 		}
 		for(const auto& entry : best_of) {
-			sorted.emplace_back(entry.second.first, entry.second.second);
+			int i = 0;
+			const auto& list = entry.second;
+			for(auto iter = list.begin(); i < job->options.max_group_size && iter != list.end(); ++iter, ++i) {
+				sorted.emplace_back(*iter);
+			}
 		}
 	}
 	else {
@@ -280,51 +320,6 @@ void QueryEngine::query_callback_6( std::shared_ptr<query_job_t> job,
 		}
 	}
 	query_async_return(job->req_id, job->result);
-}
-
-void QueryEngine::query_task_0(	std::shared_ptr<query_job_t> job,
-								uint32_t num_threads, uint32_t index) const noexcept
-{
-	const uint32_t num_words = job->word_context.size();
-	std::unordered_map<uint32_t, uint32_t> page_hits;
-	std::vector<std::vector<uint32_t>::const_iterator> iter(num_words);
-	std::vector<std::vector<uint32_t>::const_iterator> end(num_words);
-	for(uint32_t i = 0; i < num_words; ++i) {
-		iter[i] = job->word_context[i]->pages.begin();
-		end[i] = job->word_context[i]->pages.end();
-	}
-	uint32_t k = 0;
-	uint32_t num_iter = num_words;
-	
-	while(num_iter > 0 && job->num_found < job->found.size())
-	{
-		for(int i = 0; iter[k] != end[k] && i < 10; ++iter[k], ++i)
-		{
-			const auto page_id = *iter[k];
-			if(page_id % num_threads == index) {
-				if(++page_hits[page_id] == num_words) {
-					const auto index = job->num_found++;
-					if(index < job->found.size()) {
-						job->found[index] = page_id;
-					}
-				}
-			}
-		}
-		if(iter[k] == end[k]) {
-			iter.erase(iter.begin() + k);
-			end.erase(end.begin() + k);
-			num_iter--;
-		} else {
-			k++;
-		}
-		if(k >= num_iter) {
-			k = 0;
-		}
-	}
-	
-	if(--job->num_left == 0) {
-		add_task(std::bind(&QueryEngine::query_callback_1, this, job));
-	}
 }
 
 void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index,

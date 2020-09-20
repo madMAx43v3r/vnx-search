@@ -12,6 +12,8 @@ class SearchResult {
 	
 	string error_msg;
 	
+	query_options_t options;
+	
 	vector<string> words;
 	
 	vector<result_item_t> items;

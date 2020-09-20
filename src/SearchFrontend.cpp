@@ -57,12 +57,10 @@ void SearchFrontend::http_request_async(const std::shared_ptr<const addons::Http
 			http_request_async_return(req_id, addons::HttpResponse::from_value_json(nullptr));
 			return;
 		}
-		query_options_t options;
-		options.limit = 20;
-		options.offset = page * options.limit;
-		options.context = 30;
+		query_options_t options_ = options;
+		options_.offset = page * options.limit;
 		
-		engine_async->query(words, options,
+		engine_async->query(words, options_,
 			[this, req_id](std::shared_ptr<const SearchResult> result) {
 				http_request_async_return(req_id, addons::HttpResponse::from_value_json(result));
 			},

@@ -6,30 +6,44 @@
  */
 
 #include <vnx/search/SearchEngine.h>
+#include <vnx/search/QueryEngine.h>
 
 #include <vnx/vnx.h>
 #include <vnx/Terminal.h>
 #include <vnx/Server.h>
+#include <vnx/TcpEndpoint.hxx>
 
 
 int main(int argc, char** argv)
 {
 	std::map<std::string, std::string> options;
 	options["s"] = "server";
+	options["p"] = "port";
 	options["server"] = "backend server url";
+	options["port"] = "query port";
 	
 	vnx::init("vnx_search_engine", argc, argv, options);
 	
+	int port = 8989;
 	std::string server = ".vnx_search_backend.sock";
 	vnx::read_config("server", server);
+	vnx::read_config("port", port);
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
 		terminal.start_detached();
 	}
 	{
-		vnx::Handle<vnx::Server> server = new vnx::Server("Server", vnx::Endpoint::from_url(".vnx_search_engine.sock"));
+		vnx::Handle<vnx::Server> server = new vnx::Server("UnixServer", vnx::Endpoint::from_url(".vnx_search_engine.sock"));
 		server.start_detached();
+	}
+	{
+		vnx::Handle<vnx::Server> module = new vnx::Server("TcpServer", vnx::TcpEndpoint::create("0.0.0.0", port));
+		module.start_detached();
+	}
+	{
+		vnx::Handle<vnx::search::QueryEngine> module = new vnx::search::QueryEngine("QueryEngine");
+		module.start_detached();
 	}
 	
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("BackendProxy", vnx::Endpoint::from_url(server));

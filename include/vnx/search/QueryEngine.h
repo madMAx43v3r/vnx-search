@@ -61,8 +61,6 @@ private:
 	void query_callback_0(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
 	
-	void query_callback_1(std::shared_ptr<query_job_t> job) const;
-	
 	void query_callback_2(	std::shared_ptr<query_job_t> job,
 							std::vector<page_entry_t> entries) const;
 	
@@ -76,9 +74,6 @@ private:
 	
 	void query_callback_6(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
-	
-	void query_task_0(	std::shared_ptr<query_job_t> job,
-						uint32_t num_threads, uint32_t index) const noexcept;
 	
 	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 						std::shared_ptr<const WordArray> word_array) const noexcept;
