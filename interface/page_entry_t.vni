@@ -1,0 +1,11 @@
+package vnx.search;
+
+struct page_entry_t {
+	
+	uint id;
+	
+	float rank_value;
+	
+	string url;
+	
+}

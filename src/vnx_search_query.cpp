@@ -5,7 +5,7 @@
  *      Author: mad
  */
 
-#include <vnx/search/SearchEngineClient.hxx>
+#include <vnx/search/QueryInterfaceClient.hxx>
 
 #include <vnx/vnx.h>
 #include <vnx/Proxy.h>
@@ -26,11 +26,10 @@ int main(int argc, char** argv)
 	options["page"] = "page index";
 	options["type"] = "score type";
 	options["flags"] = "search flags";
-	options["complete"] = "complete word";
 	
 	vnx::init("vnx_search_query", argc, argv, options);
 	
-	std::string server = ".vnx_search_engine.sock";
+	std::string server = ".vnx_search_query_engine.sock";
 	std::vector<std::string> words;
 	vnx::search::query_options_t query_options;
 	int32_t limit = 10;
@@ -43,24 +42,18 @@ int main(int argc, char** argv)
 	vnx::read_config("page", page);
 	vnx::read_config("type", query_options.score_type);
 	vnx::read_config("flags", query_options.flags);
-	vnx::read_config("complete", complete);
 	
 	query_options.limit = limit;
 	query_options.offset = page * limit;
 	
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
-		proxy->forward_list.push_back("SearchEngine");
+		proxy->forward_list.push_back("QueryEngine");
 		proxy.start_detached();
 	}
 	
-	vnx::search::SearchEngineClient client("SearchEngine");
-	if(complete) {
-		if(!words.empty()) {
-			auto result = client.suggest_words(words[0], limit);
-			std::cout << vnx::to_string(result) << std::endl;
-		}
-	} else {
+	vnx::search::QueryInterfaceClient client("QueryEngine");
+	{
 		auto result = client.query(words, query_options);
 		vnx::PrettyPrinter print(std::cout);
 		vnx::accept(print, result);

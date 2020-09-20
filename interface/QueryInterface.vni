@@ -1,0 +1,7 @@
+package vnx.search;
+
+interface QueryInterface {
+	
+	SearchResult* query(vector<string> words, query_options_t options) const async;
+	
+}

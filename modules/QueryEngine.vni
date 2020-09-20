@@ -1,0 +1,13 @@
+package vnx.search;
+
+module QueryEngine implements QueryInterface {
+	
+	string page_index_server = "PageIndex";
+	string page_content_server = "PageContent";
+	string word_context_server = "WordContext";
+	string word_array_server = "WordArray";
+	string search_engine_server = "SearchEngine";
+	
+	int num_threads = 16;
+	
+}

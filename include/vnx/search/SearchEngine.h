@@ -15,7 +15,6 @@
 #include <vnx/search/PageInfo.hxx>
 #include <vnx/search/PageIndex.hxx>
 #include <vnx/search/PageContent.hxx>
-#include <vnx/search/SearchEngine_query.hxx>
 
 #include <vnx/keyvalue/Server.h>
 #include <vnx/keyvalue/ServerClient.hxx>
@@ -99,31 +98,6 @@ protected:
 		std::vector<std::string> add_reverse_links;
 	};
 	
-	struct tmp_result_t {
-		uint32_t page_id = 0;
-		uint32_t domain_id = 0;
-		stx::pstring url_key;
-		std::pair<int64_t, int64_t> context;
-		float score = 0;
-	};
-	
-	struct query_job_t {
-		std::vector<std::string> words;
-		query_options_t options;
-		request_id_t req_id;
-		int64_t time_begin = 0;
-		std::atomic<size_t> num_left {0};
-		std::atomic<size_t> num_found {0};
-		std::vector<Variant> url_keys;
-		std::vector<uint32_t> found;
-		std::vector<tmp_result_t> tmp_results;
-		std::unordered_map<uint32_t, uint32_t> word_set;
-		std::shared_ptr<SearchResult> result;
-		std::vector<std::shared_ptr<const WordContext>> context;
-		std::vector<std::shared_ptr<const WordArray>> word_arrays;
-		std::function<void(const std::exception& ex)> error_callback;
-	};
-	
 	struct page_update_job_t {
 		bool update_info = false;
 		bool update_links = false;
@@ -167,10 +141,6 @@ protected:
 	
 	void main() override;
 	
-	void query_async(	const std::vector<std::string>& words,
-						const query_options_t& options,
-						const request_id_t& req_id) const override;
-	
 	void get_page_info_callback(const std::string& url_key,
 								std::shared_ptr<const keyvalue::Entry> entry,
 								const request_id_t& req_id) const;
@@ -189,6 +159,8 @@ protected:
 								const request_id_t& req_id) const;
 	
 	void get_page_info_async(const std::string& url_key, const request_id_t& req_id) const;
+	
+	void get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& req_id) const;
 	
 	void get_page_ranks_async(	const std::vector<std::string>& url_keys,
 								const vnx::bool_t& direct,
@@ -229,22 +201,6 @@ private:
 	std::shared_ptr<link_cache_t> get_link_cache(const std::string& url_key);
 	
 	std::shared_ptr<word_cache_t> get_word_cache(uint32_t word_id);
-	
-	void query_callback_0(	std::shared_ptr<query_job_t> job,
-							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
-	
-	void query_callback_1(std::shared_ptr<query_job_t> job) const;
-	
-	void query_callback_2(	std::shared_ptr<query_job_t> job,
-							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
-	
-	void query_callback_3(std::shared_ptr<query_job_t> job) const;
-	
-	void query_callback_4(	std::shared_ptr<query_job_t> job,
-							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
-	
-	void query_callback_5(	std::shared_ptr<query_job_t> job,
-							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
 	
 	void delete_page_async(const std::string& url_key);
 	
@@ -306,12 +262,6 @@ private:
 	
 	void write_info();
 	
-	void query_task_0(	std::shared_ptr<query_job_t> job,
-						uint32_t num_threads, uint32_t index) const noexcept;
-	
-	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
-						std::shared_ptr<const WordArray> word_array) const noexcept;
-	
 	void page_rank_task(const std::vector<std::string>& url_keys,
 						const bool direct,
 						const request_id_t& req_id) const noexcept;
@@ -330,7 +280,6 @@ private:
 	Handle<keyvalue::Server> module_word_context;
 	Handle<keyvalue::Server> module_word_array;
 	
-	std::shared_ptr<ThreadPool> query_threads;
 	std::shared_ptr<ThreadPool> update_threads;
 	
 	std::shared_ptr<SearchEngineAsyncClient> search_async;
@@ -366,7 +315,6 @@ private:
 	uint32_t next_domain_id = 1;
 	std::atomic_bool is_initialized {false};
 	
-	mutable std::atomic<int64_t> query_counter {0};
 	mutable std::atomic<int64_t> page_update_counter {0};
 	mutable std::atomic<int64_t> word_update_counter {0};
 	
