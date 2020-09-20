@@ -16,8 +16,6 @@ module SearchEngine implements SearchInterface {
 	
 	int max_num_pending = 100;				// number of async requests
 	
-	int num_query_threads = 4;
-	
 	int num_update_threads = 4;
 	
 	int commit_delay = 10;					// [sec]
@@ -42,7 +40,7 @@ module SearchEngine implements SearchInterface {
 	vector<string> protocols;				// protocols to allow as links
 	
 	/*
-	 * Note: may return less items in case of unknown ids
+	 * Note: May return less items in case of unknown ids.
 	 */
 	vector<page_entry_t> get_page_entries(vector<uint> page_ids) const async;
 	
