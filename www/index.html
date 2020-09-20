@@ -144,14 +144,20 @@ function on_result()
 		let div = document.createElement("div");
 		div.id = "page_list";
 		div.innerHTML = "Page: ";
-		for(let i = 0; i < 10; ++i) {
+		let num_pages = Math.ceil(result.num_results_total / 20);
+		if(page > 0) {
+			div.innerHTML += `<a class="page" href="?${get_query_page(page-1)}">Prev</a> `
+		}
+		for(let i = 0; i < num_pages; ++i) {
 			if(i != page) {
-				div.innerHTML += `<a class="page" href="?${get_query_page(i)}" onclick="page=${i}; submit_query();">${i+1}</a> `
+				div.innerHTML += `<a class="page" href="?${get_query_page(i)}">${i+1}</a> `
 			} else {
 				div.innerHTML += `${i+1} `;
 			}
 		}
-		div.innerHTML += `<a class="page" href="?${get_query_page(page+1)}" onclick="page=${page+1}; submit_query();">Next</a> `
+		if(page + 1 < num_pages) {
+			div.innerHTML += `<a class="page" href="?${get_query_page(page+1)}">Next</a> `
+		}
 		output.appendChild(div);
 	}
 	if(!result.items.length) {
