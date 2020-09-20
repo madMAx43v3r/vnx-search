@@ -148,11 +148,16 @@ function on_result()
 		if(page > 0) {
 			div.innerHTML += `<a class="page" href="?${get_query_page(page-1)}">Prev</a> `
 		}
-		for(let i = 0; i < num_pages; ++i) {
+		for(let i = 0; i < num_pages;) {
 			if(i != page) {
 				div.innerHTML += `<a class="page" href="?${get_query_page(i)}">${i+1}</a> `
 			} else {
 				div.innerHTML += `${i+1} `;
+			}
+			if(i < 9) {
+				i++;
+			} else {
+				i += 10;
 			}
 		}
 		if(page + 1 < num_pages) {
