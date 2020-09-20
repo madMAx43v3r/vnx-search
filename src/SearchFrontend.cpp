@@ -25,6 +25,7 @@ void SearchFrontend::init()
 void SearchFrontend::main()
 {
 	engine_async = std::make_shared<QueryEngineAsyncClient>(engine_server);
+	engine_async->vnx_set_non_blocking(true);
 	
 	add_async_client(engine_async);
 	
@@ -61,9 +62,7 @@ void SearchFrontend::http_request_async(const std::shared_ptr<const addons::Http
 		options_.offset = page * options.limit;
 		
 		engine_async->query(words, options_,
-			[this, req_id](std::shared_ptr<const SearchResult> result) {
-				http_request_async_return(req_id, addons::HttpResponse::from_value_json(result));
-			},
+			std::bind(&SearchFrontend::query_callback, this, req_id, std::placeholders::_1),
 			[this, req_id](const std::exception& ex) {
 				log(WARN) << "query() failed with: " << ex.what();
 				http_request_async_return(req_id, addons::HttpResponse::from_status(500));
@@ -72,6 +71,31 @@ void SearchFrontend::http_request_async(const std::shared_ptr<const addons::Http
 	else {
 		http_request_async_return(req_id, addons::HttpResponse::from_status(404));
 	}
+}
+
+void SearchFrontend::query_callback(const vnx::request_id_t& req_id,
+									std::shared_ptr<const SearchResult> result) const
+{
+	const std::string bold_start = "<b>";
+	const std::string bold_end = "</b>";
+	const std::set<std::string> word_set(result->words.begin(), result->words.end());
+	
+	auto out = vnx::clone(result);
+	for(auto& item : out->items)
+	{
+		size_t offset = 0;
+		std::vector<std::pair<uint32_t, uint32_t>> positions;
+		const auto words = parse_text(item.context, &positions);
+		for(size_t i = 0; i < words.size(); ++i) {
+			if(word_set.count(words[i])) {
+				item.context.insert(positions[i].first + offset, bold_start);
+				offset += bold_start.size();
+				item.context.insert(positions[i].second + offset, bold_end);
+				offset += bold_end.size();
+			}
+		}
+	}
+	http_request_async_return(req_id, addons::HttpResponse::from_value_json(out));
 }
 
 

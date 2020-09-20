@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 	
 	vnx::init("vnx_search_query_engine", argc, argv, options);
 	
-	int port = 8989;
+	int port = 8990;
 	std::string server = ".vnx_search_engine.sock";
 	vnx::read_config("server", server);
 	vnx::read_config("port", port);
