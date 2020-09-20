@@ -21,33 +21,37 @@
 #include <vnx/search/PageContent.hxx>
 #include <vnx/search/PageIndex.hxx>
 #include <vnx/search/PageInfo.hxx>
+#include <vnx/search/QueryEngineBase.hxx>
+#include <vnx/search/QueryInterface_query.hxx>
+#include <vnx/search/QueryInterface_query_return.hxx>
 #include <vnx/search/Response.hxx>
 #include <vnx/search/SearchEngineBase.hxx>
-#include <vnx/search/SearchEngine_get_domain_info.hxx>
-#include <vnx/search/SearchEngine_get_domain_info_return.hxx>
-#include <vnx/search/SearchEngine_get_domain_list.hxx>
-#include <vnx/search/SearchEngine_get_domain_list_return.hxx>
-#include <vnx/search/SearchEngine_get_page_info.hxx>
-#include <vnx/search/SearchEngine_get_page_info_return.hxx>
-#include <vnx/search/SearchEngine_get_page_ranks.hxx>
-#include <vnx/search/SearchEngine_get_page_ranks_return.hxx>
-#include <vnx/search/SearchEngine_query.hxx>
-#include <vnx/search/SearchEngine_query_return.hxx>
-#include <vnx/search/SearchEngine_reverse_domain_lookup.hxx>
-#include <vnx/search/SearchEngine_reverse_domain_lookup_return.hxx>
-#include <vnx/search/SearchEngine_reverse_lookup.hxx>
-#include <vnx/search/SearchEngine_reverse_lookup_return.hxx>
-#include <vnx/search/SearchEngine_suggest_domains.hxx>
-#include <vnx/search/SearchEngine_suggest_domains_return.hxx>
-#include <vnx/search/SearchEngine_suggest_words.hxx>
-#include <vnx/search/SearchEngine_suggest_words_return.hxx>
+#include <vnx/search/SearchEngine_get_page_entries.hxx>
+#include <vnx/search/SearchEngine_get_page_entries_return.hxx>
 #include <vnx/search/SearchFrontendBase.hxx>
+#include <vnx/search/SearchInterface_get_domain_info.hxx>
+#include <vnx/search/SearchInterface_get_domain_info_return.hxx>
+#include <vnx/search/SearchInterface_get_domain_list.hxx>
+#include <vnx/search/SearchInterface_get_domain_list_return.hxx>
+#include <vnx/search/SearchInterface_get_page_info.hxx>
+#include <vnx/search/SearchInterface_get_page_info_return.hxx>
+#include <vnx/search/SearchInterface_get_page_ranks.hxx>
+#include <vnx/search/SearchInterface_get_page_ranks_return.hxx>
+#include <vnx/search/SearchInterface_reverse_domain_lookup.hxx>
+#include <vnx/search/SearchInterface_reverse_domain_lookup_return.hxx>
+#include <vnx/search/SearchInterface_reverse_lookup.hxx>
+#include <vnx/search/SearchInterface_reverse_lookup_return.hxx>
+#include <vnx/search/SearchInterface_suggest_domains.hxx>
+#include <vnx/search/SearchInterface_suggest_domains_return.hxx>
+#include <vnx/search/SearchInterface_suggest_words.hxx>
+#include <vnx/search/SearchInterface_suggest_words_return.hxx>
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/TextResponse.hxx>
 #include <vnx/search/UrlIndex.hxx>
 #include <vnx/search/UrlInfo.hxx>
 #include <vnx/search/WordArray.hxx>
 #include <vnx/search/WordContext.hxx>
+#include <vnx/search/page_entry_t.hxx>
 #include <vnx/search/query_options_t.hxx>
 #include <vnx/search/result_item_t.hxx>
 #include <vnx/search/score_type_e.hxx>
@@ -83,33 +87,37 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::PageContent::static_create_type_code());
 	vnx::register_type_code(::vnx::search::PageIndex::static_create_type_code());
 	vnx::register_type_code(::vnx::search::PageInfo::static_create_type_code());
+	vnx::register_type_code(::vnx::search::QueryEngineBase::static_create_type_code());
+	vnx::register_type_code(::vnx::search::QueryInterface_query::static_create_type_code());
+	vnx::register_type_code(::vnx::search::QueryInterface_query_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::Response::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchEngineBase::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_domain_info::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_domain_info_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_domain_list::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_domain_list_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_page_info::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_page_info_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_page_ranks::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_get_page_ranks_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_query::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_query_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_reverse_domain_lookup::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_reverse_domain_lookup_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_reverse_lookup::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_reverse_lookup_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_suggest_domains::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_suggest_domains_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_suggest_words::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchEngine_suggest_words_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchEngine_get_page_entries::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchEngine_get_page_entries_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchFrontendBase::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_domain_info::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_domain_info_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_domain_list::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_domain_list_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_page_info::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_page_info_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranks::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranks_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_reverse_domain_lookup::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_reverse_domain_lookup_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_reverse_lookup::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_reverse_lookup_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_suggest_domains::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_suggest_domains_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_suggest_words::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_suggest_words_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchResult::static_create_type_code());
 	vnx::register_type_code(::vnx::search::TextResponse::static_create_type_code());
 	vnx::register_type_code(::vnx::search::UrlIndex::static_create_type_code());
 	vnx::register_type_code(::vnx::search::UrlInfo::static_create_type_code());
 	vnx::register_type_code(::vnx::search::WordArray::static_create_type_code());
 	vnx::register_type_code(::vnx::search::WordContext::static_create_type_code());
+	vnx::register_type_code(::vnx::search::page_entry_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::query_options_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::result_item_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::score_type_e::static_create_type_code());
@@ -143,33 +151,37 @@ const vnx::TypeCode* const vnx_native_type_code_HttpResponse = vnx::get_type_cod
 const vnx::TypeCode* const vnx_native_type_code_PageContent = vnx::get_type_code(vnx::Hash64(0x4cd00be0870fbe22ull));
 const vnx::TypeCode* const vnx_native_type_code_PageIndex = vnx::get_type_code(vnx::Hash64(0x4c9c9cf43a382f0ull));
 const vnx::TypeCode* const vnx_native_type_code_PageInfo = vnx::get_type_code(vnx::Hash64(0x547cfd9b2bb19c80ull));
+const vnx::TypeCode* const vnx_native_type_code_QueryEngineBase = vnx::get_type_code(vnx::Hash64(0x9b39d0de19a6c209ull));
+const vnx::TypeCode* const vnx_native_type_code_QueryInterface_query = vnx::get_type_code(vnx::Hash64(0xd7ca13b33b457bbaull));
+const vnx::TypeCode* const vnx_native_type_code_QueryInterface_query_return = vnx::get_type_code(vnx::Hash64(0x9132d7d126fc55a6ull));
 const vnx::TypeCode* const vnx_native_type_code_Response = vnx::get_type_code(vnx::Hash64(0xcf371c90803a778cull));
 const vnx::TypeCode* const vnx_native_type_code_SearchEngineBase = vnx::get_type_code(vnx::Hash64(0x4e0f26d3496896a1ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_info = vnx::get_type_code(vnx::Hash64(0xc775a7413dab0511ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_info_return = vnx::get_type_code(vnx::Hash64(0xdd84ef2259be7eull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list = vnx::get_type_code(vnx::Hash64(0x6852b566cb5e7ba5ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list_return = vnx::get_type_code(vnx::Hash64(0xa06392efe70f0679ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info = vnx::get_type_code(vnx::Hash64(0x8f4b73a7bd7a8effull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info_return = vnx::get_type_code(vnx::Hash64(0xa79acda144d4c33bull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks = vnx::get_type_code(vnx::Hash64(0x5149b749f6676a3bull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks_return = vnx::get_type_code(vnx::Hash64(0xc6eb5d8851e2c4aaull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query = vnx::get_type_code(vnx::Hash64(0x14a6c3ff80018ce8ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query_return = vnx::get_type_code(vnx::Hash64(0xc4adbd01e9504960ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup = vnx::get_type_code(vnx::Hash64(0x70967f585e137c7dull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup_return = vnx::get_type_code(vnx::Hash64(0x8f0160842cd83465ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_lookup = vnx::get_type_code(vnx::Hash64(0x4e3b1cbd5cbd42afull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_lookup_return = vnx::get_type_code(vnx::Hash64(0x12b287ac93bf5253ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains = vnx::get_type_code(vnx::Hash64(0x1abdd70e75f411b3ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains_return = vnx::get_type_code(vnx::Hash64(0x385aae88fe3df753ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words = vnx::get_type_code(vnx::Hash64(0x7124d7bfda1b31f2ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words_return = vnx::get_type_code(vnx::Hash64(0xcf74c35d3594cc90ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_entries = vnx::get_type_code(vnx::Hash64(0x7570dd1b83810e89ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_entries_return = vnx::get_type_code(vnx::Hash64(0x2df0b62172960d7ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchFrontendBase = vnx::get_type_code(vnx::Hash64(0x7de65cc9f49e8667ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_info = vnx::get_type_code(vnx::Hash64(0xb84144e4266a295cull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_info_return = vnx::get_type_code(vnx::Hash64(0xff29e72acba9183eull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_list = vnx::get_type_code(vnx::Hash64(0x176656c3d09f57e8ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_list_return = vnx::get_type_code(vnx::Hash64(0x5f97f12a0effa039ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_info = vnx::get_type_code(vnx::Hash64(0x1b751835bab2e72aull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_info_return = vnx::get_type_code(vnx::Hash64(0xd26a677932e24236ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks = vnx::get_type_code(vnx::Hash64(0x4962db7ff53f4da4ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks_return = vnx::get_type_code(vnx::Hash64(0xf9c1a5118aa24f11ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup = vnx::get_type_code(vnx::Hash64(0x4fbc87c18553f7c6ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup_return = vnx::get_type_code(vnx::Hash64(0xcc5d543d65fe9b5cull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup = vnx::get_type_code(vnx::Hash64(0x5610708b5fe56530ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup_return = vnx::get_type_code(vnx::Hash64(0x2d987f3548ffd9e8ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains = vnx::get_type_code(vnx::Hash64(0x658934ab6e353dfeull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains_return = vnx::get_type_code(vnx::Hash64(0xc7aecd4d17cd5113ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words = vnx::get_type_code(vnx::Hash64(0xe51abc2dddd35827ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words_return = vnx::get_type_code(vnx::Hash64(0xba84698543a24d9dull));
 const vnx::TypeCode* const vnx_native_type_code_SearchResult = vnx::get_type_code(vnx::Hash64(0x659ce58d97581ddull));
 const vnx::TypeCode* const vnx_native_type_code_TextResponse = vnx::get_type_code(vnx::Hash64(0x7cee1cd5b88ec569ull));
 const vnx::TypeCode* const vnx_native_type_code_UrlIndex = vnx::get_type_code(vnx::Hash64(0xab26319d1802d1b6ull));
 const vnx::TypeCode* const vnx_native_type_code_UrlInfo = vnx::get_type_code(vnx::Hash64(0xd69101803f781acfull));
 const vnx::TypeCode* const vnx_native_type_code_WordArray = vnx::get_type_code(vnx::Hash64(0xabb8eb197035a035ull));
 const vnx::TypeCode* const vnx_native_type_code_WordContext = vnx::get_type_code(vnx::Hash64(0xdaa75d84f367905bull));
+const vnx::TypeCode* const vnx_native_type_code_page_entry_t = vnx::get_type_code(vnx::Hash64(0xb803150fd74a8e74ull));
 const vnx::TypeCode* const vnx_native_type_code_query_options_t = vnx::get_type_code(vnx::Hash64(0x8abc6f7a05400550ull));
 const vnx::TypeCode* const vnx_native_type_code_result_item_t = vnx::get_type_code(vnx::Hash64(0x25b1d557d37a1bdfull));
 const vnx::TypeCode* const vnx_native_type_code_score_type_e = vnx::get_type_code(vnx::Hash64(0x433d867b180521adull));

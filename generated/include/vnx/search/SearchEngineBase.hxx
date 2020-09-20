@@ -10,8 +10,7 @@
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/SyncInfo.hxx>
 #include <vnx/keyvalue/SyncUpdate.hxx>
-#include <vnx/search/SearchResult.hxx>
-#include <vnx/search/query_options_t.hxx>
+#include <vnx/search/page_entry_t.hxx>
 
 
 namespace vnx {
@@ -29,7 +28,6 @@ public:
 	int32_t max_link_cache = 100000;
 	int32_t max_word_cache = 500000;
 	int32_t max_num_pending = 100;
-	int32_t num_query_threads = 4;
 	int32_t num_update_threads = 4;
 	int32_t commit_delay = 10;
 	int32_t link_commit_interval = 60;
@@ -41,6 +39,7 @@ public:
 	vnx::bool_t update_word_array = 0;
 	vnx::bool_t update_word_context = 0;
 	vnx::bool_t update_page_info = 0;
+	vnx::bool_t reset_rank_values = 0;
 	std::vector<std::string> protocols;
 	
 	typedef ::vnx::Module Super;
@@ -72,8 +71,12 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
-	virtual void query_async(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, const vnx::request_id_t& _request_id) const = 0;
-	void query_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) const;
+	virtual void get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& _request_id) const = 0;
+	void get_page_entries_async_return(const vnx::request_id_t& _request_id, const std::vector<::vnx::search::page_entry_t>& _ret_0) const;
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value) {}
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value) {}
 	virtual void get_domain_info_async(const std::string& host, const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
 	void get_domain_info_async_return(const vnx::request_id_t& _request_id, const ::vnx::Object& _ret_0) const;
 	virtual void get_page_info_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;
@@ -87,10 +90,6 @@ protected:
 	void reverse_domain_lookup_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, uint32_t>>& _ret_0) const;
 	virtual std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit) const = 0;
 	virtual std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit) const = 0;
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value) {}
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;

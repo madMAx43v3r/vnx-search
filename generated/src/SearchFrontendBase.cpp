@@ -20,7 +20,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchFrontendBase::VNX_TYPE_HASH(0x7de65cc9f49e8667ull);
-const vnx::Hash64 SearchFrontendBase::VNX_CODE_HASH(0x7a154b66db12b5e2ull);
+const vnx::Hash64 SearchFrontendBase::VNX_CODE_HASH(0x5a25743bdcef30e7ull);
 
 SearchFrontendBase::SearchFrontendBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -115,7 +115,7 @@ std::shared_ptr<vnx::TypeCode> SearchFrontendBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchFrontend";
 	type_code->type_hash = vnx::Hash64(0x7de65cc9f49e8667ull);
-	type_code->code_hash = vnx::Hash64(0x7a154b66db12b5e2ull);
+	type_code->code_hash = vnx::Hash64(0x5a25743bdcef30e7ull);
 	type_code->is_native = true;
 	type_code->methods.resize(2);
 	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
@@ -125,7 +125,7 @@ std::shared_ptr<vnx::TypeCode> SearchFrontendBase::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "engine_server";
-		field.value = vnx::to_string("SearchEngine");
+		field.value = vnx::to_string("QueryEngine");
 		field.code = {32};
 	}
 	type_code->build();

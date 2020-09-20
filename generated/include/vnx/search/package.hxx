@@ -33,33 +33,39 @@ class HttpResponse;
 class PageContent;
 class PageIndex;
 class PageInfo;
+class QueryEngineBase;
+class QueryInterface;
+class QueryInterface_query;
+class QueryInterface_query_return;
 class Response;
 class SearchEngineBase;
-class SearchEngine_get_domain_info;
-class SearchEngine_get_domain_info_return;
-class SearchEngine_get_domain_list;
-class SearchEngine_get_domain_list_return;
-class SearchEngine_get_page_info;
-class SearchEngine_get_page_info_return;
-class SearchEngine_get_page_ranks;
-class SearchEngine_get_page_ranks_return;
-class SearchEngine_query;
-class SearchEngine_query_return;
-class SearchEngine_reverse_domain_lookup;
-class SearchEngine_reverse_domain_lookup_return;
-class SearchEngine_reverse_lookup;
-class SearchEngine_reverse_lookup_return;
-class SearchEngine_suggest_domains;
-class SearchEngine_suggest_domains_return;
-class SearchEngine_suggest_words;
-class SearchEngine_suggest_words_return;
+class SearchEngine_get_page_entries;
+class SearchEngine_get_page_entries_return;
 class SearchFrontendBase;
+class SearchInterface;
+class SearchInterface_get_domain_info;
+class SearchInterface_get_domain_info_return;
+class SearchInterface_get_domain_list;
+class SearchInterface_get_domain_list_return;
+class SearchInterface_get_page_info;
+class SearchInterface_get_page_info_return;
+class SearchInterface_get_page_ranks;
+class SearchInterface_get_page_ranks_return;
+class SearchInterface_reverse_domain_lookup;
+class SearchInterface_reverse_domain_lookup_return;
+class SearchInterface_reverse_lookup;
+class SearchInterface_reverse_lookup_return;
+class SearchInterface_suggest_domains;
+class SearchInterface_suggest_domains_return;
+class SearchInterface_suggest_words;
+class SearchInterface_suggest_words_return;
 class SearchResult;
 class TextResponse;
 class UrlIndex;
 class UrlInfo;
 class WordArray;
 class WordContext;
+class page_entry_t;
 class query_options_t;
 class result_item_t;
 class score_type_e;
@@ -86,33 +92,37 @@ extern const vnx::TypeCode* const vnx_native_type_code_HttpResponse; ///< \priva
 extern const vnx::TypeCode* const vnx_native_type_code_PageContent; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_PageIndex; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_PageInfo; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_QueryEngineBase; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_QueryInterface_query; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_QueryInterface_query_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_Response; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchEngineBase; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_info; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_info_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_domain_list_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_info_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_ranks_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_query_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_domain_lookup_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_lookup; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_reverse_lookup_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_domains_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_suggest_words_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_entries; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchEngine_get_page_entries_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchFrontendBase; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_info; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_info_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_list; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_list_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_info; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_info_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchResult; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_TextResponse; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_UrlIndex; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_UrlInfo; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_WordArray; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_WordContext; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_page_entry_t; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_query_options_t; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_result_item_t; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_score_type_e; ///< \private
@@ -145,33 +155,39 @@ void read(TypeInput& in, ::vnx::search::HttpResponse& value, const TypeCode* typ
 void read(TypeInput& in, ::vnx::search::PageContent& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::PageIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::PageInfo& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::QueryEngineBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::QueryInterface& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::QueryInterface_query& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::QueryInterface_query_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::Response& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchEngineBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_list& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_query& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_query_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_domains& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_words& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_entries& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_entries_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchFrontendBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_list& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_words& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchResult& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::TextResponse& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::UrlInfo& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::WordArray& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::WordContext& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::page_entry_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::query_options_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::result_item_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::score_type_e& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -198,33 +214,39 @@ void write(TypeOutput& out, const ::vnx::search::HttpResponse& value, const Type
 void write(TypeOutput& out, const ::vnx::search::PageContent& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::PageIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::PageInfo& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::QueryEngineBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::QueryInterface& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::QueryInterface_query& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::QueryInterface_query_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::Response& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchEngineBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_list& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_query& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_query_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_domains& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_words& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_entries& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_entries_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchFrontendBase& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_list& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_info& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_words& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchResult& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::TextResponse& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::UrlIndex& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::UrlInfo& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::WordArray& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::WordContext& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::page_entry_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::query_options_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::result_item_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::score_type_e& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -251,33 +273,39 @@ void read(std::istream& in, ::vnx::search::HttpResponse& value); ///< \private
 void read(std::istream& in, ::vnx::search::PageContent& value); ///< \private
 void read(std::istream& in, ::vnx::search::PageIndex& value); ///< \private
 void read(std::istream& in, ::vnx::search::PageInfo& value); ///< \private
+void read(std::istream& in, ::vnx::search::QueryEngineBase& value); ///< \private
+void read(std::istream& in, ::vnx::search::QueryInterface& value); ///< \private
+void read(std::istream& in, ::vnx::search::QueryInterface_query& value); ///< \private
+void read(std::istream& in, ::vnx::search::QueryInterface_query_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::Response& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchEngineBase& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_info& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_info_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_list& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_list_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_page_info& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_page_info_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_query& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_query_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_reverse_domain_lookup& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_reverse_domain_lookup_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_reverse_lookup& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_reverse_lookup_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_suggest_domains& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_suggest_domains_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_suggest_words& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchEngine_suggest_words_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchEngine_get_page_entries& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchEngine_get_page_entries_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchFrontendBase& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_info& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_info_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_list& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_list_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_page_info& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_page_info_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranks& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranks_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_reverse_domain_lookup& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_reverse_domain_lookup_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_reverse_lookup& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_reverse_lookup_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_suggest_words& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_suggest_words_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchResult& value); ///< \private
 void read(std::istream& in, ::vnx::search::TextResponse& value); ///< \private
 void read(std::istream& in, ::vnx::search::UrlIndex& value); ///< \private
 void read(std::istream& in, ::vnx::search::UrlInfo& value); ///< \private
 void read(std::istream& in, ::vnx::search::WordArray& value); ///< \private
 void read(std::istream& in, ::vnx::search::WordContext& value); ///< \private
+void read(std::istream& in, ::vnx::search::page_entry_t& value); ///< \private
 void read(std::istream& in, ::vnx::search::query_options_t& value); ///< \private
 void read(std::istream& in, ::vnx::search::result_item_t& value); ///< \private
 void read(std::istream& in, ::vnx::search::score_type_e& value); ///< \private
@@ -304,33 +332,39 @@ void write(std::ostream& out, const ::vnx::search::HttpResponse& value); ///< \p
 void write(std::ostream& out, const ::vnx::search::PageContent& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::PageIndex& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::PageInfo& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::QueryEngineBase& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::QueryInterface& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::QueryInterface_query& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::QueryInterface_query_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::Response& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchEngineBase& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_info& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_info_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_list& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_list_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_info& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_info_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_query& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_query_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_domain_lookup& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_domain_lookup_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_lookup& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_lookup_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_domains& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_domains_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_words& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_words_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_entries& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_entries_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchFrontendBase& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_info& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_info_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_list& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_list_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_info& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_info_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_ranks& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_ranks_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_domain_lookup& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_lookup& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_lookup_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_words& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_words_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchResult& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::TextResponse& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::UrlIndex& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::UrlInfo& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::WordArray& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::WordContext& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::page_entry_t& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::query_options_t& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::result_item_t& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::score_type_e& value); ///< \private
@@ -357,33 +391,39 @@ void accept(Visitor& visitor, const ::vnx::search::HttpResponse& value); ///< \p
 void accept(Visitor& visitor, const ::vnx::search::PageContent& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::PageIndex& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::PageInfo& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::QueryEngineBase& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::QueryInterface& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::QueryInterface_query& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::QueryInterface_query_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::Response& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchEngineBase& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_info& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_info_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_list& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_list_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_info& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_info_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_query& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_query_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_domain_lookup& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_domain_lookup_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_lookup& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_lookup_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_domains& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_domains_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_words& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_words_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_entries& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_entries_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchFrontendBase& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_info& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_info_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_list& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_list_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_info& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_info_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_ranks& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_ranks_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_domain_lookup& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_lookup& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_lookup_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_words& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_words_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchResult& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::TextResponse& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::UrlIndex& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::UrlInfo& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::WordArray& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::WordContext& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::page_entry_t& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::query_options_t& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::result_item_t& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::score_type_e& value); ///< \private
@@ -852,6 +892,98 @@ struct type<::vnx::search::PageInfo> {
 
 /// \private
 template<>
+struct type<::vnx::search::QueryEngineBase> {
+	void read(TypeInput& in, ::vnx::search::QueryEngineBase& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::QueryEngineBase& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::QueryEngineBase& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::QueryEngineBase& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::QueryEngineBase& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::QueryInterface> {
+	void read(TypeInput& in, ::vnx::search::QueryInterface& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::QueryInterface& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::QueryInterface& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::QueryInterface& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::QueryInterface& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::QueryInterface_query> {
+	void read(TypeInput& in, ::vnx::search::QueryInterface_query& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::QueryInterface_query& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::QueryInterface_query& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::QueryInterface_query& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::QueryInterface_query& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::QueryInterface_query_return> {
+	void read(TypeInput& in, ::vnx::search::QueryInterface_query_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::QueryInterface_query_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::QueryInterface_query_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::QueryInterface_query_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::QueryInterface_query_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
 struct type<::vnx::search::Response> {
 	void read(TypeInput& in, ::vnx::search::Response& value, const TypeCode* type_code, const uint16_t* code) {
 		vnx::read(in, value, type_code, code);
@@ -898,20 +1030,20 @@ struct type<::vnx::search::SearchEngineBase> {
 
 /// \private
 template<>
-struct type<::vnx::search::SearchEngine_get_domain_info> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_info& value, const TypeCode* type_code, const uint16_t* code) {
+struct type<::vnx::search::SearchEngine_get_page_entries> {
+	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_entries& value, const TypeCode* type_code, const uint16_t* code) {
 		vnx::read(in, value, type_code, code);
 	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_info& value, const TypeCode* type_code, const uint16_t* code) {
+	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_entries& value, const TypeCode* type_code, const uint16_t* code) {
 		vnx::write(out, value, type_code, code);
 	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_info& value) {
+	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_entries& value) {
 		vnx::read(in, value);
 	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_info& value) {
+	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_entries& value) {
 		vnx::write(out, value);
 	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_info& value) {
+	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_entries& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {
@@ -921,388 +1053,20 @@ struct type<::vnx::search::SearchEngine_get_domain_info> {
 
 /// \private
 template<>
-struct type<::vnx::search::SearchEngine_get_domain_info_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code) {
+struct type<::vnx::search::SearchEngine_get_page_entries_return> {
+	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_entries_return& value, const TypeCode* type_code, const uint16_t* code) {
 		vnx::read(in, value, type_code, code);
 	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code) {
+	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_entries_return& value, const TypeCode* type_code, const uint16_t* code) {
 		vnx::write(out, value, type_code, code);
 	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_info_return& value) {
+	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_entries_return& value) {
 		vnx::read(in, value);
 	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_info_return& value) {
+	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_entries_return& value) {
 		vnx::write(out, value);
 	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_info_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_get_domain_list> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_list& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_list& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_list& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_list& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_list& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_get_domain_list_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_domain_list_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_domain_list_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_domain_list_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_get_page_info> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_info& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_info& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_info& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_info& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_info& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_get_page_info_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_info_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_info_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_info_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_get_page_ranks> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_get_page_ranks_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_get_page_ranks_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_get_page_ranks_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_ranks_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_query> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_query& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_query& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_query& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_query& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_query& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_query_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_query_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_query_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_query_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_query_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_query_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_reverse_domain_lookup> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_reverse_domain_lookup& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_domain_lookup& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_domain_lookup& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_reverse_domain_lookup_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_reverse_domain_lookup_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_domain_lookup_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_domain_lookup_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_reverse_lookup> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_reverse_lookup& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_lookup& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_lookup& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_reverse_lookup_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_reverse_lookup_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_reverse_lookup_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_reverse_lookup_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_suggest_domains> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_domains& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_domains& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_suggest_domains& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_domains& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_domains& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_suggest_domains_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_suggest_domains_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_domains_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_domains_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_suggest_words> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_words& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_words& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_suggest_words& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_words& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_words& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchEngine_suggest_words_return> {
-	void read(TypeInput& in, ::vnx::search::SearchEngine_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchEngine_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchEngine_suggest_words_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchEngine_suggest_words_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_suggest_words_return& value) {
+	void accept(Visitor& visitor, const ::vnx::search::SearchEngine_get_page_entries_return& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {
@@ -1326,6 +1090,397 @@ struct type<::vnx::search::SearchFrontendBase> {
 		vnx::write(out, value);
 	}
 	void accept(Visitor& visitor, const ::vnx::search::SearchFrontendBase& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_domain_info> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_info& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_info& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_info& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_info& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_info& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_domain_info_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_info_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_info_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_info_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_info_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_domain_list> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_list& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_list& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_list& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_list& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_list& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_domain_list_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_domain_list_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_domain_list_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_domain_list_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_domain_list_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_page_info> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_info& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_info& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_page_info& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_info& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_info& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_page_info_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_info_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_page_info_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_info_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_info_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_page_ranks> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranks& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_ranks& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_ranks& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_page_ranks_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranks_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_ranks_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_ranks_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_reverse_domain_lookup> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_reverse_domain_lookup& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_domain_lookup& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_domain_lookup& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_reverse_domain_lookup_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_reverse_domain_lookup_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_reverse_lookup> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_reverse_lookup& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_lookup& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_lookup& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_reverse_lookup_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_reverse_lookup_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_lookup_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_lookup_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_suggest_domains> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_suggest_domains_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_suggest_words> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_words& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_words& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_suggest_words& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_words& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_words& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_suggest_words_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_suggest_words_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_words_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_words_return& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {
@@ -1464,6 +1619,29 @@ struct type<::vnx::search::WordContext> {
 		vnx::write(out, value);
 	}
 	void accept(Visitor& visitor, const ::vnx::search::WordContext& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code) {
+		code.push_back(CODE_ANY);
+	}
+};
+
+/// \private
+template<>
+struct type<::vnx::search::page_entry_t> {
+	void read(TypeInput& in, ::vnx::search::page_entry_t& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::page_entry_t& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::page_entry_t& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::page_entry_t& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::page_entry_t& value) {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {
