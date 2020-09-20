@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 	
 	vnx::init("vnx_search_httpd", argc, argv, options);
 	
-	std::string engine = ".vnx_search_engine.sock";
+	std::string engine = ".vnx_search_query_engine.sock";
 	vnx::read_config("engine", engine);
 	
 	{
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	}
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(engine));
-		proxy->forward_list.push_back("SearchEngine");
+		proxy->forward_list.push_back("QueryEngine");
 		proxy.start_detached();
 	}
 	{

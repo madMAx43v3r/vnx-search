@@ -12,6 +12,8 @@
 #include <vnx/search/WordArray.hxx>
 #include <vnx/search/Util.h>
 
+#include <cmath>
+
 
 namespace vnx {
 namespace search {
@@ -119,28 +121,39 @@ void QueryEngine::query_callback_1(std::shared_ptr<query_job_t> job) const
 	if(job->num_found >= job->found.size()) {
 		job->result->has_more = true;
 	}
-	for(size_t i = 0; i < std::min(size_t(job->num_found), job->found.size()); ++i)
+	search_engine_async->get_page_entries(job->found,
+		std::bind(&QueryEngine::query_callback_2, this, job, std::placeholders::_1),
+		job->error_callback);
+}
+
+void QueryEngine::query_callback_2(std::shared_ptr<query_job_t> job,
+									std::vector<page_entry_t> entries) const
+{
+	for(const auto& entry : entries)
 	{
-		const auto* page = find_page(job->found[i]);
-		if(page) {
-			result_t item;
-			item.page_id = page->id;
-			item.domain_id = page->domain_id;
-			item.url_key = page->url_key;
-			item.score = page->rank_value;
-			job->items.push_back(item);
+		const Url::Url parsed(entry.url);
+		auto& domain_id = job->domain_set[parsed.host()];
+		if(!domain_id) {
+			domain_id = job->domain_set.size();
 		}
+		result_t item;
+		item.page_id = entry.id;
+		item.domain_id = domain_id;
+		item.scheme = parsed.scheme();
+		item.url_key = get_url_key(parsed);
+		item.score = entry.rank_value;
+		job->items.push_back(item);
 	}
 	std::vector<Variant> keys;
 	for(const auto& item : job->items) {
 		keys.emplace_back(item.url_key);
 	}
 	word_array_async->get_values(keys,
-			std::bind(&QueryEngine::query_callback_2, this, job, std::placeholders::_1),
+			std::bind(&QueryEngine::query_callback_3, this, job, std::placeholders::_1),
 			job->error_callback);
 }
 
-void QueryEngine::query_callback_2(	std::shared_ptr<query_job_t> job,
+void QueryEngine::query_callback_3(	std::shared_ptr<query_job_t> job,
 									std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const
 {
 	{
@@ -163,11 +176,11 @@ void QueryEngine::query_callback_2(	std::shared_ptr<query_job_t> job,
 			}
 		}
 	} else {
-		query_callback_3(job);
+		query_callback_4(job);
 	}
 }
 
-void QueryEngine::query_callback_3(std::shared_ptr<query_job_t> job) const
+void QueryEngine::query_callback_4(std::shared_ptr<query_job_t> job) const
 {
 	{
 		const auto now = vnx::get_wall_time_micros();
@@ -221,11 +234,11 @@ void QueryEngine::query_callback_3(std::shared_ptr<query_job_t> job) const
 		job->time_begin = time_mid;
 	}
 	page_index_async->get_values(job->url_keys,
-			std::bind(&QueryEngine::query_callback_4, this, job, std::placeholders::_1),
+			std::bind(&QueryEngine::query_callback_5, this, job, std::placeholders::_1),
 			job->error_callback);
 }
 
-void QueryEngine::query_callback_4( std::shared_ptr<query_job_t> job,
+void QueryEngine::query_callback_5( std::shared_ptr<query_job_t> job,
 									std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const
 {
 	{
@@ -241,11 +254,11 @@ void QueryEngine::query_callback_4( std::shared_ptr<query_job_t> job,
 		}
 	}
 	page_content_async->get_values(job->url_keys,
-			std::bind(&QueryEngine::query_callback_5, this, job, std::placeholders::_1),
+			std::bind(&QueryEngine::query_callback_6, this, job, std::placeholders::_1),
 			job->error_callback);
 }
 
-void QueryEngine::query_callback_5( std::shared_ptr<query_job_t> job,
+void QueryEngine::query_callback_6( std::shared_ptr<query_job_t> job,
 									std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const
 {
 	{
@@ -397,7 +410,7 @@ void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 	}
 	
 	if(--job->num_left == 0) {
-		add_task(std::bind(&QueryEngine::query_callback_3, this, job));
+		add_task(std::bind(&QueryEngine::query_callback_4, this, job));
 	}
 }
 

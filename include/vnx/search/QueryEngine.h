@@ -64,14 +64,17 @@ private:
 	void query_callback_1(std::shared_ptr<query_job_t> job) const;
 	
 	void query_callback_2(	std::shared_ptr<query_job_t> job,
+							std::vector<page_entry_t> entries) const;
+	
+	void query_callback_3(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
 	
-	void query_callback_3(std::shared_ptr<query_job_t> job) const;
-	
-	void query_callback_4(	std::shared_ptr<query_job_t> job,
-							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
+	void query_callback_4(std::shared_ptr<query_job_t> job) const;
 	
 	void query_callback_5(	std::shared_ptr<query_job_t> job,
+							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
+	
+	void query_callback_6(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
 	
 	void query_task_0(	std::shared_ptr<query_job_t> job,
@@ -89,7 +92,7 @@ private:
 	std::shared_ptr<keyvalue::StorageAsyncClient> word_context_async;
 	std::shared_ptr<keyvalue::StorageAsyncClient> word_array_async;
 	
-	size_t query_counter = 0;
+	mutable size_t query_counter = 0;
 	
 };
 

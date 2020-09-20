@@ -35,6 +35,7 @@ add_library(vnx_search SHARED
 	src/PlainTextParser.cpp
 	src/ArchiveProxy.cpp
 	src/SearchFrontend.cpp
+	src/QueryEngine.cpp
 	src/Util.cpp
 )
 
@@ -72,6 +73,9 @@ target_link_libraries(vnx_search_crawl vnx_search)
 
 add_executable(vnx_search_engine src/vnx_search_engine.cpp)
 target_link_libraries(vnx_search_engine vnx_search)
+
+add_executable(vnx_search_query_engine src/vnx_search_query_engine.cpp)
+target_link_libraries(vnx_search_query_engine vnx_search)
 
 add_executable(vnx_search_query src/vnx_search_query.cpp)
 target_link_libraries(vnx_search_query vnx_search)
