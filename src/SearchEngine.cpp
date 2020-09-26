@@ -39,7 +39,7 @@ void SearchEngine::init()
 {
 	private_addr = Hash64::rand();
 	vnx::open_pipe(private_addr, this, UNLIMITED);
-	vnx::open_pipe(vnx_name, this, 100);
+	vnx::open_pipe(vnx_name, this, 100, UNLIMITED, -10);
 }
 
 void SearchEngine::main()
