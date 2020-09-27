@@ -10,9 +10,11 @@
 <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
 <meta name="msapplication-TileColor" content="#da532c">
 <meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 	body {
 		margin: 20px;
+		max-width: 70em;
 	}
 	.item {
 		margin-top: 30px;
@@ -20,24 +22,34 @@
 	}
 	.title {
 		font-size: 120%;
-		line-height: 150%;
+		word-wrap: break-word;
 	}
 	.url {
 		color: rgb(0,100,0);
+		word-wrap: break-word;
 	}
 	.date {
 		color: rgb(0,0,0);
 	}
 	.context {
 		color: rgb(50,50,50);
+		word-wrap: break-word;
 	}
-	#stats {
+	.center {
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	div#stats {
 		color: rgb(80,80,80);
-		font-size: 100%;
+		font-size: 80%;
 	}
 	div#header {
 		color: rgb(50,50,50);
 		font-size: 100%;
+		margin-top: 20px;
+	}
+	div#search_form {
 		margin-top: 20px;
 	}
 	div#page_list {
@@ -52,12 +64,16 @@
 </head>
 <body onload="on_load();">
 
+<img src="/apple-touch-icon.png"/>
+
+<div id="search_form">
 <form method="get">
 	<span style="font-size: 100%;">Search: </span>
-	<input id="query" name="t" type="text" value="" style="font-size: 100%;" size="40">
+	<input id="query" name="t" type="text" value="" style="width: 50%; font-size: 100%;">
 	<input id="page" name="p" value="0" type="hidden">
 	<input type="submit" value="Submit" style="font-size: 100%;">
 </form>
+</div>
 
 <div id="header"></div>
 <div id="results"></div>
