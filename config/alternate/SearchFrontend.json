@@ -3,7 +3,7 @@
 		"limit": 20,
 		"context": 30,
 		"max_group_size": 5,
-		"max_results": 2000,
+		"max_results": 1000,
 		"flags": ["GROUP_BY_DOMAIN"]
 	}
 }
