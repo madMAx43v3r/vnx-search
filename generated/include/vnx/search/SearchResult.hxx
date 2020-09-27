@@ -25,6 +25,7 @@ public:
 	::vnx::search::query_options_t options;
 	std::vector<std::string> words;
 	std::vector<::vnx::search::result_item_t> items;
+	std::map<std::string, int32_t> timing_info;
 	
 	typedef ::vnx::Value Super;
 	
