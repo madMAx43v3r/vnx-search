@@ -89,7 +89,9 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 {
 	{
 		const auto now = vnx::get_wall_time_micros();
-		job->result->load_time_us += now - job->time_begin;
+		const auto delta = now - job->time_begin;
+		job->result->load_time_us += delta;
+		job->result->timing_info["word_context"] = delta;
 		job->time_begin = now;
 	}
 	int i = 0;
@@ -160,7 +162,9 @@ void QueryEngine::query_callback_2(std::shared_ptr<query_job_t> job,
 {
 	{
 		const auto now = vnx::get_wall_time_micros();
-		job->result->compute_time_us += now - job->time_begin;
+		const auto delta = now - job->time_begin;
+		job->result->compute_time_us += delta;
+		job->result->timing_info["get_page_entries"] = delta;
 		job->time_begin = now;
 	}
 	std::multimap<float, const page_entry_t*, std::greater<float>> selected;
@@ -198,7 +202,9 @@ void QueryEngine::query_callback_3(	std::shared_ptr<query_job_t> job,
 {
 	{
 		const auto now = vnx::get_wall_time_micros();
-		job->result->load_time_us += now - job->time_begin;
+		const auto delta = now - job->time_begin;
+		job->result->load_time_us += delta;
+		job->result->timing_info["word_array"] = delta;
 		job->time_begin = now;
 	}
 	job->num_left = 0;
@@ -224,7 +230,9 @@ void QueryEngine::query_callback_4(std::shared_ptr<query_job_t> job) const
 {
 	{
 		const auto now = vnx::get_wall_time_micros();
-		job->result->compute_time_us += now - job->time_begin;
+		const auto delta = now - job->time_begin;
+		job->result->compute_time_us += delta;
+		job->result->timing_info["query_task_1"] = delta;
 		job->time_begin = now;
 	}
 	std::vector<std::pair<float, const result_t*>> sorted;
@@ -283,7 +291,9 @@ void QueryEngine::query_callback_5( std::shared_ptr<query_job_t> job,
 {
 	{
 		const auto now = vnx::get_wall_time_micros();
-		job->result->load_time_us += now - job->time_begin;
+		const auto delta = now - job->time_begin;
+		job->result->load_time_us += delta;
+		job->result->timing_info["page_index"] = delta;
 		job->time_begin = now;
 	}
 	for(size_t i = 0; i < entries.size(); ++i) {
@@ -303,7 +313,9 @@ void QueryEngine::query_callback_6( std::shared_ptr<query_job_t> job,
 {
 	{
 		const auto now = vnx::get_wall_time_micros();
-		job->result->load_time_us += now - job->time_begin;
+		const auto delta = now - job->time_begin;
+		job->result->load_time_us += delta;
+		job->result->timing_info["page_content"] = delta;
 		job->time_begin = now;
 	}
 	for(size_t i = 0; i < entries.size(); ++i) {

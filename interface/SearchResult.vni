@@ -18,4 +18,6 @@ class SearchResult {
 	
 	vector<result_item_t> items;
 	
+	map<string, int> timing_info;				// [step -> time usec]
+	
 }
