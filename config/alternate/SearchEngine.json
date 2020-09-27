@@ -1,9 +1,8 @@
 {
 	"num_update_threads": 8,
-	"num_query_threads": 16,
 	"link_commit_interval": 3600,
 	"word_commit_interval": 7200,
-	"max_link_cache": 1000000,
+	"max_link_cache": 2000000,
 	"max_word_cache": 20000000,
 	"max_num_pending": 100,
 	"lock_timeout": 1000
