@@ -22,6 +22,7 @@ vnx::Hash64 PageContent::get_type_hash() const {
 const char* PageContent::get_type_name() const {
 	return "vnx.search.PageContent";
 }
+
 const vnx::TypeCode* PageContent::get_type_code() const {
 	return vnx::search::vnx_native_type_code_PageContent;
 }
@@ -178,6 +179,10 @@ void read(TypeInput& in, ::vnx::search::PageContent& value, const TypeCode* type
 }
 
 void write(TypeOutput& out, const ::vnx::search::PageContent& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_PageContent;
 		out.write_type_code(type_code);

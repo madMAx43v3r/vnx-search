@@ -22,6 +22,7 @@ vnx::Hash64 WordContext::get_type_hash() const {
 const char* WordContext::get_type_name() const {
 	return "vnx.search.WordContext";
 }
+
 const vnx::TypeCode* WordContext::get_type_code() const {
 	return vnx::search::vnx_native_type_code_WordContext;
 }
@@ -225,6 +226,10 @@ void read(TypeInput& in, ::vnx::search::WordContext& value, const TypeCode* type
 }
 
 void write(TypeOutput& out, const ::vnx::search::WordContext& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_WordContext;
 		out.write_type_code(type_code);

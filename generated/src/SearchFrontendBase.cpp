@@ -5,8 +5,20 @@
 #include <vnx/search/SearchFrontendBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_close.hxx>
+#include <vnx/ModuleInterface_vnx_close_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
+#include <vnx/ModuleInterface_vnx_restart.hxx>
+#include <vnx/ModuleInterface_vnx_restart_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
 #include <vnx/addons/HttpComponent_http_request.hxx>
 #include <vnx/addons/HttpComponent_http_request_return.hxx>
 #include <vnx/addons/HttpRequest.hxx>
@@ -37,6 +49,7 @@ vnx::Hash64 SearchFrontendBase::get_type_hash() const {
 const char* SearchFrontendBase::get_type_name() const {
 	return "vnx.search.SearchFrontend";
 }
+
 const vnx::TypeCode* SearchFrontendBase::get_type_code() const {
 	return vnx::search::vnx_native_type_code_SearchFrontendBase;
 }
@@ -133,9 +146,15 @@ std::shared_ptr<vnx::TypeCode> SearchFrontendBase::static_create_type_code() {
 	type_code->is_native = true;
 	type_code->depends.resize(1);
 	type_code->depends[0] = ::vnx::search::query_options_t::static_get_type_code();
-	type_code->methods.resize(2);
-	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
-	type_code->methods[1] = ::vnx::addons::HttpComponent_http_request::static_get_type_code();
+	type_code->methods.resize(8);
+	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_config_object::static_get_type_code();
+	type_code->methods[1] = ::vnx::ModuleInterface_vnx_get_config::static_get_type_code();
+	type_code->methods[2] = ::vnx::ModuleInterface_vnx_set_config_object::static_get_type_code();
+	type_code->methods[3] = ::vnx::ModuleInterface_vnx_set_config::static_get_type_code();
+	type_code->methods[4] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
+	type_code->methods[5] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
+	type_code->methods[6] = ::vnx::ModuleInterface_vnx_close::static_get_type_code();
+	type_code->methods[7] = ::vnx::addons::HttpComponent_http_request::static_get_type_code();
 	type_code->fields.resize(2);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -159,13 +178,61 @@ void SearchFrontendBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _s
 
 std::shared_ptr<vnx::Value> SearchFrontendBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
 	const auto _type_hash = _method->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
+	if(_type_hash == vnx::Hash64(0x17f58f68bf83abc0ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_config_object_return::create();
+		_return_value->_ret_0 = vnx_get_config_object();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0xbbc7f1a01044d294ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_config_return::create();
+		_return_value->_ret_0 = vnx_get_config(_args->name);
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0xca30f814f17f322full)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config_object>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_set_config_object_return::create();
+		vnx_set_config_object(_args->config);
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x362aac91373958b7ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_set_config_return::create();
+		vnx_set_config(_args->name, _args->value);
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
 		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
 		_return_value->_ret_0 = vnx_get_type_code();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x9e95dc280cecca1bull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_restart>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_restart_return::create();
+		vnx_restart();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x9e165e2b50bad84bull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_close>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_close_return::create();
+		vnx_close();
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0xe0b6c38f619bad92ull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::addons::HttpComponent_http_request>(_method);
@@ -232,6 +299,10 @@ void read(TypeInput& in, ::vnx::search::SearchFrontendBase& value, const TypeCod
 }
 
 void write(TypeOutput& out, const ::vnx::search::SearchFrontendBase& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_SearchFrontendBase;
 		out.write_type_code(type_code);

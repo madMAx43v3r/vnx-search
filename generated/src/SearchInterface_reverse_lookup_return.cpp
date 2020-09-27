@@ -22,6 +22,7 @@ vnx::Hash64 SearchInterface_reverse_lookup_return::get_type_hash() const {
 const char* SearchInterface_reverse_lookup_return::get_type_name() const {
 	return "vnx.search.SearchInterface.reverse_lookup.return";
 }
+
 const vnx::TypeCode* SearchInterface_reverse_lookup_return::get_type_code() const {
 	return vnx::search::vnx_native_type_code_SearchInterface_reverse_lookup_return;
 }
@@ -179,6 +180,10 @@ void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup_return& v
 }
 
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_SearchInterface_reverse_lookup_return;
 		out.write_type_code(type_code);

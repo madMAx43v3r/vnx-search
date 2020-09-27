@@ -4,8 +4,20 @@
 #include <vnx/search/package.hxx>
 #include <vnx/search/SearchEngineClient.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_close.hxx>
+#include <vnx/ModuleInterface_vnx_close_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
+#include <vnx/ModuleInterface_vnx_restart.hxx>
+#include <vnx/ModuleInterface_vnx_restart_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/SyncInfo.hxx>
@@ -46,9 +58,56 @@ SearchEngineClient::SearchEngineClient(vnx::Hash64 service_addr)
 {
 }
 
+::vnx::Object SearchEngineClient::vnx_get_config_object() {
+	auto _method = ::vnx::ModuleInterface_vnx_get_config_object::create();
+	auto _return_value = vnx_request(_method, false);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("SearchEngineClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+::vnx::Variant SearchEngineClient::vnx_get_config(const std::string& name) {
+	auto _method = ::vnx::ModuleInterface_vnx_get_config::create();
+	_method->name = name;
+	auto _return_value = vnx_request(_method, false);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("SearchEngineClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+void SearchEngineClient::vnx_set_config_object(const ::vnx::Object& config) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config_object::create();
+	_method->config = config;
+	vnx_request(_method, false);
+}
+
+void SearchEngineClient::vnx_set_config_object_async(const ::vnx::Object& config) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config_object::create();
+	_method->config = config;
+	vnx_request(_method, true);
+}
+
+void SearchEngineClient::vnx_set_config(const std::string& name, const ::vnx::Variant& value) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config::create();
+	_method->name = name;
+	_method->value = value;
+	vnx_request(_method, false);
+}
+
+void SearchEngineClient::vnx_set_config_async(const std::string& name, const ::vnx::Variant& value) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config::create();
+	_method->name = name;
+	_method->value = value;
+	vnx_request(_method, true);
+}
+
 ::vnx::TypeCode SearchEngineClient::vnx_get_type_code() {
 	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -56,10 +115,30 @@ SearchEngineClient::SearchEngineClient(vnx::Hash64 service_addr)
 	return _result->_ret_0;
 }
 
+void SearchEngineClient::vnx_restart() {
+	auto _method = ::vnx::ModuleInterface_vnx_restart::create();
+	vnx_request(_method, false);
+}
+
+void SearchEngineClient::vnx_restart_async() {
+	auto _method = ::vnx::ModuleInterface_vnx_restart::create();
+	vnx_request(_method, true);
+}
+
+void SearchEngineClient::vnx_close() {
+	auto _method = ::vnx::ModuleInterface_vnx_close::create();
+	vnx_request(_method, false);
+}
+
+void SearchEngineClient::vnx_close_async() {
+	auto _method = ::vnx::ModuleInterface_vnx_close::create();
+	vnx_request(_method, true);
+}
+
 std::vector<::vnx::search::page_entry_t> SearchEngineClient::get_page_entries(const std::vector<uint32_t>& page_ids) {
 	auto _method = ::vnx::search::SearchEngine_get_page_entries::create();
 	_method->page_ids = page_ids;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_entries_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -72,7 +151,7 @@ std::vector<::vnx::search::page_entry_t> SearchEngineClient::get_page_entries(co
 	_method->host = host;
 	_method->limit = limit;
 	_method->offset = offset;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_domain_info_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -83,7 +162,7 @@ std::vector<::vnx::search::page_entry_t> SearchEngineClient::get_page_entries(co
 ::vnx::Object SearchEngineClient::get_page_info(const std::string& url_key) {
 	auto _method = ::vnx::search::SearchInterface_get_page_info::create();
 	_method->url_key = url_key;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_page_info_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -95,7 +174,7 @@ std::vector<vnx::float32_t> SearchEngineClient::get_page_ranks(const std::vector
 	auto _method = ::vnx::search::SearchInterface_get_page_ranks::create();
 	_method->url_keys = url_keys;
 	_method->direct = direct;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_page_ranks_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -107,7 +186,7 @@ std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const int32_t& li
 	auto _method = ::vnx::search::SearchInterface_get_domain_list::create();
 	_method->limit = limit;
 	_method->offset = offset;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_domain_list_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -118,7 +197,7 @@ std::vector<::vnx::Object> SearchEngineClient::get_domain_list(const int32_t& li
 std::vector<std::string> SearchEngineClient::reverse_lookup(const std::string& url_key) {
 	auto _method = ::vnx::search::SearchInterface_reverse_lookup::create();
 	_method->url_key = url_key;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_reverse_lookup_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -129,7 +208,7 @@ std::vector<std::string> SearchEngineClient::reverse_lookup(const std::string& u
 std::vector<std::pair<std::string, uint32_t>> SearchEngineClient::reverse_domain_lookup(const std::string& url_key) {
 	auto _method = ::vnx::search::SearchInterface_reverse_domain_lookup::create();
 	_method->url_key = url_key;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_reverse_domain_lookup_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -141,7 +220,7 @@ std::vector<std::string> SearchEngineClient::suggest_words(const std::string& pr
 	auto _method = ::vnx::search::SearchInterface_suggest_words::create();
 	_method->prefix = prefix;
 	_method->limit = limit;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_suggest_words_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");
@@ -153,7 +232,7 @@ std::vector<std::string> SearchEngineClient::suggest_domains(const std::string& 
 	auto _method = ::vnx::search::SearchInterface_suggest_domains::create();
 	_method->prefix = prefix;
 	_method->limit = limit;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_suggest_domains_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("SearchEngineClient: !_result");

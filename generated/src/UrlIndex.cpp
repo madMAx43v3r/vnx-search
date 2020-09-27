@@ -22,6 +22,7 @@ vnx::Hash64 UrlIndex::get_type_hash() const {
 const char* UrlIndex::get_type_name() const {
 	return "vnx.search.UrlIndex";
 }
+
 const vnx::TypeCode* UrlIndex::get_type_code() const {
 	return vnx::search::vnx_native_type_code_UrlIndex;
 }
@@ -453,6 +454,10 @@ void read(TypeInput& in, ::vnx::search::UrlIndex& value, const TypeCode* type_co
 }
 
 void write(TypeOutput& out, const ::vnx::search::UrlIndex& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_UrlIndex;
 		out.write_type_code(type_code);

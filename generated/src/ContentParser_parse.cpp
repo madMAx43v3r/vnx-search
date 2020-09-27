@@ -24,6 +24,7 @@ vnx::Hash64 ContentParser_parse::get_type_hash() const {
 const char* ContentParser_parse::get_type_name() const {
 	return "vnx.search.ContentParser.parse";
 }
+
 const vnx::TypeCode* ContentParser_parse::get_type_code() const {
 	return vnx::search::vnx_native_type_code_ContentParser_parse;
 }
@@ -182,6 +183,10 @@ void read(TypeInput& in, ::vnx::search::ContentParser_parse& value, const TypeCo
 }
 
 void write(TypeOutput& out, const ::vnx::search::ContentParser_parse& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_ContentParser_parse;
 		out.write_type_code(type_code);

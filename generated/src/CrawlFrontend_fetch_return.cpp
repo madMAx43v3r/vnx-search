@@ -23,6 +23,7 @@ vnx::Hash64 CrawlFrontend_fetch_return::get_type_hash() const {
 const char* CrawlFrontend_fetch_return::get_type_name() const {
 	return "vnx.search.CrawlFrontend.fetch.return";
 }
+
 const vnx::TypeCode* CrawlFrontend_fetch_return::get_type_code() const {
 	return vnx::search::vnx_native_type_code_CrawlFrontend_fetch_return;
 }
@@ -180,6 +181,10 @@ void read(TypeInput& in, ::vnx::search::CrawlFrontend_fetch_return& value, const
 }
 
 void write(TypeOutput& out, const ::vnx::search::CrawlFrontend_fetch_return& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_CrawlFrontend_fetch_return;
 		out.write_type_code(type_code);

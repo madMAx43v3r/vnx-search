@@ -24,6 +24,7 @@ vnx::Hash64 SearchResult::get_type_hash() const {
 const char* SearchResult::get_type_name() const {
 	return "vnx.search.SearchResult";
 }
+
 const vnx::TypeCode* SearchResult::get_type_code() const {
 	return vnx::search::vnx_native_type_code_SearchResult;
 }
@@ -356,6 +357,10 @@ void read(TypeInput& in, ::vnx::search::SearchResult& value, const TypeCode* typ
 }
 
 void write(TypeOutput& out, const ::vnx::search::SearchResult& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_SearchResult;
 		out.write_type_code(type_code);

@@ -21,6 +21,7 @@ vnx::Hash64 score_type_e::get_type_hash() const {
 const char* score_type_e::get_type_name() const {
 	return "vnx.search.score_type_e";
 }
+
 const vnx::TypeCode* score_type_e::get_type_code() const {
 	return vnx::search::vnx_native_type_code_score_type_e;
 }
@@ -198,6 +199,10 @@ void read(TypeInput& in, ::vnx::search::score_type_e& value, const TypeCode* typ
 }
 
 void write(TypeOutput& out, const ::vnx::search::score_type_e& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_STRING) {
+		vnx::write(out, vnx::to_string_value(value), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_score_type_e;
 		out.write_type_code(type_code);

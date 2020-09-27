@@ -4,8 +4,20 @@
 #include <vnx/search/package.hxx>
 #include <vnx/search/SearchEngineAsyncClient.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_close.hxx>
+#include <vnx/ModuleInterface_vnx_close_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
+#include <vnx/ModuleInterface_vnx_restart.hxx>
+#include <vnx/ModuleInterface_vnx_restart_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
 #include <vnx/Object.hpp>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/SyncInfo.hxx>
@@ -46,20 +58,104 @@ SearchEngineAsyncClient::SearchEngineAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
+uint64_t SearchEngineAsyncClient::vnx_get_config_object(const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_get_config_object::create();
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_vnx_get_config_object[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
+	return _request_id;
+}
+
+uint64_t SearchEngineAsyncClient::vnx_get_config(const std::string& name, const std::function<void(::vnx::Variant)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_get_config::create();
+	_method->name = name;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_vnx_get_config[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
+	return _request_id;
+}
+
+uint64_t SearchEngineAsyncClient::vnx_set_config_object(const ::vnx::Object& config, const std::function<void()>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config_object::create();
+	_method->config = config;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_vnx_set_config_object[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
+	return _request_id;
+}
+
+uint64_t SearchEngineAsyncClient::vnx_set_config(const std::string& name, const ::vnx::Variant& value, const std::function<void()>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config::create();
+	_method->name = name;
+	_method->value = value;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_vnx_set_config[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
+	return _request_id;
+}
+
 uint64_t SearchEngineAsyncClient::vnx_get_type_code(const std::function<void(::vnx::TypeCode)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_vnx_get_type_code[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_vnx_get_type_code[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
+	return _request_id;
+}
+
+uint64_t SearchEngineAsyncClient::vnx_restart(const std::function<void()>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_restart::create();
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_vnx_restart[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
+	return _request_id;
+}
+
+uint64_t SearchEngineAsyncClient::vnx_close(const std::function<void()>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+	auto _method = ::vnx::ModuleInterface_vnx_close::create();
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_vnx_close[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
 uint64_t SearchEngineAsyncClient::get_page_entries(const std::vector<uint32_t>& page_ids, const std::function<void(std::vector<::vnx::search::page_entry_t>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchEngine_get_page_entries::create();
 	_method->page_ids = page_ids;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_page_entries[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_get_page_entries[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
@@ -68,18 +164,26 @@ uint64_t SearchEngineAsyncClient::get_domain_info(const std::string& host, const
 	_method->host = host;
 	_method->limit = limit;
 	_method->offset = offset;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_domain_info[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_get_domain_info[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
 uint64_t SearchEngineAsyncClient::get_page_info(const std::string& url_key, const std::function<void(::vnx::Object)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchInterface_get_page_info::create();
 	_method->url_key = url_key;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_page_info[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_get_page_info[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
@@ -87,9 +191,13 @@ uint64_t SearchEngineAsyncClient::get_page_ranks(const std::vector<std::string>&
 	auto _method = ::vnx::search::SearchInterface_get_page_ranks::create();
 	_method->url_keys = url_keys;
 	_method->direct = direct;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_page_ranks[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_get_page_ranks[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
@@ -97,27 +205,39 @@ uint64_t SearchEngineAsyncClient::get_domain_list(const int32_t& limit, const ui
 	auto _method = ::vnx::search::SearchInterface_get_domain_list::create();
 	_method->limit = limit;
 	_method->offset = offset;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_get_domain_list[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_get_domain_list[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
 uint64_t SearchEngineAsyncClient::reverse_lookup(const std::string& url_key, const std::function<void(std::vector<std::string>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchInterface_reverse_lookup::create();
 	_method->url_key = url_key;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_reverse_lookup[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_reverse_lookup[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
 uint64_t SearchEngineAsyncClient::reverse_domain_lookup(const std::string& url_key, const std::function<void(std::vector<std::pair<std::string, uint32_t>>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::SearchInterface_reverse_domain_lookup::create();
 	_method->url_key = url_key;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_reverse_domain_lookup[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_reverse_domain_lookup[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
@@ -125,9 +245,13 @@ uint64_t SearchEngineAsyncClient::suggest_words(const std::string& prefix, const
 	auto _method = ::vnx::search::SearchInterface_suggest_words::create();
 	_method->prefix = prefix;
 	_method->limit = limit;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_suggest_words[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_suggest_words[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
@@ -135,15 +259,38 @@ uint64_t SearchEngineAsyncClient::suggest_domains(const std::string& prefix, con
 	auto _method = ::vnx::search::SearchInterface_suggest_domains::create();
 	_method->prefix = prefix;
 	_method->limit = limit;
-	const auto _request_id = vnx_request(_method);
-	vnx_queue_suggest_domains[_request_id] = std::make_pair(_callback, _error_callback);
-	vnx_num_pending++;
+	const auto _request_id = ++vnx_next_id;
+	{
+		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_queue_suggest_domains[_request_id] = std::make_pair(_callback, _error_callback);
+		vnx_num_pending++;
+	}
+	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
 std::vector<uint64_t> SearchEngineAsyncClient::vnx_get_pending_ids() const {
+	std::lock_guard<std::mutex> _lock(vnx_mutex);
 	std::vector<uint64_t> _list;
+	for(const auto& entry : vnx_queue_vnx_get_config_object) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_vnx_get_config) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_vnx_set_config_object) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_vnx_set_config) {
+		_list.push_back(entry.first);
+	}
 	for(const auto& entry : vnx_queue_vnx_get_type_code) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_vnx_restart) {
+		_list.push_back(entry.first);
+	}
+	for(const auto& entry : vnx_queue_vnx_close) {
 		_list.push_back(entry.first);
 	}
 	for(const auto& entry : vnx_queue_get_page_entries) {
@@ -177,111 +324,285 @@ std::vector<uint64_t> SearchEngineAsyncClient::vnx_get_pending_ids() const {
 }
 
 void SearchEngineAsyncClient::vnx_purge_request(uint64_t _request_id, const std::exception& _ex) {
+	std::unique_lock<std::mutex> _lock(vnx_mutex);
+	{
+		const auto _iter = vnx_queue_vnx_get_config_object.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_config_object.end()) {
+			const auto _callback = std::move(_iter->second.second);
+			vnx_queue_vnx_get_config_object.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_vnx_get_config.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_config.end()) {
+			const auto _callback = std::move(_iter->second.second);
+			vnx_queue_vnx_get_config.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_vnx_set_config_object.find(_request_id);
+		if(_iter != vnx_queue_vnx_set_config_object.end()) {
+			const auto _callback = std::move(_iter->second.second);
+			vnx_queue_vnx_set_config_object.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_vnx_set_config.find(_request_id);
+		if(_iter != vnx_queue_vnx_set_config.end()) {
+			const auto _callback = std::move(_iter->second.second);
+			vnx_queue_vnx_set_config.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
+		}
+	}
 	{
 		const auto _iter = vnx_queue_vnx_get_type_code.find(_request_id);
 		if(_iter != vnx_queue_vnx_get_type_code.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_vnx_get_type_code.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_vnx_restart.find(_request_id);
+		if(_iter != vnx_queue_vnx_restart.end()) {
+			const auto _callback = std::move(_iter->second.second);
+			vnx_queue_vnx_restart.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
+		}
+	}
+	{
+		const auto _iter = vnx_queue_vnx_close.find(_request_id);
+		if(_iter != vnx_queue_vnx_close.end()) {
+			const auto _callback = std::move(_iter->second.second);
+			vnx_queue_vnx_close.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_get_page_entries.find(_request_id);
 		if(_iter != vnx_queue_get_page_entries.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_get_page_entries.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_get_domain_info.find(_request_id);
 		if(_iter != vnx_queue_get_domain_info.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_get_domain_info.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_get_page_info.find(_request_id);
 		if(_iter != vnx_queue_get_page_info.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_get_page_info.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_get_page_ranks.find(_request_id);
 		if(_iter != vnx_queue_get_page_ranks.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_get_page_ranks.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_get_domain_list.find(_request_id);
 		if(_iter != vnx_queue_get_domain_list.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_get_domain_list.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_reverse_lookup.find(_request_id);
 		if(_iter != vnx_queue_reverse_lookup.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_reverse_lookup.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_reverse_domain_lookup.find(_request_id);
 		if(_iter != vnx_queue_reverse_domain_lookup.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_reverse_domain_lookup.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_suggest_words.find(_request_id);
 		if(_iter != vnx_queue_suggest_words.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_suggest_words.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 	{
 		const auto _iter = vnx_queue_suggest_domains.find(_request_id);
 		if(_iter != vnx_queue_suggest_domains.end()) {
-			if(_iter->second.second) {
-				_iter->second.second(_ex);
-			}
+			const auto _callback = std::move(_iter->second.second);
 			vnx_queue_suggest_domains.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_ex);
+			}
+			return;
 		}
 	}
 }
 
 void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
+	std::unique_lock<std::mutex> _lock(vnx_mutex);
 	const auto _type_hash = _value->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x9f4322ca83b0d1ull)) {
+	if(_type_hash == vnx::Hash64(0xa913f47dc68e4876ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object_return>(_value);
+		if(!_result) {
+			throw std::logic_error("SearchEngineAsyncClient: !_result");
+		}
+		const auto _iter = vnx_queue_vnx_get_config_object.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_config_object.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_vnx_get_config_object.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_result->_ret_0);
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0xe5b6c635f30b18a1ull)) {
+		auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_return>(_value);
+		if(!_result) {
+			throw std::logic_error("SearchEngineAsyncClient: !_result");
+		}
+		const auto _iter = vnx_queue_vnx_get_config.find(_request_id);
+		if(_iter != vnx_queue_vnx_get_config.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_vnx_get_config.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback(_result->_ret_0);
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0xdd5ede96590e3d28ull)) {
+		const auto _iter = vnx_queue_vnx_set_config_object.find(_request_id);
+		if(_iter != vnx_queue_vnx_set_config_object.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_vnx_set_config_object.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback();
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0x3873b149bdf7814eull)) {
+		const auto _iter = vnx_queue_vnx_set_config.find(_request_id);
+		if(_iter != vnx_queue_vnx_set_config.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_vnx_set_config.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback();
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0x9f4322ca83b0d1ull)) {
 		auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_value);
 		if(!_result) {
 			throw std::logic_error("SearchEngineAsyncClient: !_result");
@@ -291,11 +612,40 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_vnx_get_type_code.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0x2133a6eee0102018ull)) {
+		const auto _iter = vnx_queue_vnx_restart.find(_request_id);
+		if(_iter != vnx_queue_vnx_restart.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_vnx_restart.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback();
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
+		}
+	}
+	else if(_type_hash == vnx::Hash64(0x88dc702251f03a54ull)) {
+		const auto _iter = vnx_queue_vnx_close.find(_request_id);
+		if(_iter != vnx_queue_vnx_close.end()) {
+			const auto _callback = std::move(_iter->second.first);
+			vnx_queue_vnx_close.erase(_iter);
+			vnx_num_pending--;
+			_lock.unlock();
+			if(_callback) {
+				_callback();
+			}
+		} else {
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0x2df0b62172960d7ull)) {
@@ -308,11 +658,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_get_page_entries.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0xff29e72acba9183eull)) {
@@ -325,11 +676,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_get_domain_info.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0xd26a677932e24236ull)) {
@@ -342,11 +694,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_get_page_info.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0xf9c1a5118aa24f11ull)) {
@@ -359,11 +712,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_get_page_ranks.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0x5f97f12a0effa039ull)) {
@@ -376,11 +730,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_get_domain_list.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0x2d987f3548ffd9e8ull)) {
@@ -393,11 +748,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_reverse_lookup.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0xcc5d543d65fe9b5cull)) {
@@ -410,11 +766,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_reverse_domain_lookup.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0xba84698543a24d9dull)) {
@@ -427,11 +784,12 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_suggest_words.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else if(_type_hash == vnx::Hash64(0xc7aecd4d17cd5113ull)) {
@@ -444,15 +802,16 @@ void SearchEngineAsyncClient::vnx_callback_switch(uint64_t _request_id, std::sha
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_suggest_domains.erase(_iter);
 			vnx_num_pending--;
+			_lock.unlock();
 			if(_callback) {
 				_callback(_result->_ret_0);
 			}
 		} else {
-			throw std::runtime_error("SearchEngineAsyncClient: invalid return received");
+			throw std::runtime_error("SearchEngineAsyncClient: received unknown return request_id");
 		}
 	}
 	else {
-		throw std::runtime_error("SearchEngineAsyncClient: unknown return type");
+		throw std::runtime_error("SearchEngineAsyncClient: received unknown return type");
 	}
 }
 

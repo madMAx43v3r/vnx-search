@@ -5,8 +5,20 @@
 #include <vnx/search/CrawlFrontendClient.hxx>
 #include <vnx/Hash64.hpp>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_close.hxx>
+#include <vnx/ModuleInterface_vnx_close_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
+#include <vnx/ModuleInterface_vnx_restart.hxx>
+#include <vnx/ModuleInterface_vnx_restart_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/CrawlFrontend_fetch.hxx>
 #include <vnx/search/CrawlFrontend_fetch_return.hxx>
@@ -33,9 +45,56 @@ CrawlFrontendClient::CrawlFrontendClient(vnx::Hash64 service_addr)
 {
 }
 
+::vnx::Object CrawlFrontendClient::vnx_get_config_object() {
+	auto _method = ::vnx::ModuleInterface_vnx_get_config_object::create();
+	auto _return_value = vnx_request(_method, false);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("CrawlFrontendClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+::vnx::Variant CrawlFrontendClient::vnx_get_config(const std::string& name) {
+	auto _method = ::vnx::ModuleInterface_vnx_get_config::create();
+	_method->name = name;
+	auto _return_value = vnx_request(_method, false);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("CrawlFrontendClient: !_result");
+	}
+	return _result->_ret_0;
+}
+
+void CrawlFrontendClient::vnx_set_config_object(const ::vnx::Object& config) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config_object::create();
+	_method->config = config;
+	vnx_request(_method, false);
+}
+
+void CrawlFrontendClient::vnx_set_config_object_async(const ::vnx::Object& config) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config_object::create();
+	_method->config = config;
+	vnx_request(_method, true);
+}
+
+void CrawlFrontendClient::vnx_set_config(const std::string& name, const ::vnx::Variant& value) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config::create();
+	_method->name = name;
+	_method->value = value;
+	vnx_request(_method, false);
+}
+
+void CrawlFrontendClient::vnx_set_config_async(const std::string& name, const ::vnx::Variant& value) {
+	auto _method = ::vnx::ModuleInterface_vnx_set_config::create();
+	_method->name = name;
+	_method->value = value;
+	vnx_request(_method, true);
+}
+
 ::vnx::TypeCode CrawlFrontendClient::vnx_get_type_code() {
 	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("CrawlFrontendClient: !_result");
@@ -43,10 +102,30 @@ CrawlFrontendClient::CrawlFrontendClient(vnx::Hash64 service_addr)
 	return _result->_ret_0;
 }
 
+void CrawlFrontendClient::vnx_restart() {
+	auto _method = ::vnx::ModuleInterface_vnx_restart::create();
+	vnx_request(_method, false);
+}
+
+void CrawlFrontendClient::vnx_restart_async() {
+	auto _method = ::vnx::ModuleInterface_vnx_restart::create();
+	vnx_request(_method, true);
+}
+
+void CrawlFrontendClient::vnx_close() {
+	auto _method = ::vnx::ModuleInterface_vnx_close::create();
+	vnx_request(_method, false);
+}
+
+void CrawlFrontendClient::vnx_close_async() {
+	auto _method = ::vnx::ModuleInterface_vnx_close::create();
+	vnx_request(_method, true);
+}
+
 ::vnx::search::UrlInfo CrawlFrontendClient::load(const std::string& url) {
 	auto _method = ::vnx::search::CrawlFrontend_load::create();
 	_method->url = url;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlFrontend_load_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("CrawlFrontendClient: !_result");
@@ -57,7 +136,7 @@ CrawlFrontendClient::CrawlFrontendClient(vnx::Hash64 service_addr)
 std::shared_ptr<const ::vnx::search::FetchResult> CrawlFrontendClient::fetch(const std::string& url) {
 	auto _method = ::vnx::search::CrawlFrontend_fetch::create();
 	_method->url = url;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::CrawlFrontend_fetch_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("CrawlFrontendClient: !_result");
@@ -70,12 +149,15 @@ void CrawlFrontendClient::register_parser(const ::vnx::Hash64& address, const st
 	_method->address = address;
 	_method->mime_types = mime_types;
 	_method->num_threads = num_threads;
-	auto _return_value = vnx_request(_method);
+	vnx_request(_method, false);
 }
 
 void CrawlFrontendClient::register_parser_async(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads) {
-	vnx_is_async = true;
-	register_parser(address, mime_types, num_threads);
+	auto _method = ::vnx::search::CrawlFrontend_register_parser::create();
+	_method->address = address;
+	_method->mime_types = mime_types;
+	_method->num_threads = num_threads;
+	vnx_request(_method, true);
 }
 
 

@@ -28,7 +28,7 @@ std::shared_ptr<const ::vnx::search::SearchResult> QueryInterfaceClient::query(c
 	auto _method = ::vnx::search::QueryInterface_query::create();
 	_method->words = words;
 	_method->options = options;
-	auto _return_value = vnx_request(_method);
+	auto _return_value = vnx_request(_method, false);
 	auto _result = std::dynamic_pointer_cast<const ::vnx::search::QueryInterface_query_return>(_return_value);
 	if(!_result) {
 		throw std::logic_error("QueryInterfaceClient: !_result");

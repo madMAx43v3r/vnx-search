@@ -21,6 +21,7 @@ vnx::Hash64 search_flags_e::get_type_hash() const {
 const char* search_flags_e::get_type_name() const {
 	return "vnx.search.search_flags_e";
 }
+
 const vnx::TypeCode* search_flags_e::get_type_code() const {
 	return vnx::search::vnx_native_type_code_search_flags_e;
 }
@@ -194,6 +195,10 @@ void read(TypeInput& in, ::vnx::search::search_flags_e& value, const TypeCode* t
 }
 
 void write(TypeOutput& out, const ::vnx::search::search_flags_e& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_STRING) {
+		vnx::write(out, vnx::to_string_value(value), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_search_flags_e;
 		out.write_type_code(type_code);

@@ -23,6 +23,7 @@ vnx::Hash64 query_options_t::get_type_hash() const {
 const char* query_options_t::get_type_name() const {
 	return "vnx.search.query_options_t";
 }
+
 const vnx::TypeCode* query_options_t::get_type_code() const {
 	return vnx::search::vnx_native_type_code_query_options_t;
 }
@@ -320,6 +321,10 @@ void read(TypeInput& in, ::vnx::search::query_options_t& value, const TypeCode* 
 }
 
 void write(TypeOutput& out, const ::vnx::search::query_options_t& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_query_options_t;
 		out.write_type_code(type_code);

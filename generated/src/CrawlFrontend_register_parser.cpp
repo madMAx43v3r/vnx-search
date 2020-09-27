@@ -24,6 +24,7 @@ vnx::Hash64 CrawlFrontend_register_parser::get_type_hash() const {
 const char* CrawlFrontend_register_parser::get_type_name() const {
 	return "vnx.search.CrawlFrontend.register_parser";
 }
+
 const vnx::TypeCode* CrawlFrontend_register_parser::get_type_code() const {
 	return vnx::search::vnx_native_type_code_CrawlFrontend_register_parser;
 }
@@ -225,6 +226,10 @@ void read(TypeInput& in, ::vnx::search::CrawlFrontend_register_parser& value, co
 }
 
 void write(TypeOutput& out, const ::vnx::search::CrawlFrontend_register_parser& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_CrawlFrontend_register_parser;
 		out.write_type_code(type_code);

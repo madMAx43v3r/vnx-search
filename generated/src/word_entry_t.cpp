@@ -21,6 +21,7 @@ vnx::Hash64 word_entry_t::get_type_hash() const {
 const char* word_entry_t::get_type_name() const {
 	return "vnx.search.word_entry_t";
 }
+
 const vnx::TypeCode* word_entry_t::get_type_code() const {
 	return vnx::search::vnx_native_type_code_word_entry_t;
 }
@@ -226,6 +227,10 @@ void read(TypeInput& in, ::vnx::search::word_entry_t& value, const TypeCode* typ
 }
 
 void write(TypeOutput& out, const ::vnx::search::word_entry_t& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = vnx::search::vnx_native_type_code_word_entry_t;
 		out.write_type_code(type_code);
