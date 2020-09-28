@@ -145,6 +145,8 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 				const auto index = job->num_found++;
 				if(index < job->found.size()) {
 					job->found[index] = page_id;
+				} else {
+					break;
 				}
 			}
 		}
