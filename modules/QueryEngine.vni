@@ -10,4 +10,6 @@ module QueryEngine implements QueryInterface {
 	
 	int num_threads = 16;
 	
+	int max_pivot_size = 65536;
+	
 }

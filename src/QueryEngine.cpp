@@ -94,54 +94,57 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 		job->result->timing_info["word_context"] = delta;
 		job->time_begin = now;
 	}
-	int i = 0;
-	for(auto entry : entries) {
-		auto context = std::dynamic_pointer_cast<const WordContext>(entry->value);
-		if(context) {
-			job->word_context.push_back(context);
-			job->word_set[context->id] = i;
-			job->result->words.push_back(entry->key.to_string_value());
+	{
+		int i = 0;
+		for(auto entry : entries) {
+			auto context = std::dynamic_pointer_cast<const WordContext>(entry->value);
+			if(context) {
+				job->word_context.push_back(context);
+				job->word_set[context->id] = i;
+				job->result->words.push_back(entry->key.to_string_value());
+			}
+			i++;
 		}
-		i++;
 	}
 	if(job->word_context.empty()) {
 		query_async_return(job->req_id, job->result);
 		return;
 	}
+	
+	auto sorted_context = job->word_context;
+	std::sort(sorted_context.begin(), sorted_context.end(),
+		[](std::shared_ptr<const WordContext> A, std::shared_ptr<const WordContext> B) -> bool {
+			return A->pages.size() < B->pages.size();
+		});
+	
+	size_t offset = 0;
+	std::unordered_map<uint32_t, uint32_t> page_hits;
+	const uint32_t num_words = job->word_context.size();
+	const auto& pivot = sorted_context[0]->pages;
 	job->found.resize(job->options.max_results);
 	
-	const uint32_t num_words = job->word_context.size();
-	std::unordered_map<uint32_t, uint32_t> page_hits;
-	std::vector<std::vector<uint32_t>::const_iterator> iter(num_words);
-	std::vector<std::vector<uint32_t>::const_iterator> end(num_words);
-	for(uint32_t i = 0; i < num_words; ++i) {
-		iter[i] = job->word_context[i]->pages.begin();
-		end[i] = job->word_context[i]->pages.end();
-	}
-	uint32_t k = 0;
-	uint32_t num_iter = num_words;
-	
-	while(num_iter > 0 && job->num_found < job->found.size())
+	while(job->num_found < job->found.size() && offset < pivot.size())
 	{
-		for(int i = 0; iter[k] != end[k] && i < 10; ++iter[k], ++i)
-		{
-			const auto page_id = *iter[k];
-			if(++page_hits[page_id] == num_words) {
-				const auto index = job->num_found++;
-				if(index < job->found.size()) {
-					job->found[index] = page_id;
+		page_hits.clear();
+		page_hits.reserve(std::min(pivot.size() - offset, size_t(max_pivot_size)));
+		for(size_t i = 0; offset < pivot.size() && i < size_t(max_pivot_size); ++offset, ++i) {
+			page_hits[pivot[offset]] = 1;
+		}
+		for(size_t i = 1; i < sorted_context.size(); ++i) {
+			for(auto id : sorted_context[i]->pages) {
+				const auto iter = page_hits.find(id);
+				if(iter != page_hits.end()) {
+					iter->second++;
 				}
 			}
 		}
-		if(iter[k] == end[k]) {
-			iter.erase(iter.begin() + k);
-			end.erase(end.begin() + k);
-			num_iter--;
-		} else {
-			k++;
-		}
-		if(k >= num_iter) {
-			k = 0;
+		for(const auto& entry : page_hits) {
+			if(entry.second == num_words) {
+				const auto index = job->num_found++;
+				if(index < job->found.size()) {
+					job->found[index] = entry.first;
+				}
+			}
 		}
 	}
 	{
