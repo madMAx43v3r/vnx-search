@@ -127,25 +127,28 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 	{
 		page_hits.clear();
 		page_hits.reserve(std::min(pivot.size() - offset, size_t(max_pivot_size)));
-		for(size_t i = 0; offset < pivot.size() && i < size_t(max_pivot_size); ++offset, ++i) {
-			page_hits[pivot[offset]] = 1;
+		size_t size = 0;
+		for(; offset + size < pivot.size() && size < size_t(max_pivot_size); ++size) {
+			page_hits[pivot[offset + size]] = 1;
 		}
 		for(size_t i = 1; i < sorted_context.size(); ++i) {
-			for(auto id : sorted_context[i]->pages) {
-				const auto iter = page_hits.find(id);
+			for(auto page_id : sorted_context[i]->pages) {
+				const auto iter = page_hits.find(page_id);
 				if(iter != page_hits.end()) {
 					iter->second++;
 				}
 			}
 		}
-		for(const auto& entry : page_hits) {
-			if(entry.second == num_words) {
+		for(size_t i = 0; i < size; ++i) {
+			const auto page_id = pivot[offset + i];
+			if(page_hits[page_id] == num_words) {
 				const auto index = job->num_found++;
 				if(index < job->found.size()) {
-					job->found[index] = entry.first;
+					job->found[index] = page_id;
 				}
 			}
 		}
+		offset += size;
 	}
 	{
 		const auto now = vnx::get_wall_time_micros();
