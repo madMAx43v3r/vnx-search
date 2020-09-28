@@ -146,7 +146,9 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 	}
 	{
 		const auto now = vnx::get_wall_time_micros();
-		job->result->compute_time_us += now - job->time_begin;
+		const auto delta = now - job->time_begin;
+		job->result->compute_time_us += delta;
+		job->result->timing_info["query_callback_0"] = delta;
 		job->time_begin = now;
 	}
 	if(job->num_found >= job->found.size()) {
@@ -278,7 +280,9 @@ void QueryEngine::query_callback_4(std::shared_ptr<query_job_t> job) const
 	job->result->is_fail = false;
 	{
 		const auto time_mid = vnx::get_wall_time_micros();
-		job->result->compute_time_us += time_mid - job->time_begin;
+		const auto delta = time_mid - job->time_begin;
+		job->result->compute_time_us += delta;
+		job->result->timing_info["query_callback_4"] = delta;
 		job->time_begin = time_mid;
 	}
 	page_index_async->get_values(job->url_keys,
