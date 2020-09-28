@@ -111,52 +111,62 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 		return;
 	}
 	
-	auto sorted_context = job->word_context;
-	std::sort(sorted_context.begin(), sorted_context.end(),
+	job->sorted_context = job->word_context;
+	std::sort(job->sorted_context.begin(), job->sorted_context.end(),
 		[](std::shared_ptr<const WordContext> A, std::shared_ptr<const WordContext> B) -> bool {
 			return A->pages.size() < B->pages.size();
 		});
 	
-	size_t offset = 0;
-	std::unordered_map<uint32_t, uint32_t> page_hits;
-	const uint32_t num_words = job->word_context.size();
-	const auto& pivot = sorted_context[0]->pages;
 	job->found.resize(job->options.max_results);
+	query_callback_1(job);
+}
+
+void QueryEngine::query_callback_1(	std::shared_ptr<query_job_t> job) const
+{
+	const uint32_t num_words = job->word_context.size();
+	const auto& pivot = job->sorted_context[0]->pages;
 	
-	while(job->num_found < job->found.size() && offset < pivot.size())
+	for(size_t i = 0; i < job->pivot_size; ++i)
 	{
-		page_hits.clear();
-		page_hits.reserve(std::min(pivot.size() - offset, size_t(max_pivot_size)));
-		size_t size = 0;
-		for(; offset + size < pivot.size() && size < size_t(max_pivot_size); ++size) {
-			page_hits[pivot[offset + size]] = 1;
-		}
-		for(size_t i = 1; i < sorted_context.size(); ++i) {
-			for(auto page_id : sorted_context[i]->pages) {
-				const auto iter = page_hits.find(page_id);
-				if(iter != page_hits.end()) {
-					iter->second++;
-				}
+		const auto page_id = pivot[job->pivot_offset + i];
+		if(job->page_hits[page_id] == num_words) {
+			const auto index = job->num_found++;
+			if(index < job->found.size()) {
+				job->found[index] = page_id;
+			} else {
+				break;
 			}
 		}
-		for(size_t i = 0; i < size; ++i) {
-			const auto page_id = pivot[offset + i];
-			if(page_hits[page_id] == num_words) {
-				const auto index = job->num_found++;
-				if(index < job->found.size()) {
-					job->found[index] = page_id;
-				} else {
-					break;
-				}
-			}
+	}
+	job->pivot_offset += job->pivot_size;
+	
+	if(job->num_found < job->found.size() && job->pivot_offset < pivot.size())
+	{
+		job->page_hits.clear();
+		job->page_hits.reserve(std::min(pivot.size() - job->pivot_offset, size_t(max_pivot_size)));
+		job->pivot_size = 0;
+		for(; job->pivot_offset + job->pivot_size < pivot.size()
+				&& job->pivot_size < size_t(max_pivot_size); ++job->pivot_size)
+		{
+			job->page_hits[pivot[job->pivot_offset + job->pivot_size]] = 1;
 		}
-		offset += size;
+		const auto num_task = job->sorted_context.size() - 1;
+		
+		if(num_task) {
+			job->num_left = num_task;
+			for(size_t i = 0; i < num_task; ++i) {
+				query_threads->add_task(std::bind(&QueryEngine::query_task_0, this, job, i + 1));
+			}
+			return;
+		} else {
+			add_task(std::bind(&QueryEngine::query_callback_1, this, job));
+		}
 	}
 	{
 		const auto now = vnx::get_wall_time_micros();
 		const auto delta = now - job->time_begin;
 		job->result->compute_time_us += delta;
-		job->result->timing_info["query_callback_0"] = delta;
+		job->result->timing_info["query_task_0"] = delta;
 		job->time_begin = now;
 	}
 	if(job->num_found >= job->found.size()) {
@@ -344,6 +354,19 @@ void QueryEngine::query_callback_6( std::shared_ptr<query_job_t> job,
 		}
 	}
 	query_async_return(job->req_id, job->result);
+}
+
+void QueryEngine::query_task_0(std::shared_ptr<query_job_t> job, size_t index) const noexcept
+{
+	for(auto page_id : job->sorted_context[index]->pages) {
+		const auto iter = job->page_hits.find(page_id);
+		if(iter != job->page_hits.end()) {
+			iter->second++;
+		}
+	}
+	if(--job->num_left == 0) {
+		add_task(std::bind(&QueryEngine::query_callback_1, this, job));
+	}
 }
 
 void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index,

@@ -44,6 +44,8 @@ private:
 		std::vector<std::string> words;
 		query_options_t options;
 		request_id_t req_id;
+		size_t pivot_offset = 0;
+		size_t pivot_size = 0;
 		int64_t time_begin = 0;
 		std::atomic<size_t> num_left {0};
 		std::atomic<size_t> num_found {0};
@@ -52,14 +54,18 @@ private:
 		std::vector<result_t> items;
 		std::unordered_map<uint32_t, uint32_t> word_set;
 		std::unordered_map<std::string, uint32_t> domain_set;
-		std::shared_ptr<SearchResult> result;
+		std::unordered_map<uint32_t, std::atomic<uint32_t>> page_hits;
 		std::vector<std::shared_ptr<const WordContext>> word_context;
+		std::vector<std::shared_ptr<const WordContext>> sorted_context;
 		std::vector<std::shared_ptr<const WordArray>> word_arrays;
 		std::function<void(const std::exception& ex)> error_callback;
+		std::shared_ptr<SearchResult> result;
 	};
 	
 	void query_callback_0(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
+	
+	void query_callback_1(	std::shared_ptr<query_job_t> job) const;
 	
 	void query_callback_2(	std::shared_ptr<query_job_t> job,
 							std::vector<page_entry_t> entries) const;
@@ -74,6 +80,8 @@ private:
 	
 	void query_callback_6(	std::shared_ptr<query_job_t> job,
 							std::vector<std::shared_ptr<const keyvalue::Entry>> entries) const;
+	
+	void query_task_0(std::shared_ptr<query_job_t> job, size_t index) const noexcept;
 	
 	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 						std::shared_ptr<const WordArray> word_array) const noexcept;
