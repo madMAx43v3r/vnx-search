@@ -45,6 +45,8 @@ int main(int argc, char** argv)
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(server));
 	
 	vnx::Handle<vnx::search::QueryEngine> module = new vnx::search::QueryEngine("QueryEngine");
+	module->page_index_server = "fast/" + module->page_index_server;
+	module->page_content_server = "fast/" + module->page_content_server;
 	proxy->forward_list.push_back(module->page_index_server);
 	proxy->forward_list.push_back(module->page_content_server);
 	proxy->forward_list.push_back(module->word_context_server);

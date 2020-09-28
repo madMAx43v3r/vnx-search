@@ -42,7 +42,15 @@ int main(int argc, char** argv)
 		module.start_detached();
 	}
 	{
+		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("BackendProxy", vnx::Endpoint::from_url(server));
+		
 		vnx::Handle<vnx::search::QueryEngine> module = new vnx::search::QueryEngine("QueryEngine");
+		proxy->tunnel_map[vnx::Hash64("fast/" + module->page_index_server)] = module->page_index_server;
+		proxy->tunnel_map[vnx::Hash64("fast/" + module->page_content_server)] = module->page_content_server;
+		module->page_index_server = "fast/" + module->page_index_server;
+		module->page_content_server = "fast/" + module->page_content_server;
+		
+		proxy.start_detached();
 		module.start_detached();
 	}
 	
