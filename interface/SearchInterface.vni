@@ -12,6 +12,8 @@ interface SearchInterface {
 	
 	vector<Object> get_domain_list(int limit, uint offset) const;
 	
+	vector<pair<string, uint>> get_page_ranking(int limit, uint offset) const async;
+	
 	vector<string> reverse_lookup(string url_key) const async;
 	
 	vector<pair<string, uint>> reverse_domain_lookup(string url_key) const async;

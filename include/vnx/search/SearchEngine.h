@@ -160,13 +160,16 @@ protected:
 	
 	void get_page_info_async(const std::string& url_key, const request_id_t& req_id) const;
 	
-	void get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& req_id) const;
+	void get_page_entries_async(const std::vector<uint32_t>& page_ids, const request_id_t& req_id) const;
 	
 	void get_page_ranks_async(	const std::vector<std::string>& url_keys,
 								const vnx::bool_t& direct,
 								const request_id_t& req_id) const;
 	
 	std::vector<Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const;
+	
+	void get_page_ranking_async(const int32_t& limit, const uint32_t& offset,
+								const request_id_t& req_id) const;
 	
 	void reverse_lookup_async(const std::string& url_key, const request_id_t& req_id) const;
 	
@@ -306,6 +309,7 @@ private:
 	std::queue<std::shared_ptr<word_process_job_t>> load_queue_2;
 	std::multimap<int64_t, std::shared_ptr<link_cache_t>> link_queue;
 	std::multimap<int64_t, uint32_t> word_queue;
+	std::multimap<uint32_t, uint32_t, std::greater<float>> page_ranking;
 	
 	mutable std::shared_mutex index_mutex;
 	

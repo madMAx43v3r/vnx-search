@@ -26,6 +26,8 @@ module SearchEngine implements SearchInterface {
 	
 	int lock_timeout = 100;					// [sec]
 	
+	int page_ranking_size = 10000;			// number of pages
+	
 	int queue_interval_ms = 10;				// queue check interval [ms]
 	
 	int stats_interval_ms = 10000;

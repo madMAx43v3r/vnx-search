@@ -208,6 +208,25 @@ std::vector<Object> SearchEngine::get_domain_list(const int32_t& limit, const ui
 	return result;
 }
 
+void SearchEngine::get_page_ranking_async(	const int32_t& limit, const uint32_t& offset,
+											const request_id_t& req_id) const
+{
+	std::vector<std::pair<std::string, uint32_t>> result;
+	uint32_t i = 0;
+	for(const auto& entry : page_ranking) {
+		if(i++ >= offset) {
+			const auto* page = find_page(entry.second);
+			if(page) {
+				result.emplace_back(page->url_key.str(), entry.first);
+				if(result.size() >= size_t(limit)) {
+					break;
+				}
+			}
+		}
+	}
+	get_page_ranking_async_return(req_id, result);
+}
+
 void SearchEngine::reverse_lookup_async(const std::string& url_key,
 										const request_id_t& req_id) const
 {
@@ -524,6 +543,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 	if(info) {
 		if(info->id && !info->is_deleted)
 		{
+			limited_emplace(page_ranking, info->reverse_domains.size(), info->id, page_ranking_size);
 			{
 				auto* page = find_page(info->id);
 				if(page) {
