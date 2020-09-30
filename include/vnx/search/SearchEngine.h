@@ -309,6 +309,7 @@ private:
 	std::queue<std::shared_ptr<word_process_job_t>> load_queue_2;
 	std::multimap<int64_t, std::shared_ptr<link_cache_t>> link_queue;
 	std::multimap<int64_t, uint32_t> word_queue;
+	
 	std::multimap<uint32_t, uint32_t, std::greater<float>> page_ranking;
 	
 	mutable std::shared_mutex index_mutex;

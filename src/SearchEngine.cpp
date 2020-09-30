@@ -543,7 +543,20 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 	if(info) {
 		if(info->id && !info->is_deleted)
 		{
-			limited_emplace(page_ranking, info->reverse_domains.size(), info->id, page_ranking_size);
+			if(page_ranking.size() < page_ranking_size
+				|| info->reverse_domains.size() > std::prev(page_ranking.end())->first)
+			{
+				for(auto iter = page_ranking.begin(); iter != page_ranking.end(); ++iter) {
+					if(iter->second == info->id) {
+						page_ranking.erase(iter);
+						break;
+					}
+				}
+				if(page_ranking.size() >= page_ranking_size) {
+					page_ranking.erase(std::prev(page_ranking.end()));
+				}
+				page_ranking.emplace(info->reverse_domains.size(), info->id);
+			}
 			{
 				auto* page = find_page(info->id);
 				if(page) {
