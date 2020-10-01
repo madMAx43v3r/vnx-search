@@ -157,10 +157,10 @@ void QueryEngine::query_callback_1(	std::shared_ptr<query_job_t> job) const
 			for(size_t i = 0; i < num_task; ++i) {
 				query_threads->add_task(std::bind(&QueryEngine::query_task_0, this, job, i + 1));
 			}
-			return;
 		} else {
 			add_task(std::bind(&QueryEngine::query_callback_1, this, job));
 		}
+		return;
 	}
 	{
 		const auto now = vnx::get_wall_time_micros();
