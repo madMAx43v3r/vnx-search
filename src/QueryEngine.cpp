@@ -383,48 +383,38 @@ void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 		}
 	}
 	
-	struct window_t {
-		ssize_t size = 0;
-		std::vector<float> coeff;
-		std::vector<float> word_hits;
-	};
+	const int window = 16;
+	std::vector<float> coeff;
+	std::vector<float> word_hits;
 	
-	std::array<window_t, 1> windows;
-	windows[0].size = 16;
-	
-	for(auto& win : windows) {
-		win.coeff.resize(win.size * 2 + 1);
-		for(ssize_t i = -win.size; i <= win.size; ++i) {
-			win.coeff[i + win.size] = fabsf(2 * (win.size + 1) - i) / float(2 * (win.size + 1));
-		}
-		win.word_hits.resize(job->words.size());
+	coeff.resize(window * 2 + 1);
+	for(int i = -window; i <= window; ++i) {
+		coeff[i + window] = fabsf(window - i + 1) / float(window + 1);
 	}
+	word_hits.resize(job->words.size());
 	
 	ssize_t best_pos = -1;
 	float best_score = 0;
 	double total_score = 0;
 	
-	for(ssize_t k = 0; k < word_list.size(); ++k)
+	for(size_t k = 0; k < word_list.size(); ++k)
 	{
-		for(auto& win : windows) {
-			for(ssize_t i = -win.size; i <= win.size; ++i) {
-				const auto k_i = k + i;
-				if(k_i >= 0 && k_i < word_list.size()) {
-					const auto w_i = word_list[k_i];
-					if(w_i > 0) {
-						auto& value = win.word_hits[w_i - 1];
-						value = fmaxf(value, win.coeff[i + win.size]);
-					}
+		for(int i = -window; i <= window; ++i) {
+			const auto k_i = ssize_t(k) + i;
+			if(k_i >= 0 && k_i < word_list.size()) {
+				const auto w_i = word_list[k_i];
+				if(w_i > 0) {
+					auto& value = word_hits[w_i - 1];
+					value = fmaxf(value, coeff[i + window]);
 				}
 			}
 		}
 		float score = 0;
-		for(auto& win : windows) {
-			for(auto& value : win.word_hits) {
-				score += value;
-				value = 0;
-			}
+		for(auto& value : word_hits) {
+			score += value;
+			value = 0;
 		}
+		score = powf(score, job->options.score_power);
 		if(score > best_score) {
 			best_pos = k;
 			best_score = score;

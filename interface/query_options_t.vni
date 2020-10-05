@@ -12,6 +12,8 @@ struct query_options_t {
 	
 	uint max_results = 1000;		// max number of results for computation
 	
+	float score_power = 2;			// non-linear score factor
+	
 	score_type_e score_type = AVG_SCORE;
 	
 	vector<search_flags_e> flags;
