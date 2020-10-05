@@ -228,17 +228,19 @@ void QueryEngine::query_callback_3(	std::shared_ptr<query_job_t> job,
 		job->time_begin = now;
 	}
 	job->num_left = 0;
+	job->word_arrays.resize(entries.size());
+	
 	for(size_t i = 0; i < entries.size(); ++i) {
-		auto word_array = std::dynamic_pointer_cast<const WordArray>(entries[i]->value);
-		job->word_arrays.push_back(word_array);
-		if(word_array) {
+		auto array = std::dynamic_pointer_cast<const WordArray>(entries[i]->value);
+		job->word_arrays[i] = array;
+		if(array) {
 			job->num_left++;
 		}
 	}
 	if(job->num_left) {
 		for(size_t i = 0; i < entries.size(); ++i) {
-			if(job->word_arrays[i]) {
-				query_threads->add_task(std::bind(&QueryEngine::query_task_1, this, job, i, job->word_arrays[i]));
+			if(auto array = job->word_arrays[i]) {
+				query_threads->add_task(std::bind(&QueryEngine::query_task_1, this, job, i, array));
 			}
 		}
 	} else {
