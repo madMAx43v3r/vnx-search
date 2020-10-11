@@ -5,7 +5,7 @@
 		"max_group_size": 5,
 		"max_results": 1000,
 		"score_power": 2,
-		"score_type": "AVG_SCORE",
+		"score_type": "MAX_SCORE",
 		"flags": ["GROUP_BY_DOMAIN"]
 	}
 }
