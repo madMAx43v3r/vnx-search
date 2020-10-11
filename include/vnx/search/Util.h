@@ -59,7 +59,7 @@ std::string& clean(std::string& s, const char* t = "\n\r\f\v")
 	return s;
 }
 
-// remove duplicate whitespace
+// remove duplicate whitespace etc (replace \n and \t with space)
 std::string& clean_text(std::string& s);
 
 inline

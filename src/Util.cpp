@@ -22,7 +22,21 @@ const std::set<std::string> g_html_content_types = {"text/html", "text/xml", "ap
 
 std::string& clean_text(std::string& s)
 {
-	clean(s);
+	trim(s);
+	while(true) {
+		const auto pos = s.find_first_of("\t\n\r\f\v");
+		if(pos != std::string::npos) {
+			switch(s[pos]) {
+				case '\n':
+				case '\t':
+					s[pos] = ' '; break;
+				default:
+					s.erase(pos, 1);
+			}
+		} else {
+			break;
+		}
+	}
 	size_t pos = 0;
 	bool last_space = true;
 	while(pos < s.size()) {
