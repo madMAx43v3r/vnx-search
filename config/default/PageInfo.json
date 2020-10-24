@@ -1,7 +1,7 @@
 {
 	"do_compress": true,
 	"compress_level": 3,
-	"rewrite_threshold": 0.4,
+	"rewrite_threshold": 0.5,
 	"num_threads": 8,
 	"sync_chunk_count": 1000
 }
