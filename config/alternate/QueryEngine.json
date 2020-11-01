@@ -1,3 +1,3 @@
 {
-	"max_pivot_size": 65536
+	"max_pivot_size": 262144
 }

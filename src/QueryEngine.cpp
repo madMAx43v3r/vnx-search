@@ -126,41 +126,34 @@ void QueryEngine::query_callback_1(	std::shared_ptr<query_job_t> job) const
 	const uint32_t num_words = job->word_context.size();
 	const auto& pivot = job->sorted_context[0]->pages;
 	
-	for(size_t i = 0; i < job->pivot_size; ++i)
-	{
-		const auto page_id = pivot[job->pivot_offset + i];
-		if(job->page_hits[page_id] == num_words) {
-			const auto index = job->num_found++;
-			if(index < job->found.size()) {
-				job->found[index] = page_id;
-			} else {
-				break;
-			}
-		}
-	}
-	job->pivot_offset += job->pivot_size;
-	
 	if(job->num_found < job->found.size() && job->pivot_offset < pivot.size())
 	{
-		job->page_hits.clear();
-		job->page_hits.reserve(std::min(pivot.size() - job->pivot_offset, size_t(max_pivot_size)));
-		job->pivot_size = 0;
-		for(; job->pivot_offset + job->pivot_size < pivot.size()
-				&& job->pivot_size < size_t(max_pivot_size); ++job->pivot_size)
-		{
-			job->page_hits[pivot[job->pivot_offset + job->pivot_size]] = 1;
-		}
 		const auto num_task = job->sorted_context.size() - 1;
-		
 		if(num_task) {
+			job->page_hits.clear();
+			job->page_hits.reserve(std::min(pivot.size() - job->pivot_offset, size_t(max_pivot_size)));
+			job->pivot_offset += job->pivot_size;
+			job->pivot_size = 0;
+			for(; job->pivot_offset + job->pivot_size < pivot.size()
+					&& job->pivot_size < size_t(max_pivot_size); ++job->pivot_size)
+			{
+				job->page_hits[pivot[job->pivot_offset + job->pivot_size]] = 1;
+			}
 			job->num_left = num_task;
 			for(size_t i = 0; i < num_task; ++i) {
 				query_threads->add_task(std::bind(&QueryEngine::query_task_0, this, job, i + 1));
 			}
+			return;
 		} else {
-			add_task(std::bind(&QueryEngine::query_callback_1, this, job));
+			for(auto page_id : pivot) {
+				const auto index = job->num_found++;
+				if(index < job->found.size()) {
+					job->found[index] = page_id;
+				} else {
+					break;
+				}
+			}
 		}
-		return;
 	}
 	{
 		const auto now = vnx::get_wall_time_micros();
@@ -360,10 +353,21 @@ void QueryEngine::query_callback_6( std::shared_ptr<query_job_t> job,
 
 void QueryEngine::query_task_0(std::shared_ptr<query_job_t> job, size_t index) const noexcept
 {
+	const uint32_t num_words = job->word_context.size();
 	for(auto page_id : job->sorted_context[index]->pages) {
 		const auto iter = job->page_hits.find(page_id);
 		if(iter != job->page_hits.end()) {
-			iter->second++;
+			if(++iter->second == num_words) {
+				const auto offset = job->num_found++;
+				if(offset < job->found.size()) {
+					job->found[offset] = page_id;
+				} else {
+					break;
+				}
+			}
+		}
+		if(job->num_found >= job->found.size()) {
+			break;
 		}
 	}
 	if(--job->num_left == 0) {
