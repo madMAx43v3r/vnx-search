@@ -1247,15 +1247,18 @@ void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noex
 	if(cache->is_page_update) {
 		info->link_version = cache->link_version;
 	}
-	for(const auto& link_key : cache->rem_links) {
-		remove(info->links, link_key);
-	}
-	for(const auto& link_key : cache->add_links) {
-		unique_push_back(info->links, link_key);
-	}
-	if(cache->rem_reverse_links.size() + cache->add_reverse_links.size() >= 10)
 	{
-		std::set<std::string> reverse_links(info->reverse_links.begin(), info->reverse_links.end());
+		std::unordered_set<std::string> links(info->links.begin(), info->links.end());
+		for(const auto& link_key : cache->rem_links) {
+			links.erase(link_key);
+		}
+		for(const auto& link_key : cache->add_links) {
+			links.insert(link_key);
+		}
+		info->links = std::vector<std::string>(links.begin(), links.end());
+	}
+	{
+		std::unordered_set<std::string> reverse_links(info->reverse_links.begin(), info->reverse_links.end());
 		for(const auto& parent_key : cache->rem_reverse_links) {
 			reverse_links.erase(parent_key);
 		}
@@ -1263,14 +1266,6 @@ void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noex
 			reverse_links.insert(parent_key);
 		}
 		info->reverse_links = std::vector<std::string>(reverse_links.begin(), reverse_links.end());
-	}
-	else {
-		for(const auto& parent_key : cache->rem_reverse_links) {
-			remove(info->reverse_links, parent_key);
-		}
-		for(const auto& parent_key : cache->add_reverse_links) {
-			unique_push_back(info->reverse_links, parent_key);
-		}
 	}
 	info->reverse_domains.clear();
 	for(const auto& link_key : info->reverse_links) {
