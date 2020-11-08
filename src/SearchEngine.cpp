@@ -1253,11 +1253,24 @@ void SearchEngine::link_update_task(std::shared_ptr<link_update_job_t> job) noex
 	for(const auto& link_key : cache->add_links) {
 		unique_push_back(info->links, link_key);
 	}
-	for(const auto& parent_key : cache->rem_reverse_links) {
-		remove(info->reverse_links, parent_key);
+	if(cache->rem_reverse_links.size() + cache->add_reverse_links.size() >= 10)
+	{
+		std::set<std::string> reverse_links(info->reverse_links.begin(), info->reverse_links.end());
+		for(const auto& parent_key : cache->rem_reverse_links) {
+			reverse_links.erase(parent_key);
+		}
+		for(const auto& parent_key : cache->add_reverse_links) {
+			reverse_links.insert(parent_key);
+		}
+		info->reverse_links = std::vector<std::string>(reverse_links.begin(), reverse_links.end());
 	}
-	for(const auto& parent_key : cache->add_reverse_links) {
-		unique_push_back(info->reverse_links, parent_key);
+	else {
+		for(const auto& parent_key : cache->rem_reverse_links) {
+			remove(info->reverse_links, parent_key);
+		}
+		for(const auto& parent_key : cache->add_reverse_links) {
+			unique_push_back(info->reverse_links, parent_key);
+		}
 	}
 	info->reverse_domains.clear();
 	for(const auto& link_key : info->reverse_links) {
