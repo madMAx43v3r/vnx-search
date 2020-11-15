@@ -1,3 +1,5 @@
 {
-	"word_commit_interval": 60
+	"word_commit_interval": 60,
+	"link_commit_interval": 60,
+	"rank_update_interval": 0.1
 }

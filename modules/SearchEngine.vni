@@ -20,7 +20,7 @@ module SearchEngine implements SearchInterface {
 	
 	int commit_delay = 10;					// [sec]
 	
-	int link_commit_interval = 60;			// [sec]
+	int link_commit_interval = 1800;		// [sec]
 	
 	int word_commit_interval = 3600;		// [sec]
 	
@@ -31,6 +31,8 @@ module SearchEngine implements SearchInterface {
 	int queue_interval_ms = 10;				// queue check interval [ms]
 	
 	int stats_interval_ms = 10000;
+	
+	float rank_update_interval = 1440;		// interval = rank_update_interval * 1000 / rank_value [min]
 	
 	float rank_decay = 0.5;
 	

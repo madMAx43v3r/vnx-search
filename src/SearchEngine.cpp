@@ -557,6 +557,16 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 				}
 				page_ranking.emplace(info->reverse_domains.size(), info->id);
 			}
+			auto rank_update_iter = rank_update_queue.end();
+			if(info->rank_value > info->reverse_domains.size())
+			{
+				int64_t next_update = info->last_updated;
+				if(!next_update) {
+					next_update = vnx::get_wall_time_seconds();
+				}
+				next_update += rank_update_interval * 60 * (1000 / info->rank_value);
+				rank_update_iter = rank_update_queue.emplace(next_update, info->id);
+			}
 			{
 				auto* page = find_page(info->id);
 				if(page) {
@@ -568,9 +578,14 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 						}
 					}
 					page->rank_value = info->rank_value;
+					page->last_updated = info->last_updated;
 					page->array_version = info->array_version;
 					page->reverse_links = info->reverse_links.size();
 					page->reverse_domains = info->reverse_domains.size();
+					if(page->rank_update_iter != rank_update_queue.end()) {
+						rank_update_queue.erase(page->rank_update_iter);
+					}
+					page->rank_update_iter = rank_update_iter;
 					return;
 				}
 			}
@@ -586,12 +601,14 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 				page.id = info->id;
 				page.url_key = url_key;
 				page.rank_value = info->rank_value;
+				page.last_updated = info->last_updated;
 				page.index_version = info->index_version;
 				page.link_version = info->link_version;
 				page.word_version = info->word_version;
 				page.array_version = info->array_version;
 				page.reverse_links = info->reverse_links.size();
 				page.reverse_domains = info->reverse_domains.size();
+				page.rank_update_iter = rank_update_iter;
 				{
 					auto& domain = get_domain(parsed.host());
 					page.domain_id = domain.id;
@@ -832,6 +849,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	auto& page = page_index[page_id];
 	if(!page.id) {
 		page.id = page_id;
+		page.rank_update_iter = rank_update_queue.end();
 		const stx::pstring p_url_key = url_key;
 		page.url_key = p_url_key;
 		page_map[p_url_key] = page_id;
@@ -995,8 +1013,7 @@ void SearchEngine::check_link_queue()
 			&& update_threads->get_num_pending() < max_num_pending)
 	{
 		const auto iter = link_queue.begin();
-		if(now - iter->first >= int64_t(link_commit_interval) * 1000000
-				|| link_cache.size() > max_link_cache)
+		if(now - iter->first > int64_t(link_commit_interval) * 1000000 || link_cache.size() > max_link_cache)
 		{
 			const auto cache = iter->second;
 			if(cache->schedule_time_us) {
@@ -1009,6 +1026,21 @@ void SearchEngine::check_link_queue()
 			}
 			link_queue.erase(iter);
 		} else {
+			break;
+		}
+	}
+	while(!rank_update_queue.empty() && link_cache.size() < max_link_cache)
+	{
+		const auto iter = rank_update_queue.begin();
+		if(now > iter->first * 1000000) {
+			auto* page = find_page(iter->second);
+			if(page) {
+				get_link_cache(page->url_key.str());
+				page->rank_update_iter = rank_update_queue.end();
+			}
+			rank_update_queue.erase(iter);
+		}
+		else {
 			break;
 		}
 	}
@@ -1065,6 +1097,7 @@ void SearchEngine::link_update_callback_2(	std::shared_ptr<link_update_job_t> jo
 	for(auto value : rank_values) {
 		result->rank_value = fmaxf(result->rank_value, value * rank_decay);
 	}
+	result->last_updated = vnx::get_wall_time_seconds();
 	page_info_async->store_value_delay(Variant(cached->url_key), result, cached->is_page_update ? commit_delay * 1000 : 0);
 	page_update_counter++;
 }

@@ -68,8 +68,10 @@ protected:
 		uint64_t array_version = 0;
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
+		int64_t last_updated = 0;
 		stx::fstring<8> scheme = std::string("http");
 		stx::pstring url_key;
+		std::multimap<int64_t, uint32_t>::iterator rank_update_iter;
 		std::string get_url() const { return scheme.str() + ":" + url_key.str(); }
 	};
 	
@@ -309,8 +311,9 @@ private:
 	std::queue<std::shared_ptr<word_process_job_t>> load_queue_2;
 	std::multimap<int64_t, std::shared_ptr<link_cache_t>> link_queue;
 	std::multimap<int64_t, uint32_t> word_queue;
+	std::multimap<int64_t, uint32_t> rank_update_queue;
 	
-	std::multimap<uint32_t, uint32_t, std::greater<float>> page_ranking;
+	std::multimap<uint32_t, uint32_t, std::greater<uint32_t>> page_ranking;
 	
 	mutable std::shared_mutex index_mutex;
 	
