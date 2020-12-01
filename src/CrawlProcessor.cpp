@@ -41,10 +41,10 @@ void CrawlProcessor::main()
 	subscribe(input_url_index_sync, 100, 100);
 	subscribe(input_page_index_sync, 100, 10);
 	
-	protocols = get_unique(protocols);
-	domain_blacklist = get_unique(domain_blacklist);
-	path_blacklist = get_unique(path_blacklist);
-	regex_blacklist = get_unique(regex_blacklist);
+	protocols = unique(protocols);
+	domain_blacklist = unique(domain_blacklist);
+	path_blacklist = unique(path_blacklist);
+	regex_blacklist = unique(regex_blacklist);
 	
 	for(const auto& entry : regex_blacklist) {
 		regex_blacklist_.emplace_back(entry);
@@ -198,8 +198,8 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 			// ignore bad links
 		}
 	}
-	index->links = get_unique(index->links);
-	index->images = get_unique(index->images);
+	index->links = unique(index->links);
+	index->images = unique(index->images);
 	index->word_count = std::min(word_count, size_t(0xFFFFFFFF));
 	index->version = index_version;
 	

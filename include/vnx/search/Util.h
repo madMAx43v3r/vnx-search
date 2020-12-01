@@ -103,7 +103,7 @@ Url::Url process_link(const Url::Url& link, const Url::Url& parent)
 }
 
 template<typename T>
-std::vector<T> get_unique(const std::vector<T>& in)
+std::vector<T> unique(const std::vector<T>& in)
 {
 	std::set<T> tmp(in.begin(), in.end());
 	return std::vector<T>(tmp.begin(), tmp.end());

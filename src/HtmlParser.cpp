@@ -155,8 +155,8 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	delete doc_pp;
 	
-	result->links = get_unique(result->links);
-	result->images = get_unique(result->images);
+	result->links = unique(result->links);
+	result->images = unique(result->images);
 	
 	return result;
 }
