@@ -127,6 +127,16 @@ std::vector<T> concat(const std::vector<T>& A, const std::vector<T>& B)
 }
 
 template<typename T>
+T* find(const std::vector<T>& vector, const T& value)
+{
+	const auto iter = std::find(vector.begin(), vector.end(), value);
+	if(iter != vector.end()) {
+		return &(*iter);
+	}
+	return nullptr;
+}
+
+template<typename T>
 std::vector<T>& remove(std::vector<T>& vector, const T& element)
 {
 	const auto end = std::remove(vector.begin(), vector.end(), element);
