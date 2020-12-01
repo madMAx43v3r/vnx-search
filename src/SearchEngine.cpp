@@ -1191,7 +1191,7 @@ void SearchEngine::print_stats()
 	log(INFO).out << (60000 * word_update_counter) / stats_interval_ms << " words/min, "
 			<< (60000 * page_update_counter) / stats_interval_ms << " pages/min, "
 			<< domain_index.size() << " domains, "
-			<< load_queue.size() << " / " << load_queue_2.size() << " / " << info_queue.size() << " / "
+			<< load_queue.size() << " + " << load_queue_2.size() << " / " << info_queue.size() << " / "
 			<< page_cache.size() << " / " << page_index.size() << " pages, "
 			<< word_cache.size() << " / " << word_index.size() << " words";
 	
