@@ -522,55 +522,44 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 				next_update += rank_update_interval * 60 * (1000 / info->rank_value);
 				rank_update_iter = rank_update_queue.emplace(next_update, info->id);
 			}
+			if(auto* page = find_page(info->id))
 			{
-				auto* page = find_page(info->id);
-				if(page) {
-					for(auto word_id : info->words) {
-						try {
-							get_word_cache(word_id);	// update words with new rank_value
-						} catch(...) {
-							// ignore
-						}
-					}
-					page->rank_value = info->rank_value;
-					page->last_updated = info->last_updated;
-					page->array_version = info->array_version;
-					page->reverse_links = info->reverse_links.size();
-					page->reverse_domains = info->reverse_domains.size();
-					if(page->rank_update_iter != rank_update_queue.end()) {
-						rank_update_queue.erase(page->rank_update_iter);
-					}
-					page->rank_update_iter = rank_update_iter;
-					return;
+				page->rank_value = info->rank_value;
+				page->last_updated = info->last_updated;
+				page->array_version = info->array_version;
+				page->reverse_links = info->reverse_links.size();
+				page->reverse_domains = info->reverse_domains.size();
+				if(page->rank_update_iter != rank_update_queue.end()) {
+					rank_update_queue.erase(page->rank_update_iter);
 				}
+				page->rank_update_iter = rank_update_iter;
+				return;
 			}
 			std::unique_lock lock(index_mutex);
 			
+			const std::string url_key = entry->key.to_string_value();
+			const stx::pstring p_url_key = url_key;
+			const Url::Url parsed(url_key);
+			page_map[p_url_key] = info->id;
+			
 			auto& page = page_index[info->id];
-			if(!page.id)
+			page.id = info->id;
+			page.url_key = p_url_key;
+			page.rank_value = info->rank_value;
+			page.last_updated = info->last_updated;
+			page.index_version = info->index_version;
+			page.link_version = info->link_version;
+			page.word_version = info->word_version;
+			page.array_version = info->array_version;
+			page.reverse_links = info->reverse_links.size();
+			page.reverse_domains = info->reverse_domains.size();
+			page.rank_update_iter = rank_update_iter;
 			{
-				const stx::pstring url_key = entry->key.to_string_value();
-				const Url::Url parsed(url_key.str());
-				page_map[url_key] = info->id;
-				
-				page.id = info->id;
-				page.url_key = url_key;
-				page.rank_value = info->rank_value;
-				page.last_updated = info->last_updated;
-				page.index_version = info->index_version;
-				page.link_version = info->link_version;
-				page.word_version = info->word_version;
-				page.array_version = info->array_version;
-				page.reverse_links = info->reverse_links.size();
-				page.reverse_domains = info->reverse_domains.size();
-				page.rank_update_iter = rank_update_iter;
-				{
-					auto& domain = get_domain(parsed.host());
-					page.domain_id = domain.id;
-					domain.pages.push_back(page.id);
-				}
-				next_page_id = std::max(next_page_id, info->id + 1);
+				auto& domain = get_domain(parsed.host());
+				page.domain_id = domain.id;
+				domain.pages.push_back(page.id);
 			}
+			next_page_id = std::max(next_page_id, info->id + 1);
 		}
 		return;
 	}
