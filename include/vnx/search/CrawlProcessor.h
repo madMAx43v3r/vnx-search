@@ -75,8 +75,8 @@ protected:
 		std::string url_key;
 		std::string content;
 		std::string base_url;
-		std::vector<std::string> links;
-		std::vector<std::string> images;
+		std::vector<page_link_t> links;
+		std::vector<image_link_t> images;
 		std::shared_ptr<PageIndex> index;
 		std::shared_ptr<const FetchResult> result;
 		std::shared_ptr<const TextResponse> response;
@@ -101,6 +101,13 @@ private:
 	void process_new(std::shared_ptr<process_job_t> job);
 	void process_task(std::shared_ptr<process_job_t> job) noexcept;
 	void process_callback(std::shared_ptr<process_job_t> job);
+	
+	bool process_link(	const Url::Url& url,
+						const Url::Url& base,
+						const Url::Url& parent,
+						googlebot::RobotsMatcher& matcher,
+						std::shared_ptr<const PageContent> robots,
+						std::string& result) const;
 	
 	void delete_page(const std::string& url_key);
 	

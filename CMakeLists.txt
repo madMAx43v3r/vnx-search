@@ -7,7 +7,7 @@ add_subdirectory(keyvalue)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fopenmp -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fopenmp -pthread -Wno-deprecated-declarations")
 
 find_package(PkgConfig)
 find_package(LibXml2)
@@ -37,6 +37,9 @@ add_library(vnx_search SHARED
 	src/SearchFrontend.cpp
 	src/QueryEngine.cpp
 	src/Util.cpp
+	src/page_link_t.cpp
+	src/image_link_t.cpp
+	src/reverse_link_t.cpp
 )
 
 target_include_directories(vnx_search

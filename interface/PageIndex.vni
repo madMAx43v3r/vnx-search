@@ -4,16 +4,16 @@ class PageIndex {
 	
 	string title;
 	
-	long last_modified;
+	long last_modified;							// [sec]
 	
 	uint word_count;
 	
 	uint version;
 	
-	vector<string> links;
+	vector<page_link_t> links;
 	
-	vector<string> images;
+	vector<image_link_t> images;
 	
-	vector<pair<string, ushort>> words;
+	vector<pair<string, ushort>> words;			// [word, count]
 	
 }
