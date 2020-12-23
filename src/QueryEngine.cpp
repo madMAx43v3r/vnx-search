@@ -60,7 +60,7 @@ void QueryEngine::query_async(	const std::vector<std::string>& words,
 								const vnx::request_id_t& req_id) const
 {
 	auto job = std::make_shared<query_job_t>();
-	job->words = get_unique(words);
+	job->words = unique(words);
 	job->options = options;
 	job->req_id = req_id;
 	
