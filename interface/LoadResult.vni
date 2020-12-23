@@ -1,0 +1,7 @@
+package vnx.search;
+
+class LoadResult extends UrlInfo {
+	
+	HttpResponse* response;
+	
+}
