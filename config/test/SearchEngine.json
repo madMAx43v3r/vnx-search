@@ -1,5 +1,5 @@
 {
 	"word_commit_interval": 60,
 	"info_commit_interval": 60,
-	"rank_update_interval": 1
+	"rank_update_interval": 10
 }

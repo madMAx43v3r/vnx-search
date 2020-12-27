@@ -496,7 +496,7 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 
 int64_t SearchEngine::get_rank_update_interval(float rank_value) const
 {
-	return rank_update_interval * 60 * (1000 / rank_value);
+	return rank_update_interval * 60 * (1000 / fmaxf(rank_value, 1));
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
@@ -946,7 +946,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 	p_info_cache->rank_value = rank_value;
 	
 	if(page_cache.count(job->page_id)) {
-		log(WARN) << "Previous rank update not finished yet for: " << job->url_key;
+		log(WARN) << "Previous rank update not yet finished for: " << job->url_key << " (rank_value = " << rank_value << ")";
 		return;
 	}
 	auto p_page_cache = std::make_shared<page_cache_t>();
@@ -1045,23 +1045,27 @@ void SearchEngine::check_info_queue()
 		}
 	}
 	while(!rank_update_queue.empty()
+			&& info_cache.size() < max_info_cache
+			&& word_cache.size() < max_word_cache
 			&& page_info_async->vnx_get_num_pending() < max_num_pending)
 	{
 		const auto iter = rank_update_queue.begin();
 		if(now > iter->first * 1000000) {
 			if(auto* page = find_page(iter->second)) {
-				const auto url_key = page->url_key.str();
-				page_info_async->get_value(Variant(url_key),
-					[this, url_key](std::shared_ptr<const keyvalue::Entry> entry) {
-						if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
-							auto job = std::make_shared<rank_update_job_t>();
-							job->url_key = url_key;
-							job->page_id = info->id;
-							job->update_words = info->words;
-							job->reverse_links = info->reverse_links;
-							update_page_rank(job);
-						}
-					});
+				if(iter->first == page->next_rank_update) {
+					const auto url_key = page->url_key.str();
+					page_info_async->get_value(Variant(url_key),
+						[this, url_key](std::shared_ptr<const keyvalue::Entry> entry) {
+							if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
+								auto job = std::make_shared<rank_update_job_t>();
+								job->url_key = url_key;
+								job->page_id = info->id;
+								job->update_words = info->words;
+								job->reverse_links = info->reverse_links;
+								update_page_rank(job);
+							}
+						});
+				}
 			}
 			rank_update_queue.erase(iter);
 		}
