@@ -174,14 +174,14 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	for(const auto& link : result->links) {
 		auto& dst = links[link.url];
 		dst.url = link.url;
-		dst.text += (dst.text.empty() ? "" : "; ") + link.text;
+		dst.text += (dst.text.empty() ? "" : " | ") + link.text;
 	}
 	for(const auto& link : result->images) {
 		auto& dst = images[link.url];
 		dst.url = link.url;
 		dst.width = std::max(dst.width, link.width);
 		dst.height = std::max(dst.height, link.height);
-		dst.text += (dst.text.empty() ? "" : "; ") + link.text;
+		dst.text += (dst.text.empty() ? "" : " | ") + link.text;
 	}
 	result->links.clear();
 	result->images.clear();

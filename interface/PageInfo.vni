@@ -4,11 +4,13 @@ class PageInfo {
 	
 	uint id;						// page id (0 = not loaded yet)
 	
+	ushort version;
+	
 	bool is_deleted;
 	
 	float rank_value;				// page rank
 	
-	long last_updated;				// posix timestamp [sec]
+	long last_updated;				// posix timestamp (regarding rank value) [sec]
 	
 	ulong index_version;			// version regarding title, etc
 	ulong link_version;				// version regarding links

@@ -50,11 +50,11 @@ private:
 		std::atomic<size_t> num_left {0};
 		std::atomic<size_t> num_found {0};
 		std::vector<Variant> url_keys;
-		std::vector<uint32_t> found;
 		std::vector<result_t> items;
+		std::vector<std::pair<uint32_t, float>> found;
 		std::unordered_map<uint32_t, uint32_t> word_set;
 		std::unordered_map<std::string, uint32_t> domain_set;
-		std::unordered_map<uint32_t, std::atomic<uint32_t>> page_hits;
+		std::unordered_map<uint32_t, std::pair<std::atomic<uint32_t>, std::atomic<uint32_t>>> page_hits;
 		std::vector<std::shared_ptr<const WordContext>> word_context;
 		std::vector<std::shared_ptr<const WordContext>> sorted_context;
 		std::vector<std::shared_ptr<const WordArray>> word_arrays;

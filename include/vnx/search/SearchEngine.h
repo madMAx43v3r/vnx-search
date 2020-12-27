@@ -68,11 +68,14 @@ protected:
 		uint64_t array_version = 0;
 		int64_t first_seen = 0;
 		int64_t last_modified = 0;
-		int64_t last_updated = 0;
+		int64_t next_rank_update = 0;
 		stx::fstring<8> scheme = std::string("http");
 		stx::pstring url_key;
-		std::multimap<int64_t, uint32_t>::iterator rank_update_iter;
 		std::string get_url() const { return scheme.str() + ":" + url_key.str(); }
+	};
+	
+	struct parsed_link_t : page_link_t {
+		std::string url_key;
 	};
 	
 	struct page_cache_t {
@@ -85,15 +88,15 @@ protected:
 	struct word_cache_t {
 		uint32_t word_id = 0;
 		std::string word;
-		std::vector<uint32_t> rem_pages;
-		std::vector<uint32_t> add_pages;
-		std::vector<uint32_t> update_pages;
+		std::vector<std::pair<uint32_t, float>> update_pages;
 	};
 	
 	struct info_cache_t {
 		std::string url_key;
 		uint32_t page_id = 0;
-		int is_deleted = -1;
+		uint32_t version = 0;
+		char is_deleted = -1;
+		float rank_value = -1;
 		uint64_t index_version = 0;
 		uint64_t link_version = 0;
 		uint64_t word_version = 0;
@@ -102,7 +105,7 @@ protected:
 		std::vector<std::string> rem_links;
 		std::vector<std::string> add_links;
 		std::vector<std::string> rem_reverse_links;
-		std::vector<std::string> add_reverse_links;
+		std::vector<reverse_link_t> add_reverse_links;
 		std::vector<uint32_t> words;
 	};
 	
@@ -116,10 +119,19 @@ protected:
 		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<const PageIndex> index;
 		std::shared_ptr<const UrlIndex> url_index;
-		std::vector<std::string> links;
+		std::vector<parsed_link_t> links;
 		std::map<std::string, std::string> redirects;
 		std::map<uint32_t, int> words;
 		std::vector<std::string> new_words;
+	};
+	
+	struct rank_update_job_t {
+		std::string url_key;
+		uint32_t page_id = 0;
+		uint64_t word_version = 0;
+		std::vector<uint32_t> rem_words;
+		std::vector<uint32_t> update_words;
+		std::vector<reverse_link_t> reverse_links;
 	};
 	
 	struct info_update_job_t {
@@ -208,6 +220,8 @@ private:
 	domain_t& get_domain(const T& host);
 	const domain_t* find_domain(uint32_t domain_id) const;
 	
+	int64_t get_rank_update_interval(float rank_value) const;
+	
 	std::shared_ptr<info_cache_t> get_info_cache(const std::string& url_key);
 	
 	std::shared_ptr<word_cache_t> get_word_cache(uint32_t word_id);
@@ -237,6 +251,11 @@ private:
 	
 	void update_page(std::shared_ptr<page_update_job_t> job);
 	
+	void update_page_rank(std::shared_ptr<rank_update_job_t> job);
+	
+	void update_page_rank_callback(	std::shared_ptr<rank_update_job_t> job,
+									std::vector<float> rank_values);
+	
 	void word_process_callback_0(	std::shared_ptr<word_process_job_t> job,
 									std::shared_ptr<const keyvalue::Entry> entry);
 	
@@ -250,10 +269,7 @@ private:
 	void info_update_callback_0(std::shared_ptr<info_cache_t> cached,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
-	void info_update_callback_1(std::shared_ptr<info_update_job_t> job);
-	
-	void info_update_callback_2(std::shared_ptr<info_update_job_t> job,
-								std::vector<float> rank_values);
+	void info_update_callback(std::shared_ptr<info_update_job_t> job);
 	
 	void word_update_callback(	std::shared_ptr<word_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
@@ -263,10 +279,6 @@ private:
 	void print_stats();
 	
 	void write_info();
-	
-	void page_rank_task(const std::vector<std::string>& url_keys,
-						const bool direct,
-						const request_id_t& req_id) const noexcept;
 	
 	void link_update_task(std::shared_ptr<info_update_job_t> job) noexcept;
 	
@@ -293,9 +305,9 @@ private:
 	std::shared_ptr<keyvalue::ServerAsyncClient> word_array_async;
 	
 	// protected by index_mutex (only main thread may modify)
-	std::map<stx::sstring, uint32_t, std::less<>> word_map;
-	std::map<stx::sstring, uint32_t, std::less<>> domain_map;
+	std::map<stx::cstring, uint32_t, std::less<>> domain_map;
 	std::map<stx::pstring, uint32_t, std::less<>> page_map;
+	std::unordered_map<std::string, uint32_t> word_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
 	std::unordered_map<uint32_t, word_t> word_index;
@@ -315,10 +327,10 @@ private:
 	mutable std::shared_mutex index_mutex;
 	
 	int init_sync_count = 0;
+	bool is_initialized = false;
 	uint32_t next_page_id = 1;
 	uint32_t next_word_id = 1;
 	uint32_t next_domain_id = 1;
-	std::atomic_bool is_initialized {false};
 	
 	mutable std::atomic<int64_t> page_update_counter {0};
 	mutable std::atomic<int64_t> word_update_counter {0};

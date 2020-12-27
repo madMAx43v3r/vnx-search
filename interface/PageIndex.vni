@@ -2,13 +2,13 @@ package vnx.search;
 
 class PageIndex {
 	
-	string title;
-	
-	long last_modified;							// [sec]
+	ushort version;
 	
 	uint word_count;
 	
-	uint version;
+	long last_modified;							// [sec]
+	
+	string title;
 	
 	vector<page_link_t> links;
 	

@@ -174,7 +174,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 			if(process_link(Url::Url(link.url), base, parent, matcher, job->robots, full_url)) {
 				auto& dst = links[full_url];
 				dst.url = full_url;
-				dst.text += (dst.text.empty() ? "" : "; ") + link.text;
+				dst.text += (dst.text.empty() ? "" : " | ") + link.text;
 			}
 		} catch(...) {
 			// ignore bad links
@@ -195,7 +195,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 				dst.url = full_url;
 				dst.width = std::max(dst.width, link.width);
 				dst.height = std::max(dst.height, link.height);
-				dst.text += (dst.text.empty() ? "" : "; ") + link.text;
+				dst.text += (dst.text.empty() ? "" : " | ") + link.text;
 			}
 		} catch(...) {
 			// ignore bad links
