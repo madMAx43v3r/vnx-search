@@ -133,10 +133,10 @@ void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 		robots_txt_callback(job->url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, entry);
 		page_content_async->store_value(Variant(job->url_key), content);
 	} else {
-		page_content_async->store_value(Variant(job->url_key), content,
-			[this, job]() {
-				work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
-			});
+		if(job->is_modified) {
+			page_content_async->store_value(Variant(job->url_key), content);
+		}
+		work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
 	}
 }
 
@@ -234,14 +234,14 @@ bool CrawlProcessor::process_link(	const Url::Url& url,
 
 void CrawlProcessor::process_callback(std::shared_ptr<process_job_t> job)
 {
-	page_index_async->store_value(Variant(job->url_key), job->index,
-		[this, job]() {
-			if(job->is_reprocess) {
-				reproc_counter++;
-			} else {
-				check_page(job->depth, job->url_key, job->index);
-			}
-		});
+	if(job->is_modified) {
+		page_index_async->store_value(Variant(job->url_key), job->index);
+	}
+	if(job->is_reprocess) {
+		reproc_counter++;
+	} else {
+		check_page(job->depth, job->url_key, job->index);
+	}
 	log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
 			<< job->index->links.size() << " links, " << job->index->images.size() << " images";
 }
@@ -663,7 +663,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		job->response = result->response;
 		
 		url_index_async->get_value(Variant(job->url_key),
-				std::bind(&CrawlProcessor::check_result_callback, this, job, std::placeholders::_1));
+				std::bind(&CrawlProcessor::check_process_new, this, job, std::placeholders::_1));
 	}
 	url_update(org_url_key, parsed.scheme(), entry.depth, *result);
 	
@@ -689,14 +689,19 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	}
 }
 
-void CrawlProcessor::check_result_callback(	std::shared_ptr<process_job_t> job,
-											std::shared_ptr<const keyvalue::Entry> entry)
+void CrawlProcessor::check_process_new(	std::shared_ptr<process_job_t> job,
+										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	auto previous = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
-	if(!previous || job->result->last_fetched > previous->last_fetched + reload_interval / 2)
+	if(auto previous = std::dynamic_pointer_cast<const UrlIndex>(entry->value))
 	{
-		process_new(job);
+		if(job->result->last_fetched < previous->last_fetched + reload_interval / 2) {
+			return;		// premature reload
+		}
+		job->is_modified = job->result->last_modified != previous->last_modified;
+	} else {
+		job->is_modified = true;
 	}
+	process_new(job);
 }
 
 void CrawlProcessor::url_update(	const std::string& url_key,

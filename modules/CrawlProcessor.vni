@@ -45,7 +45,7 @@ module CrawlProcessor {
 	
 	float reload_power = 4;
 	
-	uint index_version = 0;					// increase to re-process all content
+	uint index_version = 1;					// increase to re-process all content
 	
 	bool do_reprocess = false;				// if to reprocess all pages
 	
@@ -65,6 +65,11 @@ module CrawlProcessor {
 	
 	
 	vnx.Object get_stats(int limit) const;
+	
+	void check_all_urls();
+	
+	void check_root_urls();
+	
 	
 	void handle(vnx.keyvalue.SyncUpdate sample);
 	

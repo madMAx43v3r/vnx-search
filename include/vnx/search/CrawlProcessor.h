@@ -71,6 +71,7 @@ protected:
 	
 	struct process_job_t {
 		int depth = -1;
+		bool is_modified = true;
 		bool is_reprocess = false;
 		std::string url_key;
 		std::string content;
@@ -138,7 +139,7 @@ private:
 	
 	void url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result);
 	
-	void check_result_callback(	std::shared_ptr<process_job_t> job,
+	void check_process_new(	std::shared_ptr<process_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void reproc_page_callback(	const std::string& url_key,
