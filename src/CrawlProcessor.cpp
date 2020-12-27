@@ -174,7 +174,9 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 			if(process_link(Url::Url(link.url), base, parent, matcher, job->robots, full_url)) {
 				auto& dst = links[full_url];
 				dst.url = full_url;
-				dst.text += (dst.text.empty() ? "" : " | ") + link.text;
+				if(!link.text.empty()) {
+					dst.text += (dst.text.empty() ? "" : " | ") + link.text;
+				}
 			}
 		} catch(...) {
 			// ignore bad links
@@ -182,7 +184,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 	}
 	for(auto& entry : links) {
 		auto& link = entry.second;
-		link.words = parse_text(link.text);
+		link.words = unique(parse_text(link.text));
 		index->links.push_back(link);
 	}
 	
@@ -195,7 +197,9 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 				dst.url = full_url;
 				dst.width = std::max(dst.width, link.width);
 				dst.height = std::max(dst.height, link.height);
-				dst.text += (dst.text.empty() ? "" : " | ") + link.text;
+				if(!link.text.empty()) {
+					dst.text += (dst.text.empty() ? "" : " | ") + link.text;
+				}
 			}
 		} catch(...) {
 			// ignore bad links
@@ -203,7 +207,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 	}
 	for(auto& entry : images) {
 		auto& link = entry.second;
-		link.words = parse_text(link.text);
+		link.words = unique(parse_text(link.text));
 		index->images.push_back(link);
 	}
 	
