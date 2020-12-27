@@ -874,9 +874,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 			reverse_link_t reverse_link;
 			reverse_link.url_key = url_key;
 			for(const auto& word : entry.second.words) {
-				if(const auto word_id = find_word_id(word)) {
-					reverse_link.words.push_back(word_id);
-				}
+				reverse_link.words.push_back(add_word(word));
 			}
 			// add new link
 			const auto& link_key = entry.first;
@@ -1311,6 +1309,7 @@ void SearchEngine::link_update_task(std::shared_ptr<info_update_job_t> job) noex
 		for(const auto& link : cache->add_reverse_links) {
 			links[link.url_key] = link;
 		}
+		links.erase("");
 		info->reverse_links.clear();
 		info->reverse_links.reserve(links.size());
 		for(auto& entry : links) {
