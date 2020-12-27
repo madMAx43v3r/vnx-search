@@ -1175,7 +1175,7 @@ void SearchEngine::info_update_callback(std::shared_ptr<info_update_job_t> job)
 	page_info_async->store_value_delay(Variant(cached->url_key), job->result,
 			(cached->link_version || cached->is_deleted > 0) ? commit_delay * 1000 : 0);
 	
-	if(job->result->id) {
+	if(cached->word_version) {
 		page_update_counter++;
 	}
 }
