@@ -32,7 +32,7 @@ void SearchFrontend::main()
 	Super::main();
 }
 
-void SearchFrontend::http_request_async(const std::shared_ptr<const addons::HttpRequest>& request,
+void SearchFrontend::http_request_async(std::shared_ptr<const addons::HttpRequest> request,
 										const std::string& sub_path,
 										const vnx::request_id_t& req_id) const
 {
@@ -71,6 +71,15 @@ void SearchFrontend::http_request_async(const std::shared_ptr<const addons::Http
 	else {
 		http_request_async_return(req_id, addons::HttpResponse::from_status(404));
 	}
+}
+
+void SearchFrontend::http_request_chunk_async(	std::shared_ptr<const addons::HttpRequest> request,
+												const std::string& sub_path,
+												const int64_t& offset,
+												const int64_t& max_bytes,
+												const vnx::request_id_t& req_id) const
+{
+	throw std::logic_error("not implemented");
 }
 
 void SearchFrontend::query_callback(const vnx::request_id_t& req_id,

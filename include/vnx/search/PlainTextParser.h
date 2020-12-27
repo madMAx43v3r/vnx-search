@@ -24,7 +24,7 @@ protected:
 	
 	void update();
 	
-	std::shared_ptr<const TextResponse> parse(const std::shared_ptr<const HttpResponse>& response) const;
+	std::shared_ptr<const TextResponse> parse(std::shared_ptr<const HttpResponse> response) const;
 	
 private:
 	std::shared_ptr<Pipe> service_pipe;

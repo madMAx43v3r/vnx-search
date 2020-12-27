@@ -102,7 +102,7 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 }
 
 std::shared_ptr<const TextResponse>
-HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
+HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 {
 	auto result = TextResponse::create();
 	result->Response::operator=(*response);
