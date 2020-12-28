@@ -888,6 +888,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	{
 		auto new_job = std::make_shared<rank_update_job_t>();
 		new_job->url_key = url_key;
+		new_job->page_id = page_id;
 		new_job->word_version = job->index_version;
 		
 		for(const auto& entry : job->words) {
@@ -920,6 +921,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 												std::vector<float> rank_values)
 {
 	const auto info = job->info;
+	const auto page_id = job->page_id;
 	float rank_value = info->reverse_domains.size();
 	std::unordered_map<uint32_t, float> word_rank;
 	
@@ -936,13 +938,13 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 	auto p_info_cache = get_info_cache(job->url_key);
 	p_info_cache->rank_value = rank_value;
 	
-	if(auto* page = find_page(info->id)) {
+	if(auto* page = find_page(page_id)) {
 		page->next_rank_update = vnx::get_wall_time_seconds() + get_rank_update_interval(rank_value);
 		rank_update_queue.emplace(page->next_rank_update, page->id);
 	} else {
 		return;
 	}
-	if(page_cache.count(info->id)) {
+	if(page_cache.count(page_id)) {
 		log(WARN) << "Previous rank update not yet finished for: " << job->url_key << " (rank_value = " << rank_value << ")";
 		return;
 	}
@@ -953,7 +955,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 	for(const auto word_id : job->rem_words) {
 		try {
 			auto cached = get_word_cache(word_id);
-			cached->update_pages.emplace_back(info->id, -1);
+			cached->update_pages.emplace_back(page_id, -1);
 			p_page_cache->pending[word_id] = false;
 		} catch(const std::exception& ex) {
 			log(WARN) << ex.what();
@@ -969,7 +971,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 				}
 			}
 			auto cached = get_word_cache(word_id);
-			cached->update_pages.emplace_back(info->id, value);
+			cached->update_pages.emplace_back(page_id, value);
 			p_page_cache->pending[word_id] = true;
 		} catch(const std::exception& ex) {
 			log(WARN) << ex.what();
@@ -979,7 +981,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 		p_info_cache->word_version = job->word_version;
 		p_info_cache->words.clear();
 	} else {
-		page_cache[info->id] = p_page_cache;
+		page_cache[page_id] = p_page_cache;
 	}
 }
 
@@ -1048,16 +1050,18 @@ void SearchEngine::check_info_queue()
 	{
 		const auto iter = rank_update_queue.begin();
 		if(now > iter->first * 1000000) {
-			if(auto* page = find_page(iter->second)) {
+			const auto page_id = iter->second;
+			if(auto* page = find_page(page_id)) {
 				if(iter->first == page->next_rank_update) {
 					const auto url_key = page->url_key.str();
 					page_info_async->get_value(Variant(url_key),
-						[this, url_key](std::shared_ptr<const keyvalue::Entry> entry) {
+						[this, page_id, url_key](std::shared_ptr<const keyvalue::Entry> entry) {
 							if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
 								auto job = std::make_shared<rank_update_job_t>();
 								job->url_key = url_key;
-								job->info = info;
+								job->page_id = page_id;
 								job->update_words = info->words;
+								job->info = info;
 								update_page_rank(job);
 							}
 						});
@@ -1394,7 +1398,7 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 	std::vector<std::pair<float, uint32_t>> list;
 	list.reserve(cached->update_pages.size());
 	for(const auto& entry : cached->update_pages) {
-		if(entry.second >= 0) {
+		if(entry.second >= 0 && entry.first) {
 			list.emplace_back(entry.second, entry.first);
 		}
 	}

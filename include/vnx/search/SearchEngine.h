@@ -80,6 +80,7 @@ protected:
 	
 	struct rank_update_job_t {
 		std::string url_key;
+		uint32_t page_id = 0;
 		uint64_t word_version = 0;
 		std::vector<uint32_t> rem_words;
 		std::vector<uint32_t> update_words;
