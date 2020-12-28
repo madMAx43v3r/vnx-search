@@ -1,6 +1,4 @@
 {
 	"collection": "http_archive",
-	"do_compress": true,
-	"update_topic": "http_archive.updates",
-	"update_topic_keys": "http_archive.key_updates"
+	"do_compress": true
 }
