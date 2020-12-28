@@ -14,7 +14,7 @@ struct query_options_t {
 	
 	float score_power = 2;			// non-linear score factor
 	
-	score_type_e score_type = AVG_SCORE;
+	score_type_e score_type = MAX_SCORE;
 	
 	vector<search_flags_e> flags;
 	
