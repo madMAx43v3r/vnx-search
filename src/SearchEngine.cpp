@@ -929,9 +929,9 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 		const auto& link = info->reverse_links[i];
 		for(const auto word_id : link.words) {
 			auto& word_value = word_rank[word_id];
-			word_value = fmaxf(word_value, value / rank_decay);
+			word_value = std::max(word_value, value / rank_decay);
 		}
-		rank_value = fmaxf(rank_value, value * rank_decay);
+		rank_value = std::max(rank_value, value * rank_decay);
 	}
 	auto p_info_cache = get_info_cache(job->url_key);
 	p_info_cache->rank_value = rank_value;
@@ -965,7 +965,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 			{
 				auto iter = word_rank.find(word_id);
 				if(iter != word_rank.end()) {
-					value = fmaxf(value, iter->second);
+					value = std::max(value, iter->second);
 				}
 			}
 			auto cached = get_word_cache(word_id);
