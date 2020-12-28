@@ -133,9 +133,11 @@ void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 		robots_txt_callback(job->url_key, robots_txt_state_e::ROBOTS_TXT_MISSING, entry);
 		page_content_async->store_value(Variant(job->url_key), content);
 	} else {
-		if(job->is_modified) {
-			page_content_async->store_value(Variant(job->url_key), content);
-		}
+		page_content_async->store_value(job->is_modified ? Variant(job->url_key) : Variant(), content,
+			[this, job]() {
+				job->content_stored = true;
+				check_process_job(job);
+			});
 		work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
 	}
 }
@@ -240,17 +242,28 @@ bool CrawlProcessor::process_link(	const Url::Url& url,
 
 void CrawlProcessor::process_callback(std::shared_ptr<process_job_t> job)
 {
-	if(job->is_modified) {
-		page_index_async->store_value(Variant(job->url_key), job->index);
+	page_index_async->store_value(job->is_modified ? Variant(job->url_key) : Variant(), job->index,
+		[this, job]() {
+			job->index_stored = true;
+			check_process_job(job);
+		});
+	check_page(job->depth, job->url_key, job->index);
+}
+
+void CrawlProcessor::check_process_job(std::shared_ptr<process_job_t> job)
+{
+	if(!job->is_finished) {
+		if(job->content_stored && job->index_stored) {
+			job->is_finished = true;
+			if(job->is_reprocess) {
+				reproc_counter++;
+			} else {
+				url_update(job->org_url_key, job->org_scheme, job->depth, job->info);
+			}
+			log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
+					<< job->index->links.size() << " links, " << job->index->images.size() << " images";
+		}
 	}
-	if(job->is_reprocess) {
-		reproc_counter++;
-	} else {
-		url_update(job->org_url_key, job->org_scheme, job->depth, job->info);
-		check_page(job->depth, job->url_key, job->index);
-	}
-	log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
-			<< job->index->links.size() << " links, " << job->index->images.size() << " images";
 }
 
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::SyncUpdate> entry)

@@ -73,6 +73,9 @@ protected:
 		int depth = -1;
 		bool is_modified = true;
 		bool is_reprocess = false;
+		bool is_finished = false;
+		bool content_stored = false;
+		bool index_stored = false;
 		std::string org_scheme;
 		std::string url_key;
 		std::string org_url_key;
@@ -140,6 +143,8 @@ private:
 	url_t url_fetch_done(const std::string& url_key, bool is_fail);
 	
 	void url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result);
+	
+	void check_process_job(	std::shared_ptr<process_job_t> job);
 	
 	void check_process_new(	std::shared_ptr<process_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
