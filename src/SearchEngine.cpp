@@ -1396,33 +1396,51 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 {
 	auto cached = job->cached;
 	auto context = job->context;
-	const auto word_id = cached->word_id;
-	const std::unordered_map<uint32_t, float> update_pages(cached->update_pages.begin(), cached->update_pages.end());
 	
-	std::vector<std::pair<float, uint32_t>> list;
-	list.reserve(cached->update_pages.size());
+	std::vector<std::pair<float, uint32_t>> new_list;
+	new_list.reserve(cached->update_pages.size());
 	for(const auto& entry : cached->update_pages) {
 		if(entry.second >= 0 && entry.first) {
-			list.emplace_back(entry.second, entry.first);
+			new_list.emplace_back(entry.second, entry.first);
 		}
 	}
-	if(context) {
-		list.reserve(context->pages.size() + list.size());
-		for(const auto& entry : context->pages) {
-			const auto page_id = entry.first;
-			if(page_id && !update_pages.count(page_id)) {
-				list.emplace_back(entry.second, page_id);
-			}
-		}
-	}
-	std::sort(list.begin(), list.end(), std::greater<std::pair<float, uint32_t>>());
+	std::sort(new_list.begin(), new_list.end(), std::greater<std::pair<float, uint32_t>>());
 	
 	auto result = WordContext::create();
-	result->id = word_id;
+	result->id = cached->word_id;
 	result->last_update = vnx::get_wall_time_seconds();
-	result->pages.reserve(list.size());
-	for(const auto& entry : list) {
-		result->pages.emplace_back(entry.second, entry.first);
+	
+	auto& list = result->pages;
+	if(context) {
+		const auto& old_list = context->pages;
+		list.reserve(old_list.size() + new_list.size());
+		const std::unordered_map<uint32_t, float> update_pages(cached->update_pages.begin(), cached->update_pages.end());
+		
+		size_t i = 0;
+		size_t k = 0;
+		while(true) {
+			if(k < new_list.size()) {
+				const auto& entry_k = new_list[k];
+				if(i >= old_list.size() || entry_k.first >= old_list[i].second) {
+					list.emplace_back(entry_k.second, entry_k.first);
+					k++;
+					continue;
+				}
+			} else if(i >= old_list.size()) {
+				break;
+			}
+			const auto& entry_i = old_list[i];
+			const auto page_id = entry_i.first;
+			if(page_id && !update_pages.count(page_id)) {
+				list.emplace_back(entry_i);
+			}
+			i++;
+		}
+	} else {
+		list.reserve(new_list.size());
+		for(const auto& entry : new_list) {
+			list.emplace_back(entry.second, entry.first);
+		}
 	}
 	job->result = result;
 	job->num_pages = list.size();
