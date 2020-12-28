@@ -11,6 +11,7 @@
 #include <vnx/vnx.h>
 #include <vnx/Terminal.h>
 #include <vnx/Server.h>
+#include <vnx/Proxy.h>
 #include <vnx/TcpEndpoint.hxx>
 
 

@@ -10,6 +10,7 @@
 #include <vnx/vnx.h>
 #include <vnx/Terminal.h>
 #include <vnx/Server.h>
+#include <vnx/Proxy.h>
 
 
 int main(int argc, char** argv)
