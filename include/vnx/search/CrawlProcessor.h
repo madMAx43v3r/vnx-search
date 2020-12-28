@@ -87,9 +87,9 @@ protected:
 	};
 	
 	struct url_update_job_t {
-		std::string new_scheme;
 		int new_depth;
-		UrlInfo info;
+		std::string new_scheme;
+		std::shared_ptr<const UrlInfo> info;
 	};
 	
 	void init() override;
@@ -151,7 +151,7 @@ private:
 	void url_update(	const std::string& url_key,
 						const std::string& new_scheme,
 						const int new_depth,
-						const UrlInfo& info);
+						std::shared_ptr<const UrlInfo> info);
 	
 	void url_update_callback(	std::shared_ptr<url_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
@@ -160,13 +160,13 @@ private:
 								robots_txt_state_e missing_state,
 								std::shared_ptr<const keyvalue::Entry> value);
 	
-	void url_fetch_error(const std::string& url, const std::exception& ex);
+	void url_fetch_error(const std::string& url, const vnx::exception& ex);
 	
-	void url_index_error(uint64_t request_id, const std::exception& ex);
+	void url_index_error(uint64_t request_id, const vnx::exception& ex);
 	
-	void page_index_error(uint64_t request_id, const std::exception& ex);
+	void page_index_error(uint64_t request_id, const vnx::exception& ex);
 	
-	void page_content_error(uint64_t request_id, const std::exception& ex);
+	void page_content_error(uint64_t request_id, const vnx::exception& ex);
 	
 	void publish_stats();
 	

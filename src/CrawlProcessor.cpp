@@ -246,7 +246,7 @@ void CrawlProcessor::process_callback(std::shared_ptr<process_job_t> job)
 	if(job->is_reprocess) {
 		reproc_counter++;
 	} else {
-		url_update(job->org_url_key, job->org_scheme, job->depth, *job->info);
+		url_update(job->org_url_key, job->org_scheme, job->depth, job->info);
 		check_page(job->depth, job->url_key, job->index);
 	}
 	log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
@@ -675,7 +675,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 		url_index_async->get_value(Variant(job->url_key),
 				std::bind(&CrawlProcessor::check_process_new, this, job, std::placeholders::_1));
 	} else {
-		url_update(org_url_key, org_scheme, entry.depth, *result);
+		url_update(org_url_key, org_scheme, entry.depth, result);
 	}
 	
 	if(!result->redirect.empty())
@@ -692,8 +692,8 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			if(		result->redirect.size() <= max_url_length
 				&&	filter_url(parsed_redir))
 			{
-				UrlInfo info = *result;
-				info.redirect.clear();
+				auto info = std::make_shared<UrlInfo>(*result);
+				info->redirect.clear();
 				url_update(new_url_key, parsed_redir.scheme(), entry.depth, info);
 			}
 		}
@@ -719,7 +719,7 @@ void CrawlProcessor::check_process_new(	std::shared_ptr<process_job_t> job,
 void CrawlProcessor::url_update(	const std::string& url_key,
 									const std::string& new_scheme,
 									const int new_depth,
-									const UrlInfo& info)
+									std::shared_ptr<const UrlInfo> info)
 {
 	auto job = std::make_shared<url_update_job_t>();
 	job->new_scheme = new_scheme;
@@ -740,7 +740,7 @@ void CrawlProcessor::url_update_callback(	std::shared_ptr<url_update_job_t> job,
 	} else {
 		index = UrlIndex::create();
 	}
-	index->UrlInfo::operator=(job->info);
+	index->UrlInfo::operator=(*job->info);
 	index->scheme = job->new_scheme;
 	index->depth = job->new_depth;
 	
@@ -754,7 +754,7 @@ void CrawlProcessor::url_update_callback(	std::shared_ptr<url_update_job_t> job,
 	url_index_async->store_value_delay(entry->key, index, commit_delay * 1000);
 }
 
-void CrawlProcessor::url_fetch_error(const std::string& url, const std::exception& ex)
+void CrawlProcessor::url_fetch_error(const std::string& url, const vnx::exception& ex)
 {
 	const Url::Url parsed(url);
 	const auto url_key = get_url_key(parsed);
@@ -762,16 +762,13 @@ void CrawlProcessor::url_fetch_error(const std::string& url, const std::exceptio
 	
 	log(WARN).out << "fetch('" << url << "'): " << ex.what();
 	
-	auto vnx_except = dynamic_cast<const vnx::exception*>(&ex);
-	if(vnx_except) {
-		if(std::dynamic_pointer_cast<const NoSuchService>(vnx_except->value())) {
-			enqueue(url, entry.depth);
-		} else {
-			UrlInfo info;
-			info.last_fetched = std::time(0);
-			info.is_fail = true;
-			url_update(url_key, parsed.scheme(), entry.depth, info);
-		}
+	if(std::dynamic_pointer_cast<const NoSuchService>(ex.value())) {
+		enqueue(url, entry.depth);
+	} else {
+		auto info = UrlInfo::create();
+		info->last_fetched = std::time(0);
+		info->is_fail = true;
+		url_update(url_key, parsed.scheme(), entry.depth, info);
 	}
 }
 
@@ -801,17 +798,17 @@ void CrawlProcessor::robots_txt_callback(	const std::string& url_key,
 	}
 }
 
-void CrawlProcessor::url_index_error(uint64_t request_id, const std::exception& ex)
+void CrawlProcessor::url_index_error(uint64_t request_id, const vnx::exception& ex)
 {
 	log(WARN).out << "UrlIndex: " << ex.what();
 }
 
-void CrawlProcessor::page_index_error(uint64_t request_id, const std::exception& ex)
+void CrawlProcessor::page_index_error(uint64_t request_id, const vnx::exception& ex)
 {
 	log(WARN).out << "PageIndex: " << ex.what();
 }
 
-void CrawlProcessor::page_content_error(uint64_t request_id, const std::exception& ex)
+void CrawlProcessor::page_content_error(uint64_t request_id, const vnx::exception& ex)
 {
 	log(WARN).out << "PageContent: " << ex.what();
 }
