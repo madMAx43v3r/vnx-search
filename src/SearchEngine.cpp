@@ -897,7 +897,12 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 				new_job->rem_words.push_back(entry.first);
 			}
 		}
-		p_info_cache->rank_update_job = new_job;
+		if(info && p_info_cache->add_reverse_links.empty()) {
+			new_job->info = info;
+			update_page_rank(new_job);
+		} else {
+			p_info_cache->rank_update_job = new_job;
+		}
 	}
 }
 
