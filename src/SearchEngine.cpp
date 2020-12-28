@@ -889,14 +889,15 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		auto new_job = std::make_shared<rank_update_job_t>();
 		new_job->url_key = url_key;
 		new_job->page_id = page_id;
-		new_job->word_version = job->index_version;
-		
 		for(const auto& entry : job->words) {
 			if(entry.second >= 0) {
 				new_job->update_words.push_back(entry.first);
 			} else {
 				new_job->rem_words.push_back(entry.first);
 			}
+		}
+		if(!info || job->index_version != info->word_version) {
+			new_job->word_version = job->index_version;
 		}
 		if(info && p_info_cache->add_reverse_links.empty()) {
 			new_job->info = info;
@@ -1219,9 +1220,12 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 					}
 					if(p_page_cache->pending.empty())
 					{
-						auto cached = get_info_cache(p_page_cache->url_key);
-						cached->word_version = p_page_cache->word_version;
-						cached->words = std::move(p_page_cache->words);
+						if(const auto word_version = p_page_cache->word_version)
+						{
+							auto cached = get_info_cache(p_page_cache->url_key);
+							cached->word_version = word_version;
+							cached->words = std::move(p_page_cache->words);
+						}
 						page_cache.erase(iter);
 					}
 				}
