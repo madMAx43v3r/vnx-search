@@ -824,18 +824,17 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	if(url_index) {
 		page.first_seen = url_index->first_seen;
 	}
+	auto p_info_cache = get_info_cache(url_key);
 	
 	if(job->update_info)
 	{
-		auto cached = get_info_cache(url_key);
-		cached->page_id = page_id;
-		cached->is_deleted = 0;
-		cached->index_version = job->index_version;
+		p_info_cache->page_id = page_id;
+		p_info_cache->is_deleted = 0;
+		p_info_cache->index_version = job->index_version;
 	}
 	if(job->update_links)
 	{
 		std::map<std::string, page_link_t> new_links;
-		auto p_info_cache = get_info_cache(url_key);
 		p_info_cache->version = 1;
 		p_info_cache->link_version = job->index_version;
 		
@@ -889,7 +888,6 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 	{
 		auto new_job = std::make_shared<rank_update_job_t>();
 		new_job->url_key = url_key;
-		new_job->page_id = page_id;
 		new_job->word_version = job->index_version;
 		
 		for(const auto& entry : job->words) {
@@ -899,17 +897,14 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 				new_job->rem_words.push_back(entry.first);
 			}
 		}
-		if(info) {
-			new_job->reverse_links = info->reverse_links;
-		}
-		update_page_rank(new_job);
+		p_info_cache->rank_update_job = new_job;
 	}
 }
 
 void SearchEngine::update_page_rank(std::shared_ptr<rank_update_job_t> job)
 {
 	std::vector<std::string> url_keys;
-	for(const auto& link : job->reverse_links) {
+	for(const auto& link : job->info->reverse_links) {
 		url_keys.push_back(link.url_key);
 	}
 	search_async->get_page_ranks(url_keys, reset_rank_values,
@@ -919,31 +914,30 @@ void SearchEngine::update_page_rank(std::shared_ptr<rank_update_job_t> job)
 void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t> job,
 												std::vector<float> rank_values)
 {
-	float rank_value = 0;
-	auto* page = find_page(job->page_id);
-	if(page) {
-		rank_value = page->reverse_domains;
-	}
+	const auto info = job->info;
+	float rank_value = info->reverse_domains.size();
 	std::unordered_map<uint32_t, float> word_rank;
 	
 	for(size_t i = 0; i < rank_values.size(); ++i)
 	{
 		const auto value = rank_values[i];
-		const auto& link = job->reverse_links[i];
+		const auto& link = info->reverse_links[i];
 		for(const auto word_id : link.words) {
 			auto& word_value = word_rank[word_id];
 			word_value = fmaxf(word_value, value / rank_decay);
 		}
 		rank_value = fmaxf(rank_value, value * rank_decay);
 	}
-	if(page) {
-		page->next_rank_update = vnx::get_wall_time_seconds() + get_rank_update_interval(rank_value);
-		rank_update_queue.emplace(page->next_rank_update, page->id);
-	}
 	auto p_info_cache = get_info_cache(job->url_key);
 	p_info_cache->rank_value = rank_value;
 	
-	if(page_cache.count(job->page_id)) {
+	if(auto* page = find_page(info->id)) {
+		page->next_rank_update = vnx::get_wall_time_seconds() + get_rank_update_interval(rank_value);
+		rank_update_queue.emplace(page->next_rank_update, page->id);
+	} else {
+		return;
+	}
+	if(page_cache.count(info->id)) {
 		log(WARN) << "Previous rank update not yet finished for: " << job->url_key << " (rank_value = " << rank_value << ")";
 		return;
 	}
@@ -954,7 +948,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 	for(const auto word_id : job->rem_words) {
 		try {
 			auto cached = get_word_cache(word_id);
-			cached->update_pages.emplace_back(job->page_id, -1);
+			cached->update_pages.emplace_back(info->id, -1);
 			p_page_cache->pending[word_id] = false;
 		} catch(const std::exception& ex) {
 			log(WARN) << ex.what();
@@ -970,7 +964,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 				}
 			}
 			auto cached = get_word_cache(word_id);
-			cached->update_pages.emplace_back(job->page_id, value);
+			cached->update_pages.emplace_back(info->id, value);
 			p_page_cache->pending[word_id] = true;
 		} catch(const std::exception& ex) {
 			log(WARN) << ex.what();
@@ -980,7 +974,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 		p_info_cache->word_version = job->word_version;
 		p_info_cache->words.clear();
 	} else {
-		page_cache[job->page_id] = p_page_cache;
+		page_cache[info->id] = p_page_cache;
 	}
 }
 
@@ -1057,9 +1051,8 @@ void SearchEngine::check_info_queue()
 							if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
 								auto job = std::make_shared<rank_update_job_t>();
 								job->url_key = url_key;
-								job->page_id = info->id;
+								job->info = info;
 								job->update_words = info->words;
-								job->reverse_links = info->reverse_links;
 								update_page_rank(job);
 							}
 						});
@@ -1118,6 +1111,9 @@ void SearchEngine::info_update_callback_0(	std::shared_ptr<info_cache_t> cached,
 		if(cached->page_id) {
 			info->id = cached->page_id;
 		}
+		if(cached->version) {
+			info->version = cached->version;
+		}
 		if(cached->rank_value >= 0) {
 			info->rank_value = cached->rank_value;
 			info->last_updated = vnx::get_wall_time_seconds();
@@ -1175,6 +1171,10 @@ void SearchEngine::info_update_callback(std::shared_ptr<info_update_job_t> job)
 	page_info_async->store_value_delay(Variant(cached->url_key), job->result,
 			(cached->link_version || cached->is_deleted > 0) ? commit_delay * 1000 : 0);
 	
+	if(auto new_job = cached->rank_update_job) {
+		new_job->info = job->result;
+		update_page_rank(new_job);
+	}
 	if(cached->word_version) {
 		page_update_counter++;
 	}

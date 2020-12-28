@@ -78,6 +78,14 @@ protected:
 		std::string url_key;
 	};
 	
+	struct rank_update_job_t {
+		std::string url_key;
+		uint64_t word_version = 0;
+		std::vector<uint32_t> rem_words;
+		std::vector<uint32_t> update_words;
+		std::shared_ptr<const PageInfo> info;
+	};
+	
 	struct page_cache_t {
 		uint64_t word_version = 0;
 		std::string url_key;
@@ -107,6 +115,7 @@ protected:
 		std::vector<std::string> rem_reverse_links;
 		std::vector<reverse_link_t> add_reverse_links;
 		std::vector<uint32_t> words;
+		std::shared_ptr<rank_update_job_t> rank_update_job;
 	};
 	
 	struct page_update_job_t {
@@ -123,15 +132,6 @@ protected:
 		std::map<std::string, std::string> redirects;
 		std::map<uint32_t, int> words;
 		std::vector<std::string> new_words;
-	};
-	
-	struct rank_update_job_t {
-		std::string url_key;
-		uint32_t page_id = 0;
-		uint64_t word_version = 0;
-		std::vector<uint32_t> rem_words;
-		std::vector<uint32_t> update_words;
-		std::vector<reverse_link_t> reverse_links;
 	};
 	
 	struct info_update_job_t {
