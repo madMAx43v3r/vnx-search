@@ -496,7 +496,7 @@ void SearchEngine::redirect_callback(	const std::string& org_url_key,
 
 int64_t SearchEngine::get_rank_update_interval(float rank_value) const
 {
-	return rank_update_interval * 60 * (1000 / fmaxf(rank_value, 1));
+	return rank_update_interval * 60 * std::max(1000. / std::max(rank_value, 1.f), 1.);
 }
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
