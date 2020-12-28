@@ -1395,8 +1395,9 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 	if(context) {
 		list.reserve(context->pages.size() + list.size());
 		for(const auto& entry : context->pages) {
-			if(!update_pages.count(entry.first)) {
-				list.emplace_back(entry.second, entry.first);
+			const auto page_id = entry.first;
+			if(page_id && !update_pages.count(page_id)) {
+				list.emplace_back(entry.second, page_id);
 			}
 		}
 	}
