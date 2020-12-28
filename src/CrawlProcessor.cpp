@@ -159,11 +159,13 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 	const Url::Url base(job->base_url);
 	googlebot::RobotsMatcher matcher;
 	
-	for(const auto& word : word_set)
+	for(const auto& entry : word_set)
 	{
-		if(word.first.size() <= max_word_length) {
-			index->words.emplace_back(word.first, std::min(word.second, size_t(0xFFFF)));
-			index->word_count += word.second;
+		const auto& word = entry.first;
+		const auto& count = entry.second;
+		if(word.size() <= max_word_length) {
+			index->words.emplace_back(word, std::min(count, size_t(0xFFFF)));
+			index->word_count += count;
 		}
 	}
 	
