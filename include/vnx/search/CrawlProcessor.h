@@ -73,13 +73,15 @@ protected:
 		int depth = -1;
 		bool is_modified = true;
 		bool is_reprocess = false;
+		std::string org_scheme;
 		std::string url_key;
+		std::string org_url_key;
 		std::string content;
 		std::string base_url;
 		std::vector<page_link_t> links;
 		std::vector<image_link_t> images;
 		std::shared_ptr<PageIndex> index;
-		std::shared_ptr<const FetchResult> result;
+		std::shared_ptr<const UrlInfo> info;
 		std::shared_ptr<const TextResponse> response;
 		std::shared_ptr<const PageContent> robots;
 	};

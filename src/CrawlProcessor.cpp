@@ -246,6 +246,7 @@ void CrawlProcessor::process_callback(std::shared_ptr<process_job_t> job)
 	if(job->is_reprocess) {
 		reproc_counter++;
 	} else {
+		url_update(job->org_url_key, job->org_scheme, job->depth, *job->info);
 		check_page(job->depth, job->url_key, job->index);
 	}
 	log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
@@ -657,21 +658,25 @@ CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key,
 void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result)
 {
 	const Url::Url parsed(url);
+	const auto org_scheme = parsed.scheme();
 	const auto org_url_key = get_url_key(parsed);
 	const auto entry = url_fetch_done(org_url_key, result->is_fail);
 	
-	if(result->response)
+	if(auto response = result->response)
 	{
 		auto job = std::make_shared<process_job_t>();
 		job->depth = entry.depth;
-		job->url_key = get_url_key(result->response->url);
-		job->result = result;
-		job->response = result->response;
+		job->org_scheme = org_scheme;
+		job->url_key = get_url_key(response->url);
+		job->org_url_key = org_url_key;
+		job->info = result;
+		job->response = response;
 		
 		url_index_async->get_value(Variant(job->url_key),
 				std::bind(&CrawlProcessor::check_process_new, this, job, std::placeholders::_1));
+	} else {
+		url_update(org_url_key, org_scheme, entry.depth, *result);
 	}
-	url_update(org_url_key, parsed.scheme(), entry.depth, *result);
 	
 	if(!result->redirect.empty())
 	{
@@ -698,12 +703,13 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 void CrawlProcessor::check_process_new(	std::shared_ptr<process_job_t> job,
 										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	if(auto previous = std::dynamic_pointer_cast<const UrlIndex>(entry->value))
+	if(auto previous = std::dynamic_pointer_cast<const UrlInfo>(entry->value))
 	{
-		if(job->result->last_fetched < previous->last_fetched + reload_interval / 2) {
+		auto info = job->info;
+		if(info->last_fetched < previous->last_fetched + reload_interval / 2) {
 			return;		// premature reload
 		}
-		job->is_modified = job->result->last_modified != previous->last_modified;
+		job->is_modified = info->last_modified != previous->last_modified;
 	} else {
 		job->is_modified = true;
 	}
