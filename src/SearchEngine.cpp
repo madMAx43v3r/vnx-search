@@ -1324,6 +1324,7 @@ void SearchEngine::link_update_task(std::shared_ptr<info_update_job_t> job) noex
 		for(const auto& link : info->reverse_links) {
 			info->reverse_domains[Url::Url(link.url_key).host()]++;
 		}
+		info->rank_value = fmaxf(info->rank_value, info->reverse_domains.size());
 	}
 	add_task(std::bind(&SearchEngine::info_update_callback, this, job));
 }
