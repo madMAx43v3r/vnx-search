@@ -97,8 +97,7 @@ void QueryEngine::query_callback_0(	std::shared_ptr<query_job_t> job,
 	{
 		int i = 0;
 		for(auto entry : entries) {
-			auto context = std::dynamic_pointer_cast<const WordContext>(entry->value);
-			if(context) {
+			if(auto context = std::dynamic_pointer_cast<const WordContext>(entry->value)) {
 				job->word_context.push_back(context);
 				job->word_set[context->id] = i;
 				job->result->words.push_back(entry->key.to_string_value());
@@ -137,7 +136,8 @@ void QueryEngine::query_callback_1(	std::shared_ptr<query_job_t> job) const
 			for(; job->pivot_offset + job->pivot_size < pivot.size()
 					&& job->pivot_size < size_t(max_pivot_size); ++job->pivot_size)
 			{
-				job->page_hits[pivot[job->pivot_offset + job->pivot_size]] = 1;
+				const auto& entry = pivot[job->pivot_offset + job->pivot_size];
+				job->page_hits[entry.first] = std::make_pair(1, entry.second);
 			}
 			job->num_left = num_task;
 			for(size_t i = 0; i < num_task; ++i) {
@@ -145,10 +145,10 @@ void QueryEngine::query_callback_1(	std::shared_ptr<query_job_t> job) const
 			}
 			return;
 		} else {
-			for(auto page_id : pivot) {
+			for(const auto& entry : pivot) {
 				const auto index = job->num_found++;
 				if(index < job->found.size()) {
-					job->found[index] = page_id;
+					job->found[index] = entry;
 				} else {
 					break;
 				}
@@ -165,7 +165,14 @@ void QueryEngine::query_callback_1(	std::shared_ptr<query_job_t> job) const
 	if(job->num_found >= job->found.size()) {
 		job->result->has_more = true;
 	}
-	search_engine_async->get_page_entries(job->found,
+	if(job->num_found < job->found.size()) {
+		job->found.resize(job->num_found);
+	}
+	std::vector<uint32_t> page_ids;
+	for(const auto& entry : job->found) {
+		page_ids.push_back(entry.first);
+	}
+	search_engine_async->get_page_entries(page_ids,
 			std::bind(&QueryEngine::query_callback_2, this, job, std::placeholders::_1),
 			job->error_callback);
 }
@@ -180,32 +187,33 @@ void QueryEngine::query_callback_2(std::shared_ptr<query_job_t> job,
 		job->result->timing_info["get_page_entries"] = delta;
 		job->time_begin = now;
 	}
-	std::multimap<float, const page_entry_t*, std::greater<float>> selected;
+	std::multimap<float, result_t, std::greater<float>> selected;
 	
-	for(const auto& entry : entries) {
-		limited_emplace(selected, entry.rank_value, &entry, job->options.max_results);
-	}
-	for(const auto& pair : selected)
+	for(size_t i = 0; i < entries.size(); ++i)
 	{
-		const auto* entry = pair.second;
-		const Url::Url parsed(entry->url);
+		const auto& entry = entries[i];
+		const auto& found = job->found[i];
+		const Url::Url parsed(entry.url);
 		auto& domain_id = job->domain_set[parsed.host()];
 		if(!domain_id) {
 			domain_id = job->domain_set.size();
 		}
 		result_t item;
-		item.page_id = entry->id;
+		item.page_id = entry.id;
 		item.domain_id = domain_id;
 		item.scheme = parsed.scheme();
 		item.url_key = get_url_key(parsed);
-		item.score = entry->rank_value;
-		job->items.push_back(item);
+		item.score = found.second;
+		limited_emplace(selected, item.score, item, job->options.max_results);
 	}
-	std::vector<Variant> keys;
+	for(auto& entry : selected) {
+		job->items.emplace_back(std::move(entry.second));
+	}
+	std::vector<Variant> url_keys;
 	for(const auto& item : job->items) {
-		keys.emplace_back(item.url_key);
+		url_keys.emplace_back(item.url_key);
 	}
-	word_array_async->get_values(keys,
+	word_array_async->get_values(url_keys,
 			std::bind(&QueryEngine::query_callback_3, this, job, std::placeholders::_1),
 			job->error_callback);
 }
@@ -354,13 +362,16 @@ void QueryEngine::query_callback_6( std::shared_ptr<query_job_t> job,
 void QueryEngine::query_task_0(std::shared_ptr<query_job_t> job, size_t index) const noexcept
 {
 	const uint32_t num_words = job->word_context.size();
-	for(auto page_id : job->sorted_context[index]->pages) {
+	for(const auto& entry : job->sorted_context[index]->pages) {
+		const auto page_id = entry.first;
 		const auto iter = job->page_hits.find(page_id);
 		if(iter != job->page_hits.end()) {
-			if(++iter->second == num_words) {
+			auto& page = iter->second;
+			page.second += entry.second;
+			if(++page.first == num_words) {
 				const auto offset = job->num_found++;
 				if(offset < job->found.size()) {
-					job->found[offset] = page_id;
+					job->found[offset] = std::make_pair(page_id, float(page.second) / num_words);
 				} else {
 					break;
 				}

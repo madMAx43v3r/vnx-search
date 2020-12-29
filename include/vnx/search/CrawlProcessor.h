@@ -71,22 +71,28 @@ protected:
 	
 	struct process_job_t {
 		int depth = -1;
+		bool is_modified = true;
 		bool is_reprocess = false;
+		bool is_finished = false;
+		bool content_stored = false;
+		bool index_stored = false;
+		std::string org_scheme;
 		std::string url_key;
+		std::string org_url_key;
 		std::string content;
 		std::string base_url;
-		std::vector<std::string> links;
-		std::vector<std::string> images;
+		std::vector<page_link_t> links;
+		std::vector<image_link_t> images;
 		std::shared_ptr<PageIndex> index;
-		std::shared_ptr<const FetchResult> result;
+		std::shared_ptr<const UrlInfo> info;
 		std::shared_ptr<const TextResponse> response;
 		std::shared_ptr<const PageContent> robots;
 	};
 	
 	struct url_update_job_t {
-		std::string new_scheme;
 		int new_depth;
-		UrlInfo info;
+		std::string new_scheme;
+		std::shared_ptr<const UrlInfo> info;
 	};
 	
 	void init() override;
@@ -101,6 +107,13 @@ private:
 	void process_new(std::shared_ptr<process_job_t> job);
 	void process_task(std::shared_ptr<process_job_t> job) noexcept;
 	void process_callback(std::shared_ptr<process_job_t> job);
+	
+	bool process_link(	const Url::Url& url,
+						const Url::Url& base,
+						const Url::Url& parent,
+						googlebot::RobotsMatcher& matcher,
+						std::shared_ptr<const PageContent> robots,
+						std::string& result) const;
 	
 	void delete_page(const std::string& url_key);
 	
@@ -131,7 +144,9 @@ private:
 	
 	void url_fetch_callback(const std::string& url, std::shared_ptr<const FetchResult> result);
 	
-	void check_result_callback(	std::shared_ptr<process_job_t> job,
+	void check_process_job(	std::shared_ptr<process_job_t> job);
+	
+	void check_process_new(	std::shared_ptr<process_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void reproc_page_callback(	const std::string& url_key,
@@ -141,7 +156,7 @@ private:
 	void url_update(	const std::string& url_key,
 						const std::string& new_scheme,
 						const int new_depth,
-						const UrlInfo& info);
+						std::shared_ptr<const UrlInfo> info);
 	
 	void url_update_callback(	std::shared_ptr<url_update_job_t> job,
 								std::shared_ptr<const keyvalue::Entry> entry);
@@ -150,13 +165,13 @@ private:
 								robots_txt_state_e missing_state,
 								std::shared_ptr<const keyvalue::Entry> value);
 	
-	void url_fetch_error(const std::string& url, const std::exception& ex);
+	void url_fetch_error(const std::string& url, const vnx::exception& ex);
 	
-	void url_index_error(uint64_t request_id, const std::exception& ex);
+	void url_index_error(uint64_t request_id, const vnx::exception& ex);
 	
-	void page_index_error(uint64_t request_id, const std::exception& ex);
+	void page_index_error(uint64_t request_id, const vnx::exception& ex);
 	
-	void page_content_error(uint64_t request_id, const std::exception& ex);
+	void page_content_error(uint64_t request_id, const vnx::exception& ex);
 	
 	void publish_stats();
 	

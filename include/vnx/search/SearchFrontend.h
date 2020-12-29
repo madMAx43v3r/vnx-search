@@ -21,9 +21,15 @@ protected:
 	
 	void main() override;
 	
-	void http_request_async(const std::shared_ptr<const addons::HttpRequest>& request,
+	void http_request_async(std::shared_ptr<const addons::HttpRequest> request,
 							const std::string& sub_path,
 							const vnx::request_id_t& req_id) const override;
+	
+	void http_request_chunk_async(	std::shared_ptr<const addons::HttpRequest> request,
+									const std::string& sub_path,
+									const int64_t& offset,
+									const int64_t& max_bytes,
+									const vnx::request_id_t& req_id) const override;
 	
 	void query_callback(const vnx::request_id_t& req_id,
 						std::shared_ptr<const SearchResult> result) const;

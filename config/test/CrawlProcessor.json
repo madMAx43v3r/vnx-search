@@ -1,5 +1,6 @@
 {
 	"max_depth": 9,
-	"index_version": 1,
-	"root_urls": ["https://heise.de/"]
+	"reload_power": 2,
+	"reload_interval": 900,
+	"root_urls": ["https://www.heise.de/"]
 }

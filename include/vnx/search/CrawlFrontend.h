@@ -25,9 +25,11 @@ public:
 	struct request_t {
 		std::string url;
 		Url::Url parsed_url = Url::Url("");
-		std::vector<std::string> accept_content;
+		std::set<std::string> accept_content;
 		vnx::request_id_t req_id;
 		uint64_t parse_id = 0;
+		bool is_fetch = false;
+		UrlInfo info;
 		std::shared_ptr<FetchResult> result;
 	};
 	
@@ -45,7 +47,7 @@ protected:
 	void main() override;
 	
 	void load_async(const std::string& url,
-					const vnx::request_id_t& _request_id) const override;
+					const vnx::request_id_t& req_id) const override;
 	
 	void fetch_async(	const std::string& url,
 						const vnx::request_id_t& req_id) const override;
@@ -72,7 +74,6 @@ private:
 	static size_t write_callback(char* buf, size_t size, size_t len, void* userdata);
 	
 private:
-	Hash64 unique_service;
 	std::shared_ptr<ThreadPool> work_threads;
 	
 	mutable std::mutex work_mutex;

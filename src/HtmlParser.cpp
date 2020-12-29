@@ -50,21 +50,37 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	for(auto child : node->get_children()) {
 		parse_node(child, result);
 	}
-	auto element = dynamic_cast<const xmlpp::Element*>(node);
-	if(element) {
+	if(auto element = dynamic_cast<const xmlpp::Element*>(node))
+	{
 		if(node->get_name() == "a") {
-			const auto href = element->get_attribute("href");
-			if(href) {
-				std::string link(href->get_value());
-				result->links.push_back(clean(trim(link)));
+			page_link_t link;
+			if(auto* href = element->get_attribute("href")) {
+				std::string tmp(href->get_value());
+				link.url = clean(trim(tmp));
 			}
+			if(auto* text = element->get_child_text()) {
+				std::string tmp(text->get_content());
+				link.text = clean(trim(tmp));
+			}
+			result->links.push_back(link);
 		}
 		if(node->get_name() == "img") {
-			const auto src = element->get_attribute("src");
-			if(src) {
-				std::string link(src->get_value());
-				result->images.push_back(clean(trim(link)));
+			image_link_t link;
+			if(auto* src = element->get_attribute("src")) {
+				std::string tmp(src->get_value());
+				link.url = clean(trim(tmp));
 			}
+			if(auto* alt = element->get_attribute("alt")) {
+				std::string tmp(alt->get_value());
+				link.text = clean(trim(tmp));
+			}
+			if(auto* width = element->get_attribute("width")) {
+				vnx::from_string(width->get_value(), link.width);
+			}
+			if(auto* height = element->get_attribute("height")) {
+				vnx::from_string(height->get_value(), link.height);
+			}
+			result->images.push_back(link);
 		}
 	}
 	if(node->get_name() == "br") {
@@ -75,8 +91,8 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 	}
 	if(parent_name != "script" && parent_name != "style")
 	{
-		auto text = dynamic_cast<const xmlpp::TextNode*>(node);
-		if(text) {
+		if(auto* text = dynamic_cast<const xmlpp::TextNode*>(node))
+		{
 			result->text += text->get_content();
 			if(!text->is_white_space()) {
 				result->text += " ";
@@ -86,7 +102,7 @@ static void parse_node(const xmlpp::Node* node, std::shared_ptr<TextResponse> re
 }
 
 std::shared_ptr<const TextResponse>
-HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
+HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 {
 	auto result = TextResponse::create();
 	result->Response::operator=(*response);
@@ -110,13 +126,14 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	const auto meta = root->find("//head/meta");
 	for(auto node : meta) {
-		auto element = dynamic_cast<const xmlpp::Element*>(node);
-		if(element) {
+		if(auto element = dynamic_cast<const xmlpp::Element*>(node)) {
 			if(element->get_attribute_value("http-equiv") == "Refresh") {
 				const std::string content = element->get_attribute_value("content");
 				auto pos = content.find("url=");
 				if(pos != std::string::npos) {
-					result->links.push_back(content.substr(pos + 4));
+					page_link_t link;
+					link.url = content.substr(pos + 4);
+					result->links.push_back(link);
 				}
 			}
 		}
@@ -124,10 +141,8 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	const auto title = root->find("//head/title");
 	if(!title.empty()) {
-		auto element = dynamic_cast<const xmlpp::Element*>(title[0]);
-		if(element) {
-			auto text = element->get_child_text();
-			if(text) {
+		if(auto element = dynamic_cast<const xmlpp::Element*>(title[0])) {
+			if(auto text = element->get_child_text()) {
 				result->title = text->get_content();
 				trim(result->title);
 				clean(result->title);
@@ -139,10 +154,8 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	const auto base = root->find("//head/base");
 	if(!base.empty()) {
-		auto element = dynamic_cast<const xmlpp::Element*>(base[0]);
-		if(element) {
-			auto href = element->get_attribute("href");
-			if(href) {
+		if(auto element = dynamic_cast<const xmlpp::Element*>(base[0])) {
+			if(auto href = element->get_attribute("href")) {
 				result->base_url = href->get_value();
 			}
 		}
@@ -155,9 +168,34 @@ HtmlParser::parse(const std::shared_ptr<const HttpResponse>& response) const
 	
 	delete doc_pp;
 	
-	result->links = unique(result->links);
-	result->images = unique(result->images);
+	std::map<std::string, page_link_t> links;
+	std::map<std::string, image_link_t> images;
 	
+	for(const auto& link : result->links) {
+		auto& dst = links[link.url];
+		dst.url = link.url;
+		if(!link.text.empty()) {
+			dst.text += (dst.text.empty() ? "" : " | ") + link.text;
+		}
+	}
+	for(const auto& link : result->images) {
+		auto& dst = images[link.url];
+		dst.url = link.url;
+		dst.width = std::max(dst.width, link.width);
+		dst.height = std::max(dst.height, link.height);
+		if(!link.text.empty()) {
+			dst.text += (dst.text.empty() ? "" : " | ") + link.text;
+		}
+	}
+	result->links.clear();
+	result->images.clear();
+	
+	for(const auto& entry : links) {
+		result->links.push_back(entry.second);
+	}
+	for(const auto& entry : images) {
+		result->images.push_back(entry.second);
+	}
 	return result;
 }
 

@@ -1,0 +1,14 @@
+package vnx.search;
+
+struct page_link_t {
+	
+	string url;
+	
+	string text;
+	
+	vector<string> words;
+	
+	
+	void vnx_read_fallback(vnx.Variant var);
+	
+}

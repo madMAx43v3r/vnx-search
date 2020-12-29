@@ -1,0 +1,12 @@
+package vnx.search;
+
+struct reverse_link_t {
+	
+	string url_key;
+	
+	vector<uint> words;			// word ids of link text
+	
+	
+	void vnx_read_fallback(vnx.Variant var);
+	
+}

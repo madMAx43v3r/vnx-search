@@ -1,0 +1,12 @@
+package vnx.search;
+
+struct image_link_t extends page_link_t {
+	
+	int width = -1;
+	
+	int height = -1;
+	
+	
+	void vnx_read_fallback(vnx.Variant var);
+	
+}

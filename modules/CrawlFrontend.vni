@@ -18,7 +18,7 @@ module CrawlFrontend {
 	string user_agent = "Mozilla/5.0";
 	
 	
-	UrlInfo load(string url) const async;				// generic load
+	LoadResult* load(string url) const async;			// generic load
 	
 	FetchResult* fetch(string url) const async;			// crawl fetch
 	

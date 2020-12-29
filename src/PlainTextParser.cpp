@@ -35,7 +35,7 @@ void PlainTextParser::update()
 }
 
 std::shared_ptr<const TextResponse>
-PlainTextParser::parse(const std::shared_ptr<const HttpResponse>& response) const
+PlainTextParser::parse(std::shared_ptr<const HttpResponse> response) const
 {
 	auto result = TextResponse::create();
 	result->Response::operator=(*response);

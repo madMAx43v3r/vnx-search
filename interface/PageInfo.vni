@@ -4,11 +4,13 @@ class PageInfo {
 	
 	uint id;						// page id (0 = not loaded yet)
 	
+	ushort version;
+	
 	bool is_deleted;
 	
 	float rank_value;				// page rank
 	
-	ulong last_updated;				// posix timestamp [sec]
+	long last_updated;				// posix timestamp (regarding rank value) [sec]
 	
 	ulong index_version;			// version regarding title, etc
 	ulong link_version;				// version regarding links
@@ -18,7 +20,7 @@ class PageInfo {
 	vector<uint> words;						// word ids
 	
 	vector<string> links;					// url key
-	vector<string> reverse_links;			// url key
+	vector<reverse_link_t> reverse_links;
 	
 	map<string, int> reverse_domains;		// [domain => page count]
 	
