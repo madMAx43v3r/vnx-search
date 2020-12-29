@@ -431,14 +431,6 @@ std::shared_ptr<SearchEngine::word_cache_t> SearchEngine::get_word_cache(uint32_
 	if(!cache) {
 		cache = std::make_shared<word_cache_t>();
 		cache->word_id = word_id;
-		{
-			auto* word = find_word(word_id);
-			if(word) {
-				cache->word = word->value.str();
-			} else {
-				throw std::logic_error("invalid word_id: " + std::to_string(word_id));
-			}
-		}
 		const int64_t rand_offset = (::rand() * int64_t(word_commit_interval)) / RAND_MAX;
 		word_queue.emplace(vnx::get_wall_time_seconds() + rand_offset, word_id);
 	}
@@ -953,30 +945,24 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 	p_page_cache->url_key = job->url_key;
 	p_page_cache->word_version = job->word_version;
 	
-	for(const auto word_id : job->rem_words) {
-		try {
-			auto cached = get_word_cache(word_id);
-			cached->update_pages.emplace_back(page_id, -1);
-			p_page_cache->pending[word_id] = false;
-		} catch(const std::exception& ex) {
-			log(WARN) << ex.what();
-		}
+	for(const auto word_id : job->rem_words)
+	{
+		auto cached = get_word_cache(word_id);
+		cached->update_pages.emplace_back(page_id, -1);
+		p_page_cache->pending[word_id] = false;
 	}
-	for(const auto word_id : job->update_words) {
-		try {
-			auto value = rank_value;
-			{
-				auto iter = word_rank.find(word_id);
-				if(iter != word_rank.end()) {
-					value = std::max(value, iter->second);
-				}
+	for(const auto word_id : job->update_words)
+	{
+		auto value = rank_value;
+		{
+			auto iter = word_rank.find(word_id);
+			if(iter != word_rank.end()) {
+				value = std::max(value, iter->second);
 			}
-			auto cached = get_word_cache(word_id);
-			cached->update_pages.emplace_back(page_id, value);
-			p_page_cache->pending[word_id] = true;
-		} catch(const std::exception& ex) {
-			log(WARN) << ex.what();
 		}
+		auto cached = get_word_cache(word_id);
+		cached->update_pages.emplace_back(page_id, value);
+		p_page_cache->pending[word_id] = true;
 	}
 	if(p_page_cache->pending.empty()) {
 		p_info_cache->word_version = job->word_version;
@@ -1090,10 +1076,15 @@ void SearchEngine::check_word_queue()
 			const auto iter2 = word_cache.find(word_id);
 			if(iter2 != word_cache.end())
 			{
-				auto job = std::make_shared<word_update_job_t>();
-				job->cached = iter2->second;
-				word_context_async->get_value(Variant(job->cached->word),
-						std::bind(&SearchEngine::word_update_callback, this, job, std::placeholders::_1));
+				if(auto* word = find_word(word_id)) {
+					auto job = std::make_shared<word_update_job_t>();
+					job->word = word->value.str();
+					job->cached = iter2->second;
+					word_context_async->get_value(Variant(job->word),
+							std::bind(&SearchEngine::word_update_callback, this, job, std::placeholders::_1));
+				} else {
+					log(WARN) << "Unknown word_id: " << word_id;
+				}
 				word_cache.erase(iter2);
 			}
 			word_queue.erase(iter);
@@ -1150,13 +1141,10 @@ void SearchEngine::info_update_callback_0(	std::shared_ptr<info_cache_t> cached,
 			page_map.erase(page->url_key);
 			page_index.erase(info->id);
 		}
-		for(const auto word_id : unique(concat(info->words, cached->words))) {
-			try {
-				const auto cache = get_word_cache(word_id);
-				cache->update_pages.emplace_back(info->id, -1);
-			} catch(...) {
-				// ignore
-			}
+		for(const auto word_id : unique(concat(info->words, cached->words)))
+		{
+			const auto cache = get_word_cache(word_id);
+			cache->update_pages.emplace_back(info->id, -1);
 		}
 		word_array_async->delete_value(Variant(cached->url_key));
 		
@@ -1199,7 +1187,7 @@ void SearchEngine::word_update_callback(std::shared_ptr<word_update_job_t> job,
 
 void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 {
-	word_context_async->store_value(Variant(job->cached->word), job->result,
+	word_context_async->store_value(Variant(job->word), job->result,
 		[this, job]() {
 			const auto word_id = job->cached->word_id;
 			for(const auto& entry : job->cached->update_pages)
