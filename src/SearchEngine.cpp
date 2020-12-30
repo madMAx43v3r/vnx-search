@@ -988,8 +988,9 @@ void SearchEngine::check_load_queue()
 			&& url_index_async->vnx_get_num_pending() < max_num_pending
 			&& page_content_async->vnx_get_num_pending() < max_num_pending
 			&& update_threads->get_num_pending() < max_num_pending
-			&& info_cache.size() <= 1.1 * max_info_cache
-			&& word_cache.size() <= 1.1 * max_word_cache)
+			&& info_cache.size() < 1.1 * max_info_cache
+			&& page_cache.size() < 1.1 * max_page_cache
+			&& word_cache.size() < 1.1 * max_word_cache)
 	{
 		if(!load_queue.empty()) {
 			const auto job = load_queue.front();
@@ -1031,8 +1032,9 @@ void SearchEngine::check_info_queue()
 		}
 	}
 	while(!rank_update_queue.empty()
-			&& info_cache.size() < max_info_cache
-			&& word_cache.size() < max_word_cache
+			&& info_cache.size() < 0.9 * max_info_cache
+			&& page_cache.size() < 0.9 * max_page_cache
+			&& word_cache.size() < 0.9 * max_word_cache
 			&& page_info_async->vnx_get_num_pending() < max_num_pending)
 	{
 		const auto iter = rank_update_queue.begin();
@@ -1070,7 +1072,9 @@ void SearchEngine::check_word_queue()
 			&& update_threads->get_num_pending() < max_num_pending)
 	{
 		const auto iter = word_queue.begin();
-		if(now - iter->first >= word_commit_interval || word_cache.size() > max_word_cache)
+		if(now - iter->first >= word_commit_interval
+			|| page_cache.size() > max_page_cache
+			|| word_cache.size() > max_word_cache)
 		{
 			const auto word_id = iter->second;
 			const auto iter2 = word_cache.find(word_id);

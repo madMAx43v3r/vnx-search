@@ -11,7 +11,7 @@ module SearchEngine implements SearchInterface {
 	string page_content_server = "PageContent";
 	
 	int max_info_cache = 100000;
-	
+	int max_page_cache = 100000;
 	int max_word_cache = 500000;
 	
 	int max_num_pending = 100;				// number of async requests

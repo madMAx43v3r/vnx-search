@@ -3,6 +3,7 @@
 	"info_commit_interval": 7200,
 	"word_commit_interval": 14400,
 	"max_info_cache": 3000000,
+	"max_page_cache": 1000000,
 	"max_word_cache": 20000000,
 	"max_num_pending": 100,
 	"lock_timeout": 1000
