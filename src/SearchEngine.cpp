@@ -949,7 +949,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 	{
 		auto cached = get_word_cache(word_id);
 		cached->update_pages.emplace_back(page_id, -1);
-		p_page_cache->pending[word_id] = false;
+		p_page_cache->num_pending++;
 	}
 	for(const auto word_id : job->update_words)
 	{
@@ -962,9 +962,9 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 		}
 		auto cached = get_word_cache(word_id);
 		cached->update_pages.emplace_back(page_id, value);
-		p_page_cache->pending[word_id] = true;
+		p_page_cache->num_pending++;
 	}
-	if(p_page_cache->pending.empty()) {
+	if(!p_page_cache->num_pending) {
 		p_info_cache->word_version = job->word_version;
 		p_info_cache->words.clear();
 	} else {
@@ -1201,16 +1201,10 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 				if(iter != page_cache.end())
 				{
 					auto p_page_cache = iter->second;
-					{
-						const auto iter = p_page_cache->pending.find(word_id);
-						if(iter != p_page_cache->pending.end()) {
-							if(iter->second) {
-								p_page_cache->words.push_back(word_id);
-							}
-							p_page_cache->pending.erase(iter);
-						}
+					if(entry.second >= 0) {
+						p_page_cache->words.push_back(word_id);
 					}
-					if(p_page_cache->pending.empty())
+					if(--p_page_cache->num_pending == 0)
 					{
 						if(const auto word_version = p_page_cache->word_version)
 						{

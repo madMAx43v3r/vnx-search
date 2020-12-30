@@ -88,10 +88,10 @@ protected:
 	};
 	
 	struct page_cache_t {
+		int num_pending = 0;
 		uint64_t word_version = 0;
 		std::string url_key;
 		std::vector<uint32_t> words;
-		std::unordered_map<uint32_t, bool> pending;
 	};
 	
 	struct word_cache_t {
