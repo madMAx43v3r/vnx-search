@@ -1201,7 +1201,7 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 				const auto iter = page_cache.find(page_id);
 				if(iter != page_cache.end())
 				{
-					auto p_page_cache = iter->second;
+					const auto& p_page_cache = iter->second;
 					if(entry.second >= 0) {
 						p_page_cache->words.push_back(word_id);
 					}
