@@ -1032,6 +1032,7 @@ void SearchEngine::check_info_queue()
 		}
 	}
 	while(!rank_update_queue.empty()
+			&& load_queue.empty()
 			&& info_cache.size() < 0.9 * max_info_cache
 			&& page_cache.size() < 0.9 * max_page_cache
 			&& word_cache.size() < 0.9 * max_word_cache
