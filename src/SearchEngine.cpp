@@ -1401,8 +1401,11 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 	if(context) {
 		const auto& old_list = context->pages;
 		list.reserve(old_list.size() + new_list.size());
-		const std::unordered_map<uint32_t, float> update_pages(cached->update_pages.begin(), cached->update_pages.end());
 		
+		std::unordered_map<uint32_t, float> update_pages;
+		for(const auto& entry : cached->update_pages) {
+			update_pages[entry.first] = entry.second;
+		}
 		size_t i = 0;
 		size_t k = 0;
 		while(true) {
