@@ -1305,7 +1305,7 @@ void SearchEngine::info_update_task(std::shared_ptr<info_update_job_t> job) noex
 	
 	if(!cache->rem_links.empty() || !cache->add_links.empty())
 	{
-		std::unordered_set<std::string> links(info->links.begin(), info->links.end());
+		std::set<std::string> links(info->links.begin(), info->links.end());
 		for(const auto& link_key : cache->rem_links) {
 			links.erase(link_key);
 		}
@@ -1316,8 +1316,7 @@ void SearchEngine::info_update_task(std::shared_ptr<info_update_job_t> job) noex
 	}
 	if(!cache->rem_reverse_links.empty() || !cache->add_reverse_links.empty())
 	{
-		std::unordered_map<std::string, reverse_link_t> links;
-		links.reserve(info->reverse_links.size() + cache->add_reverse_links.size());
+		std::map<std::string, reverse_link_t> links;
 		for(auto& link : info->reverse_links) {
 			links[link.url_key] = std::move(link);
 		}
