@@ -825,7 +825,7 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		p_info_cache->is_deleted = 0;
 		p_info_cache->index_version = job->index_version;
 	}
-	if(job->update_links)
+	if(job->update_links && !p_info_cache->link_version)
 	{
 		std::map<std::string, page_link_t> new_links;
 		p_info_cache->version = 1;
