@@ -939,7 +939,7 @@ void SearchEngine::update_page_rank_callback(	std::shared_ptr<rank_update_job_t>
 		return;
 	}
 	if(page_cache.count(page_id)) {
-		log(WARN) << "Previous rank update not yet finished for: " << job->url_key << " (rank_value = " << rank_value << ")";
+		log(DEBUG) << "Previous rank update not yet finished for: " << job->url_key << " (rank_value = " << rank_value << ")";
 		return;
 	}
 	auto p_page_cache = std::make_shared<page_cache_t>();
