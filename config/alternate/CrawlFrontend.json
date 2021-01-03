@@ -1,5 +1,5 @@
 {
-	"num_threads": 20,
-	"max_content_length": 2097152,
+	"num_threads": 50,
+	"max_content_length": 4194304,
 	"user_agent": "Wget/1.19.4"
 }
