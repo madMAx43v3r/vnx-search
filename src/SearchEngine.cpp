@@ -150,16 +150,19 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 	if(info) {
 		result["is_deleted"] = info->is_deleted;
 		result["rank_value"] = info->rank_value;
+		result["last_updated"] = info->last_updated;
 		result["words"] = info->words.size();
 		result["links"] = info->links.size();
 		result["reverse_links"] = info->reverse_links.size();
 		result["reverse_domains"] = info->reverse_domains.size();
 	}
 	if(page) {
+		result["id"] = page->id;
 		result["url"] = page->get_url();
 		result["rank_value"] = page->rank_value;
 		result["last_modified"] = page->last_modified;
 		result["first_seen"] = page->first_seen;
+		result["next_rank_update"] = page->next_rank_update;
 		const auto* domain = find_domain(page->domain_id);
 		if(domain) {
 			result["domain"] = domain->host.str();
