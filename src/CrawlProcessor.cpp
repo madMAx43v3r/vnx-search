@@ -100,9 +100,7 @@ void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 	auto response = job->response;
 	const auto& url = response->url;
 	const Url::Url parsed(url);
-	if(url.size() > max_url_length || !filter_url(parsed)) {
-		return;
-	}
+	
 	auto content = PageContent::create();
 	content->text = response->text;
 	
@@ -627,19 +625,27 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 	const auto org_url_key = get_url_key(parsed);
 	const auto entry = url_fetch_done(org_url_key, result->is_fail);
 	
+	bool is_processed = false;
 	if(auto response = result->response)
 	{
-		auto job = std::make_shared<process_job_t>();
-		job->depth = entry.depth;
-		job->org_scheme = org_scheme;
-		job->url_key = get_url_key(response->url);
-		job->org_url_key = org_url_key;
-		job->info = result;
-		job->response = response;
-		
-		url_index_async->get_value(Variant(job->url_key),
-				std::bind(&CrawlProcessor::check_process_new, this, job, std::placeholders::_1));
-	} else {
+		const auto& new_url = response->url;
+		const Url::Url parsed_new(new_url);
+		if(new_url.size() <= max_url_length && filter_url(parsed_new))
+		{
+			auto job = std::make_shared<process_job_t>();
+			job->depth = entry.depth;
+			job->url_key = get_url_key(parsed_new);
+			job->org_scheme = org_scheme;
+			job->org_url_key = org_url_key;
+			job->info = result;
+			job->response = response;
+			
+			is_processed = true;
+			url_index_async->get_value(Variant(job->url_key),
+					std::bind(&CrawlProcessor::check_process_new, this, job, std::placeholders::_1));
+		}
+	}
+	if(!is_processed) {
 		url_update(org_url_key, org_scheme, entry.depth, result);
 	}
 	
@@ -654,8 +660,7 @@ void CrawlProcessor::url_fetch_callback(const std::string& url, std::shared_ptr<
 			page_content_async->delete_value(Variant(org_url_key));
 			log(INFO).out << "Deleted obsolete '" << org_url_key << "'";
 			
-			if(		result->redirect.size() <= max_url_length
-				&&	filter_url(parsed_redir))
+			if(result->redirect.size() <= max_url_length && filter_url(parsed_redir))
 			{
 				auto info = std::make_shared<UrlInfo>(*result);
 				info->redirect.clear();
@@ -671,7 +676,7 @@ void CrawlProcessor::check_process_new(	std::shared_ptr<process_job_t> job,
 	if(auto previous = std::dynamic_pointer_cast<const UrlInfo>(entry->value))
 	{
 		auto info = job->info;
-		if(info->last_fetched < previous->last_fetched + reload_interval / 2) {
+		if(previous->last_fetched && info->last_fetched < previous->last_fetched + reload_interval / 2) {
 			return;		// premature reload
 		}
 		job->is_modified = info->last_modified != previous->last_modified;
