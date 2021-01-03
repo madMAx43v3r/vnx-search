@@ -1255,6 +1255,7 @@ void SearchEngine::info_update_task(std::shared_ptr<info_update_job_t> job) noex
 {
 	if(job->info) {
 		job->result = vnx::clone(job->info);
+		job->info = nullptr;
 	} else {
 		job->result = PageInfo::create();
 	}
@@ -1316,6 +1317,7 @@ void SearchEngine::info_update_task(std::shared_ptr<info_update_job_t> job) noex
 	if(!cache->rem_reverse_links.empty() || !cache->add_reverse_links.empty())
 	{
 		std::unordered_map<std::string, reverse_link_t> links;
+		links.reserve(info->reverse_links.size() + cache->add_reverse_links.size());
 		for(auto& link : info->reverse_links) {
 			links[link.url_key] = std::move(link);
 		}
