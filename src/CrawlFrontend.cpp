@@ -169,7 +169,6 @@ void CrawlFrontend::fetch_callback(	std::shared_ptr<const HttpResponse> response
 	} else {
 		fetch_async_return(request->req_id, result);
 	}
-	
 	publish(response, output_http);
 }
 

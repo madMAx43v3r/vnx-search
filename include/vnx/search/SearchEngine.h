@@ -323,7 +323,6 @@ private:
 	std::multimap<int64_t, std::shared_ptr<info_cache_t>> info_queue;
 	std::multimap<int64_t, uint32_t> word_queue;
 	std::multimap<int64_t, uint32_t> rank_update_queue;
-	
 	std::multimap<uint32_t, uint32_t, std::greater<uint32_t>> page_ranking;
 	
 	mutable std::shared_mutex index_mutex;
