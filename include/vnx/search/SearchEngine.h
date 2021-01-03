@@ -136,6 +136,7 @@ protected:
 	
 	struct info_update_job_t {
 		std::shared_ptr<info_cache_t> cached;
+		std::shared_ptr<const PageInfo> info;
 		std::shared_ptr<PageInfo> result;
 	};
 	
@@ -281,7 +282,7 @@ private:
 	
 	void write_info();
 	
-	void link_update_task(std::shared_ptr<info_update_job_t> job) noexcept;
+	void info_update_task(std::shared_ptr<info_update_job_t> job) noexcept;
 	
 	void word_collect_task(std::shared_ptr<page_update_job_t> job) noexcept;
 	

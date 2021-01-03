@@ -446,8 +446,9 @@ void SearchEngine::delete_page_async(const std::string& url_key)
 void SearchEngine::delete_page_callback(const std::string& url_key,
 										std::shared_ptr<const keyvalue::Entry> entry)
 {
-	const auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-	if(!info || !info->is_deleted) {
+	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
+	
+	if(!info || !info->is_deleted || info->word_version) {
 		auto cached = get_info_cache(url_key);
 		cached->is_deleted = 1;
 	}
@@ -1102,70 +1103,38 @@ void SearchEngine::check_word_queue()
 void SearchEngine::info_update_callback_0(	std::shared_ptr<info_cache_t> cached,
 											std::shared_ptr<const keyvalue::Entry> entry)
 {
+	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
+	
 	auto job = std::make_shared<info_update_job_t>();
 	job->cached = cached;
+	job->info = info;
 	
-	if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
-		job->result = vnx::clone(info);
-	} else {
-		job->result = PageInfo::create();
-	}
-	auto info = job->result;
-	
-	if(cached->is_deleted <= 0)
+	if(cached->is_deleted > 0)
 	{
-		if(cached->page_id) {
-			info->id = cached->page_id;
-		}
-		if(cached->version) {
-			info->version = cached->version;
-		}
-		if(cached->rank_value >= 0) {
-			info->rank_value = cached->rank_value;
-			info->last_updated = vnx::get_wall_time_seconds();
-		}
-		if(cached->index_version) {
-			info->index_version = cached->index_version;
-		}
-		if(cached->link_version) {
-			info->link_version = cached->link_version;
-		}
-		if(cached->word_version) {
-			info->word_version = cached->word_version;
-			info->words = cached->words;
-		}
-		if(cached->array_version) {
-			info->array_version = cached->array_version;
-		}
-		info->is_deleted = false;
-	}
-	else {
+		uint32_t page_id = 0;
 		if(auto* page = find_page_url(cached->url_key))
 		{
-			std::unique_lock lock(index_mutex);
-			page_map.erase(page->url_key);
-			page_index.erase(info->id);
+			page_id = page->id;
+			{
+				std::unique_lock lock(index_mutex);
+				page_map.erase(page->url_key);
+				page_index.erase(page->id);
+			}
 		}
-		for(const auto word_id : unique(concat(info->words, cached->words)))
+		cached->rank_update_job = nullptr;
+		
+		auto words = cached->words;
+		if(info) {
+			words = unique(concat(words, info->words));
+		}
+		for(const auto word_id : words)
 		{
 			const auto cache = get_word_cache(word_id);
-			cache->update_pages.emplace_back(info->id, -1);
+			cache->update_pages.emplace_back(page_id, -1);
 		}
 		word_array_async->delete_value(Variant(cached->url_key));
-		
-		info->id = 0;
-		info->is_deleted = true;
-		info->index_version = 0;
-		info->link_version = 0;
-		info->word_version = 0;
-		info->array_version = 0;
-		info->words.clear();
-		info->links.clear();
-		
-		cached->add_links.clear();
-		cached->rem_links.clear();
 	}
-	update_threads->add_task(std::bind(&SearchEngine::link_update_task, this, job));
+	update_threads->add_task(std::bind(&SearchEngine::info_update_task, this, job));
 }
 
 void SearchEngine::info_update_callback(std::shared_ptr<info_update_job_t> job)
@@ -1282,10 +1251,57 @@ void SearchEngine::write_info()
 	fclose(file);
 }
 
-void SearchEngine::link_update_task(std::shared_ptr<info_update_job_t> job) noexcept
+void SearchEngine::info_update_task(std::shared_ptr<info_update_job_t> job) noexcept
 {
-	auto cache = job->cached;
+	if(job->info) {
+		job->result = vnx::clone(job->info);
+	} else {
+		job->result = PageInfo::create();
+	}
 	auto info = job->result;
+	auto cache = job->cached;
+	
+	if(cache->is_deleted <= 0)
+	{
+		if(cache->page_id) {
+			info->id = cache->page_id;
+		}
+		if(cache->version) {
+			info->version = cache->version;
+		}
+		if(cache->rank_value >= 0) {
+			info->rank_value = cache->rank_value;
+			info->last_updated = vnx::get_wall_time_seconds();
+		}
+		if(cache->index_version) {
+			info->index_version = cache->index_version;
+		}
+		if(cache->link_version) {
+			info->link_version = cache->link_version;
+		}
+		if(cache->word_version) {
+			info->word_version = cache->word_version;
+			info->words = cache->words;
+		}
+		if(cache->array_version) {
+			info->array_version = cache->array_version;
+		}
+		info->is_deleted = false;
+	}
+	else {
+		info->id = 0;
+		info->is_deleted = true;
+		info->index_version = 0;
+		info->link_version = 0;
+		info->word_version = 0;
+		info->array_version = 0;
+		info->words.clear();
+		info->links.clear();
+		
+		cache->add_links.clear();
+		cache->rem_links.clear();
+	}
+	
 	if(!cache->rem_links.empty() || !cache->add_links.empty())
 	{
 		std::unordered_set<std::string> links(info->links.begin(), info->links.end());
