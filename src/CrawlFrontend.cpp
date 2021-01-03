@@ -191,12 +191,12 @@ void CrawlFrontend::parse_callback(	std::shared_ptr<const TextResponse> response
 	publish(response, output_text);
 }
 
-void CrawlFrontend::parse_error(Hash64 address, std::shared_ptr<request_t> request, const std::exception& ex)
+void CrawlFrontend::parse_error(Hash64 address, std::shared_ptr<request_t> request, const vnx::exception& ex)
 {
 	// check error and remove parser if connection error
-//	if(std::dynamic_pointer_cast<const NoSuchService>(ex.value())) {
-//		parser_map.erase(address);
-//	}
+	if(std::dynamic_pointer_cast<const NoSuchService>(ex.value())) {
+		parser_map.erase(address);
+	}
 	fetch_async_return(request->req_id, request->result);
 	parse_failed_counter++;
 }

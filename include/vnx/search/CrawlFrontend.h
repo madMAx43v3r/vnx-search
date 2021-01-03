@@ -63,7 +63,7 @@ private:
 	void parse_callback(std::shared_ptr<const TextResponse> response,
 						std::shared_ptr<request_t> request);
 	
-	void parse_error(Hash64 address, std::shared_ptr<request_t> request, const std::exception& ex);
+	void parse_error(Hash64 address, std::shared_ptr<request_t> request, const vnx::exception& ex);
 	
 	void print_stats();
 	
