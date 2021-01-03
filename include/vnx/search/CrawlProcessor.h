@@ -83,6 +83,7 @@ protected:
 		std::string base_url;
 		std::vector<page_link_t> links;
 		std::vector<image_link_t> images;
+		std::set<std::string> resources;
 		std::shared_ptr<PageIndex> index;
 		std::shared_ptr<const UrlInfo> info;
 		std::shared_ptr<const TextResponse> response;
@@ -127,14 +128,12 @@ private:
 	void check_queues();
 	void check_fetch_queue();
 	
-	void check_url(const Url::Url& url, const int depth, std::shared_ptr<const keyvalue::Entry> entry);
+	void check_url(const std::string& url, const Url::Url& parent, const int depth);
+	
+	void check_url_callback(const Url::Url& url, const int depth, std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void check_all_urls();
 	void check_root_urls();
-	
-	void check_page(	int depth,
-						const std::string& url_key,
-						std::shared_ptr<const PageIndex> index);
 	
 	void reproc_page(	const std::string& url_key,
 						std::shared_ptr<const PageIndex> index,
