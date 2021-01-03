@@ -37,7 +37,6 @@ namespace search {
 class CrawlProcessor : public CrawlProcessorBase {
 public:
 	TopicPtr input_url_index_sync;
-	TopicPtr input_page_index_sync;
 	
 	CrawlProcessor(const std::string& _vnx_name);
 	
@@ -72,7 +71,6 @@ protected:
 	struct process_job_t {
 		int depth = -1;
 		bool is_modified = true;
-		bool is_reprocess = false;
 		bool is_finished = false;
 		bool content_stored = false;
 		bool index_stored = false;
@@ -81,8 +79,6 @@ protected:
 		std::string org_url_key;
 		std::string content;
 		std::string base_url;
-		std::vector<page_link_t> links;
-		std::vector<image_link_t> images;
 		std::set<std::string> resources;
 		std::shared_ptr<PageIndex> index;
 		std::shared_ptr<const UrlInfo> info;
@@ -130,14 +126,11 @@ private:
 	
 	void check_url(const std::string& url, const Url::Url& parent, const int depth);
 	
-	void check_url_callback(const Url::Url& url, const int depth, std::shared_ptr<const keyvalue::Entry> entry);
+	void check_url_callback(const Url::Url& url, const int depth,
+							std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void check_all_urls();
 	void check_root_urls();
-	
-	void reproc_page(	const std::string& url_key,
-						std::shared_ptr<const PageIndex> index,
-						std::shared_ptr<const PageContent> content);
 	
 	url_t url_fetch_done(const std::string& url_key, bool is_fail);
 	
@@ -146,11 +139,7 @@ private:
 	void check_process_job(	std::shared_ptr<process_job_t> job);
 	
 	void check_process_new(	std::shared_ptr<process_job_t> job,
-								std::shared_ptr<const keyvalue::Entry> entry);
-	
-	void reproc_page_callback(	const std::string& url_key,
-								std::shared_ptr<const keyvalue::Entry> entry,
-								std::shared_ptr<const PageIndex> index);
+							std::shared_ptr<const keyvalue::Entry> entry);
 	
 	void url_update(	const std::string& url_key,
 						const std::string& new_scheme,
@@ -196,7 +185,6 @@ private:
 	int64_t fetch_counter = 0;
 	int64_t error_counter = 0;
 	int64_t reload_counter = 0;
-	int64_t reproc_counter = 0;
 	int64_t delete_counter = 0;
 	int64_t pending_robots_txt = 0;
 	int64_t missing_robots_txt = 0;

@@ -47,8 +47,6 @@ module CrawlProcessor {
 	
 	uint index_version = 1;					// increase to re-process all content
 	
-	bool do_reprocess = false;				// if to reprocess all pages
-	
 	bool inititial_sync = false;			// if to perform initial url sync
 	
 	string user_agent = "Googlebot";		// for robots.txt matching

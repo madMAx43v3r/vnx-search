@@ -22,7 +22,6 @@ CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
 	input_url_index_sync = vnx_name + ".url_index.sync_" + std::to_string(vnx::rand64());
-	input_page_index_sync = vnx_name + ".page_index.sync_" + std::to_string(vnx::rand64());
 	
 	protocols.push_back("http");
 	protocols.push_back("https");
@@ -39,7 +38,6 @@ void CrawlProcessor::main()
 {
 	subscribe(input_url_index, 100);
 	subscribe(input_url_index_sync, 100, 100);
-	subscribe(input_page_index_sync, 100, 10);
 	
 	protocols = unique(protocols);
 	domain_blacklist = unique(domain_blacklist);
@@ -89,9 +87,6 @@ void CrawlProcessor::main()
 	} else {
 		set_timeout_millis(sync_interval * 1000, std::bind(&CrawlProcessor::check_all_urls, this));
 	}
-	if(do_reprocess) {
-		page_index_async->sync_all(input_page_index_sync);
-	}
 	
 	work_threads = std::make_shared<ThreadPool>(num_threads, 100);
 	
@@ -122,8 +117,6 @@ void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 	job->index = index;
 	job->content = response->text;
 	job->base_url = response->base_url;
-	job->links = response->links;
-	job->images = response->images;
 	
 	if(is_robots_txt(parsed)) {
 		auto entry = keyvalue::Entry::create();
@@ -144,6 +137,7 @@ void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 {
 	auto index = job->index;
+	auto response = job->response;
 	index->version = index_version;
 	
 	std::map<std::string, size_t> word_set;
@@ -171,7 +165,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 	}
 	
 	std::map<std::string, page_link_t> links;
-	for(const auto& link : job->links) {
+	for(const auto& link : response->links) {
 		try {
 			std::string full_url;
 			if(process_link(Url::Url(link.url), base, parent, matcher, job->robots, full_url)) {
@@ -192,7 +186,7 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 	}
 	
 	std::map<std::string, image_link_t> images;
-	for(const auto& link : job->images) {
+	for(const auto& link : response->images) {
 		try {
 			std::string full_url;
 			if(process_link(Url::Url(link.url), base, parent, matcher, job->robots, full_url)) {
@@ -214,19 +208,16 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 		index->images.push_back(link);
 	}
 	
-	if(job->response) {
-		for(const auto& url : job->response->resources) {
-			try {
-				std::string full_url;
-				if(process_link(Url::Url(url), base, parent, matcher, job->robots, full_url)) {
-					job->resources.insert(full_url);
-				}
-			} catch(...) {
-				// ignore bad links
+	for(const auto& url : response->resources) {
+		try {
+			std::string full_url;
+			if(process_link(Url::Url(url), base, parent, matcher, job->robots, full_url)) {
+				job->resources.insert(full_url);
 			}
+		} catch(...) {
+			// ignore bad links
 		}
 	}
-	
 	add_task(std::bind(&CrawlProcessor::process_callback, this, job));
 }
 
@@ -260,9 +251,6 @@ void CrawlProcessor::process_callback(std::shared_ptr<process_job_t> job)
 			check_process_job(job);
 		});
 	
-	if(job->is_reprocess) {
-		return;
-	}
 	const Url::Url parent(job->url_key);
 	
 	for(const auto& link : job->index->links) {
@@ -281,11 +269,8 @@ void CrawlProcessor::check_process_job(std::shared_ptr<process_job_t> job)
 	if(!job->is_finished) {
 		if(job->content_stored && job->index_stored) {
 			job->is_finished = true;
-			if(job->is_reprocess) {
-				reproc_counter++;
-			} else {
-				url_update(job->org_url_key, job->org_scheme, job->depth, job->info);
-			}
+			url_update(job->org_url_key, job->org_scheme, job->depth, job->info);
+			
 			log(INFO).out << "Processed '" << job->url_key << "': " << job->index->words.size() << " index words, "
 					<< job->index->links.size() << " links, " << job->index->images.size() << " images";
 		}
@@ -295,41 +280,21 @@ void CrawlProcessor::check_process_job(std::shared_ptr<process_job_t> job)
 void CrawlProcessor::handle(std::shared_ptr<const vnx::keyvalue::SyncUpdate> entry)
 {
 	const std::string url_key = entry->key.to_string_value();
+	
+	if(auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value))
 	{
-		auto index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
-		if(index) {
-			if(index->depth >= 0) {
-				const auto url = index->scheme + ":" + url_key;
-				const Url::Url parsed(url);
-				if(filter_url(parsed)) {
-					if(!index->last_fetched) {
-						check_url_callback(parsed, index->depth, entry);
-					}
-				} else {
-					delete_page(url_key);
+		if(index->depth >= 0) {
+			const auto url = index->scheme + ":" + url_key;
+			const Url::Url parsed(url);
+			if(filter_url(parsed)) {
+				if(!index->last_fetched) {
+					check_url_callback(parsed, index->depth, entry);
 				}
+			} else {
+				delete_page(url_key);
 			}
-			return;
 		}
-	}
-	{
-		auto index = std::dynamic_pointer_cast<const PageIndex>(entry->value);
-		if(index) {
-			if(do_reprocess) {
-				const Url::Url parsed(url_key);
-				if(is_robots_txt(parsed)) {
-					page_index_async->delete_value(Variant(url_key));
-				} else if(filter_url(parsed)) {
-					if(index->version < index_version) {
-						page_content_async->get_value(Variant(url_key),
-								std::bind(&CrawlProcessor::reproc_page_callback, this, url_key, std::placeholders::_1, index));
-					}
-				} else {
-					delete_page(url_key);
-				}
-			}
-			return;
-		}
+		return;
 	}
 }
 
@@ -629,36 +594,6 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 	}
 }
 
-void CrawlProcessor::reproc_page_callback(	const std::string& url_key,
-											std::shared_ptr<const keyvalue::Entry> entry,
-											std::shared_ptr<const PageIndex> index)
-{
-	auto content = std::dynamic_pointer_cast<const PageContent>(entry->value);
-	if(content) {
-		reproc_page(url_key, index, content);
-	}
-}
-
-void CrawlProcessor::reproc_page(	const std::string& url_key,
-									std::shared_ptr<const PageIndex> index,
-									std::shared_ptr<const PageContent> content)
-{
-	auto new_index = vnx::clone(index);
-	new_index->words.clear();
-	new_index->links.clear();
-	new_index->images.clear();
-	
-	auto job = std::make_shared<process_job_t>();
-	job->is_reprocess = true;
-	job->url_key = url_key;
-	job->index = new_index;
-	job->content = content->text;
-	job->links = index->links;
-	job->images = index->images;
-	
-	work_threads->add_task(std::bind(&CrawlProcessor::process_task, this, job));
-}
-
 CrawlProcessor::url_t CrawlProcessor::url_fetch_done(const std::string& url_key, bool is_fail)
 {
 	const auto iter = url_map.find(url_key);
@@ -899,9 +834,6 @@ void CrawlProcessor::print_stats()
 	log(INFO).out << "Robots: " << pending_robots_txt << " pending, "
 			<< missing_robots_txt << " missing, " << timed_out_robots_txt << " timeout, "
 			<< found_robots_txt << " found";
-	if(do_reprocess) {
-		log(INFO).out << reproc_counter << " reprocessed, " << delete_counter << " deleted";
-	}
 }
 
 
