@@ -100,10 +100,6 @@ void CrawlFrontend::fetch_async(const std::string& url,
 	request->url = url;
 	request->is_fetch = true;
 	request->parsed_url = Url::Url(url);
-	for(const auto& entry : parser_map) {
-		const auto& parser = entry.second;
-		request->accept_content.insert(parser.content_types.begin(), parser.content_types.end());
-	}
 	request->req_id = req_id;
 	{
 		std::lock_guard lock(work_mutex);
@@ -172,7 +168,6 @@ void CrawlFrontend::fetch_callback(	std::shared_ptr<const HttpResponse> response
 					std::bind(&CrawlFrontend::parse_error, this, parser->address, request, std::placeholders::_1));
 	} else {
 		fetch_async_return(request->req_id, result);
-		log(WARN) << "Cannot parse content type: '" << content_type << "'";
 	}
 	
 	publish(response, output_http);
