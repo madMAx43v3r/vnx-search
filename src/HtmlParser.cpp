@@ -124,8 +124,7 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 		throw std::runtime_error("get_root_node() failed");
 	}
 	
-	const auto meta = root->find("//head/meta");
-	for(auto node : meta) {
+	for(auto node : root->find("//head/meta")) {
 		if(auto element = dynamic_cast<const xmlpp::Element*>(node)) {
 			if(element->get_attribute_value("http-equiv") == "Refresh") {
 				const std::string content = element->get_attribute_value("content");
@@ -135,6 +134,15 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 					link.url = content.substr(pos + 4);
 					result->links.push_back(link);
 				}
+			}
+		}
+	}
+	
+	for(auto node : root->find("//head/link")) {
+		if(auto element = dynamic_cast<const xmlpp::Element*>(node)) {
+			if(auto* href = element->get_attribute("href")) {
+				std::string tmp(href->get_value());
+				result->resources.push_back(clean(trim(tmp)));
 			}
 		}
 	}

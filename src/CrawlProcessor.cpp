@@ -102,13 +102,12 @@ void CrawlProcessor::main()
 
 void CrawlProcessor::process_new(std::shared_ptr<process_job_t> job)
 {
-	const auto& url = job->response->url;
+	auto response = job->response;
+	const auto& url = response->url;
 	const Url::Url parsed(url);
 	if(url.size() > max_url_length || !filter_url(parsed)) {
 		return;
 	}
-	auto response = job->response;
-	
 	auto content = PageContent::create();
 	content->text = response->text;
 	
@@ -213,6 +212,28 @@ void CrawlProcessor::process_task(std::shared_ptr<process_job_t> job) noexcept
 		auto& link = entry.second;
 		link.words = unique(parse_text(link.text));
 		index->images.push_back(link);
+	}
+	
+	std::set<std::string> resources;
+	for(const auto& url : job->response->resources)
+	{
+		try {
+			std::string full_url;
+			if(process_link(Url::Url(url), base, parent, matcher, job->robots, full_url)) {
+				resources.insert(full_url);
+			}
+		} catch(...) {
+			// ignore bad links
+		}
+	}
+	for(const auto& link : resources)
+	{
+		const Url::Url parsed(link);
+		if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
+			continue;
+		}
+		url_index_async->get_value(Variant(get_url_key(parsed)),
+				std::bind(&CrawlProcessor::check_url, this, parsed, job->depth, std::placeholders::_1));
 	}
 	
 	add_task(std::bind(&CrawlProcessor::process_callback, this, job));
@@ -613,12 +634,19 @@ void CrawlProcessor::check_page(	int depth,
 		}
 		const auto link_depth = depth + (parsed.host() != parent.host() ? jump_cost : 1);
 		
-		if(link_depth <= max_depth)
-		{
-			const auto url_key = get_url_key(parsed);
-			url_index_async->get_value(Variant(url_key),
+		if(link_depth <= max_depth) {
+			url_index_async->get_value(Variant(get_url_key(parsed)),
 					std::bind(&CrawlProcessor::check_url, this, parsed, link_depth, std::placeholders::_1));
 		}
+	}
+	for(const auto& link : index->images)
+	{
+		const Url::Url parsed(link.url);
+		if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
+			continue;
+		}
+		url_index_async->get_value(Variant(get_url_key(parsed)),
+				std::bind(&CrawlProcessor::check_url, this, parsed, depth, std::placeholders::_1));
 	}
 }
 

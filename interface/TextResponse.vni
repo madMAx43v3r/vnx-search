@@ -12,4 +12,6 @@ class TextResponse extends Response {
 	
 	vector<image_link_t> images;
 	
+	vector<string> resources;		// urls (*.css, etc)
+	
 }
