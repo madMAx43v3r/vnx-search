@@ -545,7 +545,7 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 			if(index->last_fetched > 0) {
 				int64_t load_delay = robots_reload_interval;
 				if(index->http_status < 0) {
-					load_delay = std::min(int64_t(pow(index->fetch_count, reload_power) * error_reload_interval), load_delay);
+					load_delay = std::min(int64_t(pow(reload_power, index->fetch_count - 1) * error_reload_interval), load_delay);
 				}
 				const auto is_queued = enqueue(url, depth, index->last_fetched + load_delay);
 				
@@ -571,9 +571,9 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 			}
 		} else if(depth >= 0) {
 			if(index->last_fetched > 0) {
-				int64_t load_delay = pow(depth + 1, reload_power) * reload_interval;
+				int64_t load_delay = pow(reload_power, depth) * reload_interval;
 				if(index->http_status < 0) {
-					load_delay = std::min(int64_t(pow(index->fetch_count, reload_power) * error_reload_interval), load_delay);
+					load_delay = std::min(int64_t(pow(reload_power, index->fetch_count - 1) * error_reload_interval), load_delay);
 				}
 				enqueue(url, depth, index->last_fetched + load_delay);
 			} else {
