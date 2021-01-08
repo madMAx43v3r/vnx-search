@@ -226,9 +226,8 @@ void SearchEngine::get_page_ranking_async(	const int32_t& limit, const uint32_t&
 	std::vector<std::pair<std::string, uint32_t>> result;
 	uint32_t i = 0;
 	for(const auto& entry : page_ranking) {
-		if(i++ >= offset) {
-			const auto* page = find_page(entry.second);
-			if(page) {
+		if(const auto* page = find_page(entry.second)) {
+			if(i++ >= offset) {
 				result.emplace_back(page->url_key.str(), entry.first);
 				if(result.size() >= size_t(limit)) {
 					break;
