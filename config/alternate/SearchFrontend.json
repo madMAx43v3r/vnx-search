@@ -4,7 +4,7 @@
 		"context": 30,
 		"max_group_size": 5,
 		"max_results": 1000,
-		"score_power": 2,
+		"score_power": 4,
 		"score_type": "MAX_SCORE",
 		"flags": ["GROUP_BY_DOMAIN"]
 	}
