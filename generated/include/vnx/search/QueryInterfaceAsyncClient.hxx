@@ -20,17 +20,15 @@ public:
 	
 	uint64_t query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, 
 			const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback = std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>(),
-			const std::function<void(const std::exception&)>& _error_callback = std::function<void(const std::exception&)>());
-	
-	std::vector<uint64_t> vnx_get_pending_ids() const override;
+			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
 protected:
-	void vnx_purge_request(uint64_t _request_id, const std::exception& _ex) override;
+	int32_t vnx_purge_request(uint64_t _request_id, const vnx::exception& _ex) override;
 	
-	void vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) override;
+	int32_t vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) override;
 	
 private:
-	std::map<uint64_t, std::pair<std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>, std::function<void(const std::exception&)>>> vnx_queue_query;
+	std::unordered_map<uint64_t, std::pair<std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>, std::function<void(const vnx::exception&)>>> vnx_queue_query;
 	
 };
 

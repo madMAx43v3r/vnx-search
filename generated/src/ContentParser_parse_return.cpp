@@ -20,7 +20,7 @@ vnx::Hash64 ContentParser_parse_return::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* ContentParser_parse_return::get_type_name() const {
+std::string ContentParser_parse_return::get_type_name() const {
 	return "vnx.search.ContentParser.parse.return";
 }
 
@@ -58,12 +58,8 @@ void ContentParser_parse_return::write(std::ostream& _out) const {
 }
 
 void ContentParser_parse_return::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "_ret_0") {
-			vnx::from_string(_entry.second, _ret_0);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -161,13 +157,17 @@ void read(TypeInput& in, ::vnx::search::ContentParser_parse_return& value, const
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	if(type_code->is_matched) {
@@ -190,7 +190,7 @@ void write(TypeOutput& out, const ::vnx::search::ContentParser_parse_return& val
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::ContentParser_parse_return>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	vnx::write(out, value._ret_0, type_code, type_code->fields[0].code.data());

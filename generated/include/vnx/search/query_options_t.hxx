@@ -21,14 +21,15 @@ struct query_options_t {
 	int32_t context = 20;
 	int32_t max_group_size = 1;
 	uint32_t max_results = 1000;
-	::vnx::search::score_type_e score_type = ::vnx::search::score_type_e::AVG_SCORE;
+	vnx::float32_t score_power = 2;
+	::vnx::search::score_type_e score_type = ::vnx::search::score_type_e::MAX_SCORE;
 	std::vector<::vnx::search::search_flags_e> flags;
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
 	vnx::Hash64 get_type_hash() const;
-	const char* get_type_name() const;
+	std::string get_type_name() const;
 	const vnx::TypeCode* get_type_code() const;
 	
 	static std::shared_ptr<query_options_t> create();

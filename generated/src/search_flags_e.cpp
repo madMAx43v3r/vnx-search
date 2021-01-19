@@ -12,13 +12,13 @@ namespace search {
 
 
 const vnx::Hash64 search_flags_e::VNX_TYPE_HASH(0xe55b90a8ffab58ffull);
-const vnx::Hash64 search_flags_e::VNX_CODE_HASH(0x2950544b0fdbcb69ull);
+const vnx::Hash64 search_flags_e::VNX_CODE_HASH(0xc775440220b8d3f7ull);
 
 vnx::Hash64 search_flags_e::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* search_flags_e::get_type_name() const {
+std::string search_flags_e::get_type_name() const {
 	return "vnx.search.search_flags_e";
 }
 
@@ -42,6 +42,48 @@ void search_flags_e::write(vnx::TypeOutput& _out, const vnx::TypeCode* _type_cod
 	vnx::write(_out, *this, _type_code, _code);
 }
 
+std::string search_flags_e::to_string() const {
+	switch(value) {
+		case GROUP_BY_DOMAIN: return "\"GROUP_BY_DOMAIN\"";
+		case LATEST_NEWS: return "\"LATEST_NEWS\"";
+	}
+	return std::to_string(value);
+}
+
+std::string search_flags_e::to_string_value() const {
+	switch(value) {
+		case GROUP_BY_DOMAIN: return "GROUP_BY_DOMAIN";
+		case LATEST_NEWS: return "LATEST_NEWS";
+	}
+	return std::to_string(value);
+}
+
+std::string search_flags_e::to_string_value_full() const {
+	switch(value) {
+		case GROUP_BY_DOMAIN: return "vnx.search.search_flags_e.GROUP_BY_DOMAIN";
+		case LATEST_NEWS: return "vnx.search.search_flags_e.LATEST_NEWS";
+	}
+	return std::to_string(value);
+}
+
+void search_flags_e::from_string(const std::string& _str) {
+	std::string _name;
+	vnx::from_string(_str, _name);
+	from_string_value(_name);
+}
+
+void search_flags_e::from_string_value(const std::string& _name) {
+	vnx::Variant var;
+	vnx::from_string_value(_name, var);
+	if(var.is_string()) {
+		if(_name == "GROUP_BY_DOMAIN") value = GROUP_BY_DOMAIN;
+		else if(_name == "LATEST_NEWS") value = LATEST_NEWS;
+		else value = enum_t(vnx::hash64(_name));
+	} else {
+		value = enum_t(std::stoul(_name.c_str(), nullptr, 0));
+	}
+}
+
 void search_flags_e::accept(vnx::Visitor& _visitor) const {
 	std::string _name;
 	switch(value) {
@@ -60,15 +102,12 @@ void search_flags_e::write(std::ostream& _out) const {
 }
 
 void search_flags_e::read(std::istream& _in) {
-	std::string _name;
-	vnx::read(_in, _name);
-	if(_name == "GROUP_BY_DOMAIN") value = 1161442717;
-	else if(_name == "LATEST_NEWS") value = 1050161006;
-	else value = std::atoi(_name.c_str());
+	from_string_value(vnx::read(_in).to_string_value());
 }
 
 vnx::Object search_flags_e::to_object() const {
 	vnx::Object _object;
+	_object["__type"] = "vnx.search.search_flags_e";
 	_object["value"] = value;
 	return _object;
 }
@@ -120,7 +159,7 @@ std::shared_ptr<vnx::TypeCode> search_flags_e::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.search_flags_e";
 	type_code->type_hash = vnx::Hash64(0xe55b90a8ffab58ffull);
-	type_code->code_hash = vnx::Hash64(0x2950544b0fdbcb69ull);
+	type_code->code_hash = vnx::Hash64(0xc775440220b8d3f7ull);
 	type_code->is_native = true;
 	type_code->is_enum = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<search_flags_e>>(); };
@@ -165,7 +204,7 @@ void read(TypeInput& in, ::vnx::search::search_flags_e& value, const TypeCode* t
 		if(tmp.is_string()) {
 			vnx::from_string(tmp.to_string(), value);
 		} else if(tmp.is_ulong()) {
-			value = ::vnx::search::search_flags_e(tmp.to<uint32_t>());
+			value = ::vnx::search::search_flags_e::enum_t(tmp.to<uint32_t>());
 		} else {
 			value = ::vnx::search::search_flags_e();
 		}
@@ -175,7 +214,10 @@ void read(TypeInput& in, ::vnx::search::search_flags_e& value, const TypeCode* t
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -204,7 +246,7 @@ void write(TypeOutput& out, const ::vnx::search::search_flags_e& value, const Ty
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::search_flags_e>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(4);
@@ -221,6 +263,46 @@ void write(std::ostream& out, const ::vnx::search::search_flags_e& value) {
 
 void accept(Visitor& visitor, const ::vnx::search::search_flags_e& value) {
 	value.accept(visitor);
+}
+
+void read(TypeInput& in, ::vnx::search::search_flags_e::enum_t& value, const TypeCode* type_code, const uint16_t* code) {
+	uint32_t tmp = 0;
+	vnx::read(in, tmp, type_code, code);
+	value = ::vnx::search::search_flags_e::enum_t(tmp);
+}
+
+void write(TypeOutput& out, const ::vnx::search::search_flags_e::enum_t& value, const TypeCode* type_code, const uint16_t* code) {
+	vnx::write(out, uint32_t(value), type_code, code);
+}
+
+template<>
+std::string to_string(const ::vnx::search::search_flags_e& _value) {
+	return _value.to_string();
+}
+
+template<>
+std::string to_string_value(const ::vnx::search::search_flags_e& _value) {
+	return _value.to_string_value();
+}
+
+template<>
+std::string to_string_value_full(const ::vnx::search::search_flags_e& _value) {
+	return _value.to_string_value_full();
+}
+
+template<>
+std::string to_string(const ::vnx::search::search_flags_e::enum_t& _value) {
+	return ::vnx::search::search_flags_e(_value).to_string();
+}
+
+template<>
+std::string to_string_value(const ::vnx::search::search_flags_e::enum_t& _value) {
+	return ::vnx::search::search_flags_e(_value).to_string_value();
+}
+
+template<>
+std::string to_string_value_full(const ::vnx::search::search_flags_e::enum_t& _value) {
+	return ::vnx::search::search_flags_e(_value).to_string_value_full();
 }
 
 } // vnx

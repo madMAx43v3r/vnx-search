@@ -10,6 +10,8 @@
 #include <vnx/search/SearchInterface_get_domain_list_return.hxx>
 #include <vnx/search/SearchInterface_get_page_info.hxx>
 #include <vnx/search/SearchInterface_get_page_info_return.hxx>
+#include <vnx/search/SearchInterface_get_page_ranking.hxx>
+#include <vnx/search/SearchInterface_get_page_ranking_return.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks_return.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup.hxx>

@@ -20,7 +20,7 @@ vnx::Hash64 SearchEngine_get_page_entries::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* SearchEngine_get_page_entries::get_type_name() const {
+std::string SearchEngine_get_page_entries::get_type_name() const {
 	return "vnx.search.SearchEngine.get_page_entries";
 }
 
@@ -58,12 +58,8 @@ void SearchEngine_get_page_entries::write(std::ostream& _out) const {
 }
 
 void SearchEngine_get_page_entries::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "page_ids") {
-			vnx::from_string(_entry.second, page_ids);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -126,6 +122,8 @@ std::shared_ptr<vnx::TypeCode> SearchEngine_get_page_entries::static_create_type
 	type_code->is_class = true;
 	type_code->is_method = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchEngine_get_page_entries>(); };
+	type_code->is_const = true;
+	type_code->is_async = true;
 	type_code->return_type = ::vnx::search::SearchEngine_get_page_entries_return::static_get_type_code();
 	type_code->fields.resize(1);
 	{
@@ -162,13 +160,17 @@ void read(TypeInput& in, ::vnx::search::SearchEngine_get_page_entries& value, co
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	if(type_code->is_matched) {
@@ -191,7 +193,7 @@ void write(TypeOutput& out, const ::vnx::search::SearchEngine_get_page_entries& 
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::SearchEngine_get_page_entries>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	vnx::write(out, value.page_ids, type_code, type_code->fields[0].code.data());

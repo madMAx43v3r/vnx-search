@@ -9,7 +9,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
-#include <vnx/search/UrlInfo.hxx>
+#include <vnx/search/LoadResult.hxx>
 
 
 namespace vnx {
@@ -34,20 +34,20 @@ public:
 	
 	CrawlFrontendBase(const std::string& _vnx_name);
 	
-	vnx::Hash64 get_type_hash() const;
-	const char* get_type_name() const;
-	const vnx::TypeCode* get_type_code() const;
+	vnx::Hash64 get_type_hash() const override;
+	std::string get_type_name() const override;
+	const vnx::TypeCode* get_type_code() const override;
 	
-	void read(std::istream& _in);
-	void write(std::ostream& _out) const;
+	void read(std::istream& _in) override;
+	void write(std::ostream& _out) const override;
 	
-	void accept(vnx::Visitor& _visitor) const;
+	void accept(vnx::Visitor& _visitor) const override;
 	
-	vnx::Object to_object() const;
-	void from_object(const vnx::Object& object);
+	vnx::Object to_object() const override;
+	void from_object(const vnx::Object& object) override;
 	
-	vnx::Variant get_field(const std::string& name) const;
-	void set_field(const std::string& name, const vnx::Variant& value);
+	vnx::Variant get_field(const std::string& name) const override;
+	void set_field(const std::string& name, const vnx::Variant& value) override;
 	
 	friend std::ostream& operator<<(std::ostream& _out, const CrawlFrontendBase& _value);
 	friend std::istream& operator>>(std::istream& _in, CrawlFrontendBase& _value);
@@ -57,7 +57,7 @@ public:
 	
 protected:
 	virtual void load_async(const std::string& url, const vnx::request_id_t& _request_id) const = 0;
-	void load_async_return(const vnx::request_id_t& _request_id, const ::vnx::search::UrlInfo& _ret_0) const;
+	void load_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::LoadResult>& _ret_0) const;
 	virtual void fetch_async(const std::string& url, const vnx::request_id_t& _request_id) const = 0;
 	void fetch_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::FetchResult>& _ret_0) const;
 	virtual void register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads) = 0;

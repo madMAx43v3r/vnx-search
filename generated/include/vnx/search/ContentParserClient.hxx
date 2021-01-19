@@ -33,15 +33,19 @@ public:
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
+	std::shared_ptr<const ::vnx::ModuleInfo> vnx_get_module_info();
+	
 	void vnx_restart();
 	
 	void vnx_restart_async();
 	
-	void vnx_close();
+	void vnx_stop();
 	
-	void vnx_close_async();
+	void vnx_stop_async();
 	
-	std::shared_ptr<const ::vnx::search::TextResponse> parse(const std::shared_ptr<const ::vnx::search::HttpResponse>& response);
+	vnx::bool_t vnx_self_test();
+	
+	std::shared_ptr<const ::vnx::search::TextResponse> parse(std::shared_ptr<const ::vnx::search::HttpResponse> response);
 	
 };
 

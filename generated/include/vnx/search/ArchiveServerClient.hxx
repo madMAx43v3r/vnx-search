@@ -33,13 +33,17 @@ public:
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
+	std::shared_ptr<const ::vnx::ModuleInfo> vnx_get_module_info();
+	
 	void vnx_restart();
 	
 	void vnx_restart_async();
 	
-	void vnx_close();
+	void vnx_stop();
 	
-	void vnx_close_async();
+	void vnx_stop_async();
+	
+	vnx::bool_t vnx_self_test();
 	
 };
 

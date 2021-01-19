@@ -9,7 +9,7 @@
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/FetchResult.hxx>
-#include <vnx/search/UrlInfo.hxx>
+#include <vnx/search/LoadResult.hxx>
 
 
 namespace vnx {
@@ -35,15 +35,19 @@ public:
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
+	std::shared_ptr<const ::vnx::ModuleInfo> vnx_get_module_info();
+	
 	void vnx_restart();
 	
 	void vnx_restart_async();
 	
-	void vnx_close();
+	void vnx_stop();
 	
-	void vnx_close_async();
+	void vnx_stop_async();
 	
-	::vnx::search::UrlInfo load(const std::string& url);
+	vnx::bool_t vnx_self_test();
+	
+	std::shared_ptr<const ::vnx::search::LoadResult> load(const std::string& url);
 	
 	std::shared_ptr<const ::vnx::search::FetchResult> fetch(const std::string& url);
 	

@@ -5,20 +5,24 @@
 #include <vnx/search/ArchiveServerBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <vnx/Module.h>
-#include <vnx/ModuleInterface_vnx_close.hxx>
-#include <vnx/ModuleInterface_vnx_close_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_config.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_object.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_object_return.hxx>
-#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_module_info.hxx>
+#include <vnx/ModuleInterface_vnx_get_module_info_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/ModuleInterface_vnx_restart.hxx>
 #include <vnx/ModuleInterface_vnx_restart_return.hxx>
+#include <vnx/ModuleInterface_vnx_self_test.hxx>
+#include <vnx/ModuleInterface_vnx_self_test_return.hxx>
 #include <vnx/ModuleInterface_vnx_set_config.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_set_config_object.hxx>
 #include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
-#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
+#include <vnx/ModuleInterface_vnx_stop.hxx>
+#include <vnx/ModuleInterface_vnx_stop_return.hxx>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/keyvalue/SyncUpdate.hxx>
 
@@ -35,24 +39,24 @@ const vnx::Hash64 ArchiveServerBase::VNX_CODE_HASH(0xa4ec761886c9a6eaull);
 ArchiveServerBase::ArchiveServerBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
-	vnx::read_config(vnx_name + ".bytes_per_day", bytes_per_day);
-	vnx::read_config(vnx_name + ".check_interval_ms", check_interval_ms);
+	vnx::read_config(vnx_name + ".input_updates", input_updates);
 	vnx::read_config(vnx_name + ".frontend_server", frontend_server);
 	vnx::read_config(vnx_name + ".http_archive_server", http_archive_server);
-	vnx::read_config(vnx_name + ".input_updates", input_updates);
-	vnx::read_config(vnx_name + ".lock_timeout", lock_timeout);
-	vnx::read_config(vnx_name + ".max_num_pending", max_num_pending);
-	vnx::read_config(vnx_name + ".max_per_minute", max_per_minute);
-	vnx::read_config(vnx_name + ".num_threads", num_threads);
-	vnx::read_config(vnx_name + ".update_all", update_all);
 	vnx::read_config(vnx_name + ".url_index_server", url_index_server);
+	vnx::read_config(vnx_name + ".max_per_minute", max_per_minute);
+	vnx::read_config(vnx_name + ".max_num_pending", max_num_pending);
+	vnx::read_config(vnx_name + ".num_threads", num_threads);
+	vnx::read_config(vnx_name + ".bytes_per_day", bytes_per_day);
+	vnx::read_config(vnx_name + ".check_interval_ms", check_interval_ms);
+	vnx::read_config(vnx_name + ".lock_timeout", lock_timeout);
+	vnx::read_config(vnx_name + ".update_all", update_all);
 }
 
 vnx::Hash64 ArchiveServerBase::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* ArchiveServerBase::get_type_name() const {
+std::string ArchiveServerBase::get_type_name() const {
 	return "vnx.search.ArchiveServer";
 }
 
@@ -94,37 +98,14 @@ void ArchiveServerBase::write(std::ostream& _out) const {
 }
 
 void ArchiveServerBase::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "bytes_per_day") {
-			vnx::from_string(_entry.second, bytes_per_day);
-		} else if(_entry.first == "check_interval_ms") {
-			vnx::from_string(_entry.second, check_interval_ms);
-		} else if(_entry.first == "frontend_server") {
-			vnx::from_string(_entry.second, frontend_server);
-		} else if(_entry.first == "http_archive_server") {
-			vnx::from_string(_entry.second, http_archive_server);
-		} else if(_entry.first == "input_updates") {
-			vnx::from_string(_entry.second, input_updates);
-		} else if(_entry.first == "lock_timeout") {
-			vnx::from_string(_entry.second, lock_timeout);
-		} else if(_entry.first == "max_num_pending") {
-			vnx::from_string(_entry.second, max_num_pending);
-		} else if(_entry.first == "max_per_minute") {
-			vnx::from_string(_entry.second, max_per_minute);
-		} else if(_entry.first == "num_threads") {
-			vnx::from_string(_entry.second, num_threads);
-		} else if(_entry.first == "update_all") {
-			vnx::from_string(_entry.second, update_all);
-		} else if(_entry.first == "url_index_server") {
-			vnx::from_string(_entry.second, url_index_server);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
 vnx::Object ArchiveServerBase::to_object() const {
 	vnx::Object _object;
+	_object["__type"] = "vnx.search.ArchiveServer";
 	_object["input_updates"] = input_updates;
 	_object["frontend_server"] = frontend_server;
 	_object["http_archive_server"] = http_archive_server;
@@ -258,14 +239,16 @@ std::shared_ptr<vnx::TypeCode> ArchiveServerBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0x7f75b82c5c7df1b7ull);
 	type_code->code_hash = vnx::Hash64(0xa4ec761886c9a6eaull);
 	type_code->is_native = true;
-	type_code->methods.resize(7);
+	type_code->methods.resize(9);
 	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_config_object::static_get_type_code();
 	type_code->methods[1] = ::vnx::ModuleInterface_vnx_get_config::static_get_type_code();
 	type_code->methods[2] = ::vnx::ModuleInterface_vnx_set_config_object::static_get_type_code();
 	type_code->methods[3] = ::vnx::ModuleInterface_vnx_set_config::static_get_type_code();
 	type_code->methods[4] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
-	type_code->methods[5] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
-	type_code->methods[6] = ::vnx::ModuleInterface_vnx_close::static_get_type_code();
+	type_code->methods[5] = ::vnx::ModuleInterface_vnx_get_module_info::static_get_type_code();
+	type_code->methods[6] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
+	type_code->methods[7] = ::vnx::ModuleInterface_vnx_stop::static_get_type_code();
+	type_code->methods[8] = ::vnx::ModuleInterface_vnx_self_test::static_get_type_code();
 	type_code->fields.resize(11);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -343,7 +326,7 @@ void ArchiveServerBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sa
 	{
 		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::SyncUpdate>(_sample->value);
 		if(_value) {
-			handle(_value, _sample);
+			handle(_value);
 			return;
 		}
 	}
@@ -391,6 +374,14 @@ std::shared_ptr<vnx::Value> ArchiveServerBase::vnx_call_switch(std::shared_ptr<c
 		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
 		_return_value->_ret_0 = vnx_get_type_code();
 		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0xf6d82bdf66d034a1ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_module_info>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_module_info_return::create();
+		_return_value->_ret_0 = vnx_get_module_info();
+		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x9e95dc280cecca1bull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_restart>(_method);
 		if(!_args) {
@@ -399,17 +390,25 @@ std::shared_ptr<vnx::Value> ArchiveServerBase::vnx_call_switch(std::shared_ptr<c
 		auto _return_value = ::vnx::ModuleInterface_vnx_restart_return::create();
 		vnx_restart();
 		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x9e165e2b50bad84bull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_close>(_method);
+	} else if(_type_hash == vnx::Hash64(0x7ab49ce3d1bfc0d2ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_stop>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_close_return::create();
-		vnx_close();
+		auto _return_value = ::vnx::ModuleInterface_vnx_stop_return::create();
+		vnx_stop();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x6ce3775b41a42697ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_self_test>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_self_test_return::create();
+		_return_value->_ret_0 = vnx_self_test();
 		return _return_value;
 	}
 	auto _ex = vnx::NoSuchMethod::create();
-	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
+	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : vnx::Hash64();
 	_ex->method = _method->get_type_name();
 	return _ex;
 }
@@ -438,13 +437,17 @@ void read(TypeInput& in, ::vnx::search::ArchiveServerBase& value, const TypeCode
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -513,7 +516,7 @@ void write(TypeOutput& out, const ::vnx::search::ArchiveServerBase& value, const
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::ArchiveServerBase>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(25);

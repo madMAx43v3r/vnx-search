@@ -36,13 +36,17 @@ public:
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
+	std::shared_ptr<const ::vnx::ModuleInfo> vnx_get_module_info();
+	
 	void vnx_restart();
 	
 	void vnx_restart_async();
 	
-	void vnx_close();
+	void vnx_stop();
 	
-	void vnx_close_async();
+	void vnx_stop_async();
+	
+	vnx::bool_t vnx_self_test();
 	
 	std::vector<::vnx::search::page_entry_t> get_page_entries(const std::vector<uint32_t>& page_ids);
 	
@@ -53,6 +57,8 @@ public:
 	std::vector<vnx::float32_t> get_page_ranks(const std::vector<std::string>& url_keys, const vnx::bool_t& direct);
 	
 	std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset);
+	
+	std::vector<std::pair<std::string, uint32_t>> get_page_ranking(const int32_t& limit, const uint32_t& offset);
 	
 	std::vector<std::string> reverse_lookup(const std::string& url_key);
 	

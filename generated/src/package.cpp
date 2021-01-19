@@ -14,10 +14,15 @@
 #include <vnx/search/CrawlFrontend_register_parser.hxx>
 #include <vnx/search/CrawlFrontend_register_parser_return.hxx>
 #include <vnx/search/CrawlProcessorBase.hxx>
+#include <vnx/search/CrawlProcessor_check_all_urls.hxx>
+#include <vnx/search/CrawlProcessor_check_all_urls_return.hxx>
+#include <vnx/search/CrawlProcessor_check_root_urls.hxx>
+#include <vnx/search/CrawlProcessor_check_root_urls_return.hxx>
 #include <vnx/search/CrawlProcessor_get_stats.hxx>
 #include <vnx/search/CrawlProcessor_get_stats_return.hxx>
 #include <vnx/search/FetchResult.hxx>
 #include <vnx/search/HttpResponse.hxx>
+#include <vnx/search/LoadResult.hxx>
 #include <vnx/search/PageContent.hxx>
 #include <vnx/search/PageIndex.hxx>
 #include <vnx/search/PageInfo.hxx>
@@ -35,6 +40,8 @@
 #include <vnx/search/SearchInterface_get_domain_list_return.hxx>
 #include <vnx/search/SearchInterface_get_page_info.hxx>
 #include <vnx/search/SearchInterface_get_page_info_return.hxx>
+#include <vnx/search/SearchInterface_get_page_ranking.hxx>
+#include <vnx/search/SearchInterface_get_page_ranking_return.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks_return.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup.hxx>
@@ -51,15 +58,257 @@
 #include <vnx/search/UrlInfo.hxx>
 #include <vnx/search/WordArray.hxx>
 #include <vnx/search/WordContext.hxx>
+#include <vnx/search/image_link_t.hxx>
 #include <vnx/search/page_entry_t.hxx>
+#include <vnx/search/page_link_t.hxx>
 #include <vnx/search/query_options_t.hxx>
 #include <vnx/search/result_item_t.hxx>
+#include <vnx/search/reverse_link_t.hxx>
 #include <vnx/search/score_type_e.hxx>
 #include <vnx/search/search_flags_e.hxx>
 #include <vnx/search/word_entry_t.hxx>
 
+#include <vnx/search/package.hxx>
 #include <vnx/vnx.h>
 
+
+
+namespace vnx {
+
+void type<::vnx::search::ContentParser_parse>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::ContentParser_parse());
+}
+
+void type<::vnx::search::ContentParser_parse_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::ContentParser_parse_return());
+}
+
+void type<::vnx::search::CrawlFrontend_fetch>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlFrontend_fetch());
+}
+
+void type<::vnx::search::CrawlFrontend_fetch_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlFrontend_fetch_return());
+}
+
+void type<::vnx::search::CrawlFrontend_load>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlFrontend_load());
+}
+
+void type<::vnx::search::CrawlFrontend_load_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlFrontend_load_return());
+}
+
+void type<::vnx::search::CrawlFrontend_register_parser>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlFrontend_register_parser());
+}
+
+void type<::vnx::search::CrawlFrontend_register_parser_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlFrontend_register_parser_return());
+}
+
+void type<::vnx::search::CrawlProcessor_check_all_urls>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_all_urls());
+}
+
+void type<::vnx::search::CrawlProcessor_check_all_urls_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_all_urls_return());
+}
+
+void type<::vnx::search::CrawlProcessor_check_root_urls>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_root_urls());
+}
+
+void type<::vnx::search::CrawlProcessor_check_root_urls_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_root_urls_return());
+}
+
+void type<::vnx::search::CrawlProcessor_get_stats>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlProcessor_get_stats());
+}
+
+void type<::vnx::search::CrawlProcessor_get_stats_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::CrawlProcessor_get_stats_return());
+}
+
+void type<::vnx::search::FetchResult>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::FetchResult());
+}
+
+void type<::vnx::search::HttpResponse>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::HttpResponse());
+}
+
+void type<::vnx::search::LoadResult>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::LoadResult());
+}
+
+void type<::vnx::search::PageContent>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::PageContent());
+}
+
+void type<::vnx::search::PageIndex>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::PageIndex());
+}
+
+void type<::vnx::search::PageInfo>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::PageInfo());
+}
+
+void type<::vnx::search::QueryInterface_query>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::QueryInterface_query());
+}
+
+void type<::vnx::search::QueryInterface_query_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::QueryInterface_query_return());
+}
+
+void type<::vnx::search::Response>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::Response());
+}
+
+void type<::vnx::search::SearchEngine_get_page_entries>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchEngine_get_page_entries());
+}
+
+void type<::vnx::search::SearchEngine_get_page_entries_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchEngine_get_page_entries_return());
+}
+
+void type<::vnx::search::SearchInterface_get_domain_info>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_info());
+}
+
+void type<::vnx::search::SearchInterface_get_domain_info_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_info_return());
+}
+
+void type<::vnx::search::SearchInterface_get_domain_list>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_list());
+}
+
+void type<::vnx::search::SearchInterface_get_domain_list_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_list_return());
+}
+
+void type<::vnx::search::SearchInterface_get_page_info>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_info());
+}
+
+void type<::vnx::search::SearchInterface_get_page_info_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_info_return());
+}
+
+void type<::vnx::search::SearchInterface_get_page_ranking>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranking());
+}
+
+void type<::vnx::search::SearchInterface_get_page_ranking_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranking_return());
+}
+
+void type<::vnx::search::SearchInterface_get_page_ranks>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranks());
+}
+
+void type<::vnx::search::SearchInterface_get_page_ranks_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranks_return());
+}
+
+void type<::vnx::search::SearchInterface_reverse_domain_lookup>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_domain_lookup());
+}
+
+void type<::vnx::search::SearchInterface_reverse_domain_lookup_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_domain_lookup_return());
+}
+
+void type<::vnx::search::SearchInterface_reverse_lookup>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_lookup());
+}
+
+void type<::vnx::search::SearchInterface_reverse_lookup_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_lookup_return());
+}
+
+void type<::vnx::search::SearchInterface_suggest_domains>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_domains());
+}
+
+void type<::vnx::search::SearchInterface_suggest_domains_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_domains_return());
+}
+
+void type<::vnx::search::SearchInterface_suggest_words>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_words());
+}
+
+void type<::vnx::search::SearchInterface_suggest_words_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_words_return());
+}
+
+void type<::vnx::search::SearchResult>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchResult());
+}
+
+void type<::vnx::search::TextResponse>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::TextResponse());
+}
+
+void type<::vnx::search::UrlIndex>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::UrlIndex());
+}
+
+void type<::vnx::search::UrlInfo>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::UrlInfo());
+}
+
+void type<::vnx::search::WordArray>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::WordArray());
+}
+
+void type<::vnx::search::WordContext>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::WordContext());
+}
+
+void type<::vnx::search::image_link_t>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::image_link_t());
+}
+
+void type<::vnx::search::page_entry_t>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::page_entry_t());
+}
+
+void type<::vnx::search::page_link_t>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::page_link_t());
+}
+
+void type<::vnx::search::query_options_t>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::query_options_t());
+}
+
+void type<::vnx::search::result_item_t>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::result_item_t());
+}
+
+void type<::vnx::search::reverse_link_t>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::reverse_link_t());
+}
+
+void type<::vnx::search::score_type_e>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::score_type_e());
+}
+
+void type<::vnx::search::search_flags_e>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::search_flags_e());
+}
+
+void type<::vnx::search::word_entry_t>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::word_entry_t());
+}
+
+
+} // namespace vnx
 
 
 namespace vnx {
@@ -80,10 +329,15 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::CrawlFrontend_register_parser::static_create_type_code());
 	vnx::register_type_code(::vnx::search::CrawlFrontend_register_parser_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::CrawlProcessorBase::static_create_type_code());
+	vnx::register_type_code(::vnx::search::CrawlProcessor_check_all_urls::static_create_type_code());
+	vnx::register_type_code(::vnx::search::CrawlProcessor_check_all_urls_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::CrawlProcessor_check_root_urls::static_create_type_code());
+	vnx::register_type_code(::vnx::search::CrawlProcessor_check_root_urls_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::CrawlProcessor_get_stats::static_create_type_code());
 	vnx::register_type_code(::vnx::search::CrawlProcessor_get_stats_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::FetchResult::static_create_type_code());
 	vnx::register_type_code(::vnx::search::HttpResponse::static_create_type_code());
+	vnx::register_type_code(::vnx::search::LoadResult::static_create_type_code());
 	vnx::register_type_code(::vnx::search::PageContent::static_create_type_code());
 	vnx::register_type_code(::vnx::search::PageIndex::static_create_type_code());
 	vnx::register_type_code(::vnx::search::PageInfo::static_create_type_code());
@@ -101,6 +355,8 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::SearchInterface_get_domain_list_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_get_page_info::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_get_page_info_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranking::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranking_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranks::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranks_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_reverse_domain_lookup::static_create_type_code());
@@ -117,9 +373,12 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::UrlInfo::static_create_type_code());
 	vnx::register_type_code(::vnx::search::WordArray::static_create_type_code());
 	vnx::register_type_code(::vnx::search::WordContext::static_create_type_code());
+	vnx::register_type_code(::vnx::search::image_link_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::page_entry_t::static_create_type_code());
+	vnx::register_type_code(::vnx::search::page_link_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::query_options_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::result_item_t::static_create_type_code());
+	vnx::register_type_code(::vnx::search::reverse_link_t::static_create_type_code());
 	vnx::register_type_code(::vnx::search::score_type_e::static_create_type_code());
 	vnx::register_type_code(::vnx::search::search_flags_e::static_create_type_code());
 	vnx::register_type_code(::vnx::search::word_entry_t::static_create_type_code());
@@ -144,10 +403,15 @@ const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_load_return = vnx:
 const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_register_parser = vnx::get_type_code(vnx::Hash64(0x4b91d9c8a161bbfdull));
 const vnx::TypeCode* const vnx_native_type_code_CrawlFrontend_register_parser_return = vnx::get_type_code(vnx::Hash64(0x8ced9de5e282cceaull));
 const vnx::TypeCode* const vnx_native_type_code_CrawlProcessorBase = vnx::get_type_code(vnx::Hash64(0x508848d1f9d97d9full));
+const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_check_all_urls = vnx::get_type_code(vnx::Hash64(0xd80069ce51bca03bull));
+const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_check_all_urls_return = vnx::get_type_code(vnx::Hash64(0xe3c8d8db800d177eull));
+const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_check_root_urls = vnx::get_type_code(vnx::Hash64(0xde83bc8da9306eddull));
+const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_check_root_urls_return = vnx::get_type_code(vnx::Hash64(0x8c8ab1d93d36c709ull));
 const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_get_stats = vnx::get_type_code(vnx::Hash64(0x7b8fefbbb0397a0dull));
 const vnx::TypeCode* const vnx_native_type_code_CrawlProcessor_get_stats_return = vnx::get_type_code(vnx::Hash64(0xb8530c2e4e418c47ull));
 const vnx::TypeCode* const vnx_native_type_code_FetchResult = vnx::get_type_code(vnx::Hash64(0x82d345528415d31aull));
 const vnx::TypeCode* const vnx_native_type_code_HttpResponse = vnx::get_type_code(vnx::Hash64(0xd6552db423d70e21ull));
+const vnx::TypeCode* const vnx_native_type_code_LoadResult = vnx::get_type_code(vnx::Hash64(0xcc058b7daab50123ull));
 const vnx::TypeCode* const vnx_native_type_code_PageContent = vnx::get_type_code(vnx::Hash64(0x4cd00be0870fbe22ull));
 const vnx::TypeCode* const vnx_native_type_code_PageIndex = vnx::get_type_code(vnx::Hash64(0x4c9c9cf43a382f0ull));
 const vnx::TypeCode* const vnx_native_type_code_PageInfo = vnx::get_type_code(vnx::Hash64(0x547cfd9b2bb19c80ull));
@@ -165,6 +429,8 @@ const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_list 
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_domain_list_return = vnx::get_type_code(vnx::Hash64(0x5f97f12a0effa039ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_info = vnx::get_type_code(vnx::Hash64(0x1b751835bab2e72aull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_info_return = vnx::get_type_code(vnx::Hash64(0xd26a677932e24236ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranking = vnx::get_type_code(vnx::Hash64(0xd3878abff5f383d6ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranking_return = vnx::get_type_code(vnx::Hash64(0x1f9d1774b55d550eull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks = vnx::get_type_code(vnx::Hash64(0x4962db7ff53f4da4ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks_return = vnx::get_type_code(vnx::Hash64(0xf9c1a5118aa24f11ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup = vnx::get_type_code(vnx::Hash64(0x4fbc87c18553f7c6ull));
@@ -181,9 +447,12 @@ const vnx::TypeCode* const vnx_native_type_code_UrlIndex = vnx::get_type_code(vn
 const vnx::TypeCode* const vnx_native_type_code_UrlInfo = vnx::get_type_code(vnx::Hash64(0xd69101803f781acfull));
 const vnx::TypeCode* const vnx_native_type_code_WordArray = vnx::get_type_code(vnx::Hash64(0xabb8eb197035a035ull));
 const vnx::TypeCode* const vnx_native_type_code_WordContext = vnx::get_type_code(vnx::Hash64(0xdaa75d84f367905bull));
+const vnx::TypeCode* const vnx_native_type_code_image_link_t = vnx::get_type_code(vnx::Hash64(0xc6f3540672c0973ull));
 const vnx::TypeCode* const vnx_native_type_code_page_entry_t = vnx::get_type_code(vnx::Hash64(0xb803150fd74a8e74ull));
+const vnx::TypeCode* const vnx_native_type_code_page_link_t = vnx::get_type_code(vnx::Hash64(0x9c679ca5cdee712dull));
 const vnx::TypeCode* const vnx_native_type_code_query_options_t = vnx::get_type_code(vnx::Hash64(0x8abc6f7a05400550ull));
 const vnx::TypeCode* const vnx_native_type_code_result_item_t = vnx::get_type_code(vnx::Hash64(0x25b1d557d37a1bdfull));
+const vnx::TypeCode* const vnx_native_type_code_reverse_link_t = vnx::get_type_code(vnx::Hash64(0xaaf3ea38b730dac0ull));
 const vnx::TypeCode* const vnx_native_type_code_score_type_e = vnx::get_type_code(vnx::Hash64(0x433d867b180521adull));
 const vnx::TypeCode* const vnx_native_type_code_search_flags_e = vnx::get_type_code(vnx::Hash64(0xe55b90a8ffab58ffull));
 const vnx::TypeCode* const vnx_native_type_code_word_entry_t = vnx::get_type_code(vnx::Hash64(0x49376c2d78d6a529ull));

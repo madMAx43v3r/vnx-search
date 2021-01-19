@@ -34,15 +34,21 @@ public:
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
+	std::shared_ptr<const ::vnx::ModuleInfo> vnx_get_module_info();
+	
 	void vnx_restart();
 	
 	void vnx_restart_async();
 	
-	void vnx_close();
+	void vnx_stop();
 	
-	void vnx_close_async();
+	void vnx_stop_async();
 	
-	std::shared_ptr<const ::vnx::addons::HttpResponse> http_request(const std::shared_ptr<const ::vnx::addons::HttpRequest>& request, const std::string& sub_path);
+	vnx::bool_t vnx_self_test();
+	
+	std::shared_ptr<const ::vnx::addons::HttpResponse> http_request(std::shared_ptr<const ::vnx::addons::HttpRequest> request, const std::string& sub_path);
+	
+	std::shared_ptr<const ::vnx::addons::HttpResponse> http_request_chunk(std::shared_ptr<const ::vnx::addons::HttpRequest> request, const std::string& sub_path, const int64_t& offset, const int64_t& max_bytes);
 	
 };
 

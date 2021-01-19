@@ -4,6 +4,8 @@
 #include <vnx/search/package.hxx>
 #include <vnx/search/TextResponse.hxx>
 #include <vnx/search/Response.hxx>
+#include <vnx/search/image_link_t.hxx>
+#include <vnx/search/page_link_t.hxx>
 
 #include <vnx/vnx.h>
 
@@ -13,13 +15,13 @@ namespace search {
 
 
 const vnx::Hash64 TextResponse::VNX_TYPE_HASH(0x7cee1cd5b88ec569ull);
-const vnx::Hash64 TextResponse::VNX_CODE_HASH(0xd10aa4ea0985990ull);
+const vnx::Hash64 TextResponse::VNX_CODE_HASH(0xf287e8287e1259feull);
 
 vnx::Hash64 TextResponse::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* TextResponse::get_type_name() const {
+std::string TextResponse::get_type_name() const {
 	return "vnx.search.TextResponse";
 }
 
@@ -55,6 +57,7 @@ void TextResponse::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, base_url);
 	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, links);
 	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, images);
+	_visitor.type_field(_type_code->fields[9], 9); vnx::accept(_visitor, resources);
 	_visitor.type_end(*_type_code);
 }
 
@@ -69,32 +72,13 @@ void TextResponse::write(std::ostream& _out) const {
 	_out << ", \"base_url\": "; vnx::write(_out, base_url);
 	_out << ", \"links\": "; vnx::write(_out, links);
 	_out << ", \"images\": "; vnx::write(_out, images);
+	_out << ", \"resources\": "; vnx::write(_out, resources);
 	_out << "}";
 }
 
 void TextResponse::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "base_url") {
-			vnx::from_string(_entry.second, base_url);
-		} else if(_entry.first == "date") {
-			vnx::from_string(_entry.second, date);
-		} else if(_entry.first == "fetch_duration_us") {
-			vnx::from_string(_entry.second, fetch_duration_us);
-		} else if(_entry.first == "images") {
-			vnx::from_string(_entry.second, images);
-		} else if(_entry.first == "last_modified") {
-			vnx::from_string(_entry.second, last_modified);
-		} else if(_entry.first == "links") {
-			vnx::from_string(_entry.second, links);
-		} else if(_entry.first == "text") {
-			vnx::from_string(_entry.second, text);
-		} else if(_entry.first == "title") {
-			vnx::from_string(_entry.second, title);
-		} else if(_entry.first == "url") {
-			vnx::from_string(_entry.second, url);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -110,6 +94,7 @@ vnx::Object TextResponse::to_object() const {
 	_object["base_url"] = base_url;
 	_object["links"] = links;
 	_object["images"] = images;
+	_object["resources"] = resources;
 	return _object;
 }
 
@@ -127,6 +112,8 @@ void TextResponse::from_object(const vnx::Object& _object) {
 			_entry.second.to(last_modified);
 		} else if(_entry.first == "links") {
 			_entry.second.to(links);
+		} else if(_entry.first == "resources") {
+			_entry.second.to(resources);
 		} else if(_entry.first == "text") {
 			_entry.second.to(text);
 		} else if(_entry.first == "title") {
@@ -165,6 +152,9 @@ vnx::Variant TextResponse::get_field(const std::string& _name) const {
 	if(_name == "images") {
 		return vnx::Variant(images);
 	}
+	if(_name == "resources") {
+		return vnx::Variant(resources);
+	}
 	return vnx::Variant();
 }
 
@@ -187,6 +177,8 @@ void TextResponse::set_field(const std::string& _name, const vnx::Variant& _valu
 		_value.to(links);
 	} else if(_name == "images") {
 		_value.to(images);
+	} else if(_name == "resources") {
+		_value.to(resources);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -216,13 +208,16 @@ std::shared_ptr<vnx::TypeCode> TextResponse::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.TextResponse";
 	type_code->type_hash = vnx::Hash64(0x7cee1cd5b88ec569ull);
-	type_code->code_hash = vnx::Hash64(0xd10aa4ea0985990ull);
+	type_code->code_hash = vnx::Hash64(0xf287e8287e1259feull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->parents.resize(1);
 	type_code->parents[0] = ::vnx::search::Response::static_get_type_code();
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<TextResponse>(); };
-	type_code->fields.resize(9);
+	type_code->depends.resize(2);
+	type_code->depends[0] = ::vnx::search::page_link_t::static_get_type_code();
+	type_code->depends[1] = ::vnx::search::image_link_t::static_get_type_code();
+	type_code->fields.resize(10);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -266,12 +261,18 @@ std::shared_ptr<vnx::TypeCode> TextResponse::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[7];
 		field.is_extended = true;
 		field.name = "links";
-		field.code = {12, 32};
+		field.code = {12, 19, 0};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[8];
 		field.is_extended = true;
 		field.name = "images";
+		field.code = {12, 19, 1};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[9];
+		field.is_extended = true;
+		field.name = "resources";
 		field.code = {12, 32};
 	}
 	type_code->build();
@@ -302,13 +303,17 @@ void read(TypeInput& in, ::vnx::search::TextResponse& value, const TypeCode* typ
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -340,6 +345,7 @@ void read(TypeInput& in, ::vnx::search::TextResponse& value, const TypeCode* typ
 			case 6: vnx::read(in, value.base_url, type_code, _field->code.data()); break;
 			case 7: vnx::read(in, value.links, type_code, _field->code.data()); break;
 			case 8: vnx::read(in, value.images, type_code, _field->code.data()); break;
+			case 9: vnx::read(in, value.resources, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -355,7 +361,7 @@ void write(TypeOutput& out, const ::vnx::search::TextResponse& value, const Type
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::TextResponse>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(24);
@@ -368,6 +374,7 @@ void write(TypeOutput& out, const ::vnx::search::TextResponse& value, const Type
 	vnx::write(out, value.base_url, type_code, type_code->fields[6].code.data());
 	vnx::write(out, value.links, type_code, type_code->fields[7].code.data());
 	vnx::write(out, value.images, type_code, type_code->fields[8].code.data());
+	vnx::write(out, value.resources, type_code, type_code->fields[9].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::TextResponse& value) {

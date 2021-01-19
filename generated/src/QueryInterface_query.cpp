@@ -15,13 +15,13 @@ namespace search {
 
 
 const vnx::Hash64 QueryInterface_query::VNX_TYPE_HASH(0xd7ca13b33b457bbaull);
-const vnx::Hash64 QueryInterface_query::VNX_CODE_HASH(0xf7dc2369451f533dull);
+const vnx::Hash64 QueryInterface_query::VNX_CODE_HASH(0xb7717bc621b44f01ull);
 
 vnx::Hash64 QueryInterface_query::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* QueryInterface_query::get_type_name() const {
+std::string QueryInterface_query::get_type_name() const {
 	return "vnx.search.QueryInterface.query";
 }
 
@@ -61,14 +61,8 @@ void QueryInterface_query::write(std::ostream& _out) const {
 }
 
 void QueryInterface_query::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "options") {
-			vnx::from_string(_entry.second, options);
-		} else if(_entry.first == "words") {
-			vnx::from_string(_entry.second, words);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -134,13 +128,15 @@ std::shared_ptr<vnx::TypeCode> QueryInterface_query::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.QueryInterface.query";
 	type_code->type_hash = vnx::Hash64(0xd7ca13b33b457bbaull);
-	type_code->code_hash = vnx::Hash64(0xf7dc2369451f533dull);
+	type_code->code_hash = vnx::Hash64(0xb7717bc621b44f01ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<QueryInterface_query>(); };
 	type_code->depends.resize(1);
 	type_code->depends[0] = ::vnx::search::query_options_t::static_get_type_code();
+	type_code->is_const = true;
+	type_code->is_async = true;
 	type_code->return_type = ::vnx::search::QueryInterface_query_return::static_get_type_code();
 	type_code->fields.resize(2);
 	{
@@ -183,13 +179,17 @@ void read(TypeInput& in, ::vnx::search::QueryInterface_query& value, const TypeC
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	if(type_code->is_matched) {
@@ -213,7 +213,7 @@ void write(TypeOutput& out, const ::vnx::search::QueryInterface_query& value, co
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::QueryInterface_query>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	vnx::write(out, value.words, type_code, type_code->fields[0].code.data());

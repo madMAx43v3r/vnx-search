@@ -14,13 +14,13 @@ namespace search {
 
 
 const vnx::Hash64 query_options_t::VNX_TYPE_HASH(0x8abc6f7a05400550ull);
-const vnx::Hash64 query_options_t::VNX_CODE_HASH(0x5fa24bde8654a89cull);
+const vnx::Hash64 query_options_t::VNX_CODE_HASH(0x80cd696060487985ull);
 
 vnx::Hash64 query_options_t::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* query_options_t::get_type_name() const {
+std::string query_options_t::get_type_name() const {
 	return "vnx.search.query_options_t";
 }
 
@@ -52,8 +52,9 @@ void query_options_t::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, context);
 	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, max_group_size);
 	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, max_results);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, score_type);
-	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, flags);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, score_power);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, score_type);
+	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, flags);
 	_visitor.type_end(*_type_code);
 }
 
@@ -64,40 +65,27 @@ void query_options_t::write(std::ostream& _out) const {
 	_out << ", \"context\": "; vnx::write(_out, context);
 	_out << ", \"max_group_size\": "; vnx::write(_out, max_group_size);
 	_out << ", \"max_results\": "; vnx::write(_out, max_results);
+	_out << ", \"score_power\": "; vnx::write(_out, score_power);
 	_out << ", \"score_type\": "; vnx::write(_out, score_type);
 	_out << ", \"flags\": "; vnx::write(_out, flags);
 	_out << "}";
 }
 
 void query_options_t::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "context") {
-			vnx::from_string(_entry.second, context);
-		} else if(_entry.first == "flags") {
-			vnx::from_string(_entry.second, flags);
-		} else if(_entry.first == "limit") {
-			vnx::from_string(_entry.second, limit);
-		} else if(_entry.first == "max_group_size") {
-			vnx::from_string(_entry.second, max_group_size);
-		} else if(_entry.first == "max_results") {
-			vnx::from_string(_entry.second, max_results);
-		} else if(_entry.first == "offset") {
-			vnx::from_string(_entry.second, offset);
-		} else if(_entry.first == "score_type") {
-			vnx::from_string(_entry.second, score_type);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
 vnx::Object query_options_t::to_object() const {
 	vnx::Object _object;
+	_object["__type"] = "vnx.search.query_options_t";
 	_object["limit"] = limit;
 	_object["offset"] = offset;
 	_object["context"] = context;
 	_object["max_group_size"] = max_group_size;
 	_object["max_results"] = max_results;
+	_object["score_power"] = score_power;
 	_object["score_type"] = score_type;
 	_object["flags"] = flags;
 	return _object;
@@ -117,6 +105,8 @@ void query_options_t::from_object(const vnx::Object& _object) {
 			_entry.second.to(max_results);
 		} else if(_entry.first == "offset") {
 			_entry.second.to(offset);
+		} else if(_entry.first == "score_power") {
+			_entry.second.to(score_power);
 		} else if(_entry.first == "score_type") {
 			_entry.second.to(score_type);
 		}
@@ -139,6 +129,9 @@ vnx::Variant query_options_t::get_field(const std::string& _name) const {
 	if(_name == "max_results") {
 		return vnx::Variant(max_results);
 	}
+	if(_name == "score_power") {
+		return vnx::Variant(score_power);
+	}
 	if(_name == "score_type") {
 		return vnx::Variant(score_type);
 	}
@@ -159,6 +152,8 @@ void query_options_t::set_field(const std::string& _name, const vnx::Variant& _v
 		_value.to(max_group_size);
 	} else if(_name == "max_results") {
 		_value.to(max_results);
+	} else if(_name == "score_power") {
+		_value.to(score_power);
 	} else if(_name == "score_type") {
 		_value.to(score_type);
 	} else if(_name == "flags") {
@@ -192,13 +187,13 @@ std::shared_ptr<vnx::TypeCode> query_options_t::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.query_options_t";
 	type_code->type_hash = vnx::Hash64(0x8abc6f7a05400550ull);
-	type_code->code_hash = vnx::Hash64(0x5fa24bde8654a89cull);
+	type_code->code_hash = vnx::Hash64(0x80cd696060487985ull);
 	type_code->is_native = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<query_options_t>>(); };
 	type_code->depends.resize(2);
 	type_code->depends[0] = ::vnx::search::score_type_e::static_get_type_code();
 	type_code->depends[1] = ::vnx::search::search_flags_e::static_get_type_code();
-	type_code->fields.resize(7);
+	type_code->fields.resize(8);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.name = "limit";
@@ -230,13 +225,19 @@ std::shared_ptr<vnx::TypeCode> query_options_t::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[5];
-		field.is_extended = true;
-		field.name = "score_type";
-		field.value = vnx::to_string("AVG_SCORE");
-		field.code = {19, 0};
+		field.name = "score_power";
+		field.value = vnx::to_string(2);
+		field.code = {9};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[6];
+		field.is_extended = true;
+		field.name = "score_type";
+		field.value = vnx::to_string("MAX_SCORE");
+		field.code = {19, 0};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[7];
 		field.is_extended = true;
 		field.name = "flags";
 		field.code = {12, 19, 1};
@@ -269,13 +270,17 @@ void read(TypeInput& in, ::vnx::search::query_options_t& value, const TypeCode* 
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -310,11 +315,17 @@ void read(TypeInput& in, ::vnx::search::query_options_t& value, const TypeCode* 
 				vnx::read_value(_buf + _field->offset, value.max_results, _field->code.data());
 			}
 		}
+		{
+			const vnx::TypeField* const _field = type_code->field_map[5];
+			if(_field) {
+				vnx::read_value(_buf + _field->offset, value.score_power, _field->code.data());
+			}
+		}
 	}
 	for(const vnx::TypeField* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 5: vnx::read(in, value.score_type, type_code, _field->code.data()); break;
-			case 6: vnx::read(in, value.flags, type_code, _field->code.data()); break;
+			case 6: vnx::read(in, value.score_type, type_code, _field->code.data()); break;
+			case 7: vnx::read(in, value.flags, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -330,17 +341,18 @@ void write(TypeOutput& out, const ::vnx::search::query_options_t& value, const T
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::query_options_t>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(20);
+	char* const _buf = out.write(24);
 	vnx::write_value(_buf + 0, value.limit);
 	vnx::write_value(_buf + 4, value.offset);
 	vnx::write_value(_buf + 8, value.context);
 	vnx::write_value(_buf + 12, value.max_group_size);
 	vnx::write_value(_buf + 16, value.max_results);
-	vnx::write(out, value.score_type, type_code, type_code->fields[5].code.data());
-	vnx::write(out, value.flags, type_code, type_code->fields[6].code.data());
+	vnx::write_value(_buf + 20, value.score_power);
+	vnx::write(out, value.score_type, type_code, type_code->fields[6].code.data());
+	vnx::write(out, value.flags, type_code, type_code->fields[7].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::query_options_t& value) {

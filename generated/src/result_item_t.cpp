@@ -19,7 +19,7 @@ vnx::Hash64 result_item_t::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* result_item_t::get_type_name() const {
+std::string result_item_t::get_type_name() const {
 	return "vnx.search.result_item_t";
 }
 
@@ -65,20 +65,8 @@ void result_item_t::write(std::ostream& _out) const {
 }
 
 void result_item_t::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "context") {
-			vnx::from_string(_entry.second, context);
-		} else if(_entry.first == "last_modified") {
-			vnx::from_string(_entry.second, last_modified);
-		} else if(_entry.first == "score") {
-			vnx::from_string(_entry.second, score);
-		} else if(_entry.first == "title") {
-			vnx::from_string(_entry.second, title);
-		} else if(_entry.first == "url") {
-			vnx::from_string(_entry.second, url);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -229,13 +217,17 @@ void read(TypeInput& in, ::vnx::search::result_item_t& value, const TypeCode* ty
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -273,7 +265,7 @@ void write(TypeOutput& out, const ::vnx::search::result_item_t& value, const Typ
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::result_item_t>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(12);

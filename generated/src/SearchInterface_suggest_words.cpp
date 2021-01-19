@@ -20,7 +20,7 @@ vnx::Hash64 SearchInterface_suggest_words::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* SearchInterface_suggest_words::get_type_name() const {
+std::string SearchInterface_suggest_words::get_type_name() const {
 	return "vnx.search.SearchInterface.suggest_words";
 }
 
@@ -60,14 +60,8 @@ void SearchInterface_suggest_words::write(std::ostream& _out) const {
 }
 
 void SearchInterface_suggest_words::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "limit") {
-			vnx::from_string(_entry.second, limit);
-		} else if(_entry.first == "prefix") {
-			vnx::from_string(_entry.second, prefix);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -138,6 +132,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_suggest_words::static_create_type
 	type_code->is_class = true;
 	type_code->is_method = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchInterface_suggest_words>(); };
+	type_code->is_const = true;
 	type_code->return_type = ::vnx::search::SearchInterface_suggest_words_return::static_get_type_code();
 	type_code->fields.resize(2);
 	{
@@ -179,13 +174,17 @@ void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_words& value, co
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -215,7 +214,7 @@ void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_words& 
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::SearchInterface_suggest_words>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(4);

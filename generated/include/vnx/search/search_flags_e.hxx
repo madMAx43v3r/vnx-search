@@ -13,25 +13,27 @@ namespace search {
 
 struct search_flags_e {
 	
-	enum {
-		GROUP_BY_DOMAIN = 1161442717,
-		LATEST_NEWS = 1050161006,
+	enum enum_t {
+		GROUP_BY_DOMAIN = 1161442717l,
+		LATEST_NEWS = 1050161006l,
 	};
 	
-	uint32_t value = 0;
+	enum_t value = ::vnx::search::search_flags_e::enum_t(0);
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
 	search_flags_e() {}
-	search_flags_e(uint32_t _value) { value = _value; }
+	search_flags_e(const enum_t& _value) { value = _value; }
+	search_flags_e(const ::vnx::search::search_flags_e& _other) { value = _other.value; }
 	
 	vnx::Hash64 get_type_hash() const;
-	const char* get_type_name() const;
+	std::string get_type_name() const;
 	const vnx::TypeCode* get_type_code() const;
 	
-	operator uint32_t() const { return value; }
-	search_flags_e& operator=(uint32_t _value) { value = _value; return *this; }
+	operator enum_t() const { return value; }
+	search_flags_e& operator=(const enum_t& _value) { value = _value; return *this; }
+	search_flags_e& operator=(const ::vnx::search::search_flags_e& _other) { value = _other.value; return *this; }
 	
 	static std::shared_ptr<search_flags_e> create();
 	std::shared_ptr<search_flags_e> clone() const;
@@ -43,6 +45,13 @@ struct search_flags_e {
 	void write(std::ostream& _out) const;
 	
 	void accept(vnx::Visitor& _visitor) const;
+	
+	std::string to_string() const;
+	std::string to_string_value() const;
+	std::string to_string_value_full() const;
+	
+	void from_string(const std::string& str);
+	void from_string_value(const std::string& name);
 	
 	vnx::Object to_object() const;
 	void from_object(const vnx::Object& object);
@@ -61,5 +70,32 @@ struct search_flags_e {
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+void read(TypeInput& in, ::vnx::search::search_flags_e::enum_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+
+void write(TypeOutput& out, const ::vnx::search::search_flags_e::enum_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+
+template<>
+std::string to_string(const ::vnx::search::search_flags_e& _value); ///< \private
+
+template<>
+std::string to_string_value(const ::vnx::search::search_flags_e& _value); ///< \private
+
+template<>
+std::string to_string_value_full(const ::vnx::search::search_flags_e& _value); ///< \private
+
+template<>
+std::string to_string(const ::vnx::search::search_flags_e::enum_t& _value); ///< \private
+
+template<>
+std::string to_string_value(const ::vnx::search::search_flags_e::enum_t& _value); ///< \private
+
+template<>
+std::string to_string_value_full(const ::vnx::search::search_flags_e::enum_t& _value); ///< \private
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_search_flags_e_HXX_

@@ -22,7 +22,7 @@ struct page_entry_t {
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
 	vnx::Hash64 get_type_hash() const;
-	const char* get_type_name() const;
+	std::string get_type_name() const;
 	const vnx::TypeCode* get_type_code() const;
 	
 	static std::shared_ptr<page_entry_t> create();

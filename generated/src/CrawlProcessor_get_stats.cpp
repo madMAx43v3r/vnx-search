@@ -20,7 +20,7 @@ vnx::Hash64 CrawlProcessor_get_stats::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* CrawlProcessor_get_stats::get_type_name() const {
+std::string CrawlProcessor_get_stats::get_type_name() const {
 	return "vnx.search.CrawlProcessor.get_stats";
 }
 
@@ -58,12 +58,8 @@ void CrawlProcessor_get_stats::write(std::ostream& _out) const {
 }
 
 void CrawlProcessor_get_stats::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "limit") {
-			vnx::from_string(_entry.second, limit);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -126,6 +122,7 @@ std::shared_ptr<vnx::TypeCode> CrawlProcessor_get_stats::static_create_type_code
 	type_code->is_class = true;
 	type_code->is_method = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<CrawlProcessor_get_stats>(); };
+	type_code->is_const = true;
 	type_code->return_type = ::vnx::search::CrawlProcessor_get_stats_return::static_get_type_code();
 	type_code->fields.resize(1);
 	{
@@ -161,13 +158,17 @@ void read(TypeInput& in, ::vnx::search::CrawlProcessor_get_stats& value, const T
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -196,7 +197,7 @@ void write(TypeOutput& out, const ::vnx::search::CrawlProcessor_get_stats& value
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::CrawlProcessor_get_stats>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(4);

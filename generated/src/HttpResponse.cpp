@@ -20,7 +20,7 @@ vnx::Hash64 HttpResponse::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* HttpResponse::get_type_name() const {
+std::string HttpResponse::get_type_name() const {
 	return "vnx.search.HttpResponse";
 }
 
@@ -72,26 +72,8 @@ void HttpResponse::write(std::ostream& _out) const {
 }
 
 void HttpResponse::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "content_charset") {
-			vnx::from_string(_entry.second, content_charset);
-		} else if(_entry.first == "content_type") {
-			vnx::from_string(_entry.second, content_type);
-		} else if(_entry.first == "date") {
-			vnx::from_string(_entry.second, date);
-		} else if(_entry.first == "fetch_duration_us") {
-			vnx::from_string(_entry.second, fetch_duration_us);
-		} else if(_entry.first == "last_modified") {
-			vnx::from_string(_entry.second, last_modified);
-		} else if(_entry.first == "payload") {
-			vnx::from_string(_entry.second, payload);
-		} else if(_entry.first == "status") {
-			vnx::from_string(_entry.second, status);
-		} else if(_entry.first == "url") {
-			vnx::from_string(_entry.second, url);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -285,13 +267,17 @@ void read(TypeInput& in, ::vnx::search::HttpResponse& value, const TypeCode* typ
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -342,7 +328,7 @@ void write(TypeOutput& out, const ::vnx::search::HttpResponse& value, const Type
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::HttpResponse>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(28);

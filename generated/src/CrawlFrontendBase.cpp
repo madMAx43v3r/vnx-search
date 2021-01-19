@@ -6,20 +6,24 @@
 #include <vnx/NoSuchMethod.hxx>
 #include <vnx/Hash64.hpp>
 #include <vnx/Module.h>
-#include <vnx/ModuleInterface_vnx_close.hxx>
-#include <vnx/ModuleInterface_vnx_close_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_config.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_object.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_object_return.hxx>
-#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_module_info.hxx>
+#include <vnx/ModuleInterface_vnx_get_module_info_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/ModuleInterface_vnx_restart.hxx>
 #include <vnx/ModuleInterface_vnx_restart_return.hxx>
+#include <vnx/ModuleInterface_vnx_self_test.hxx>
+#include <vnx/ModuleInterface_vnx_self_test_return.hxx>
 #include <vnx/ModuleInterface_vnx_set_config.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_set_config_object.hxx>
 #include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
-#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
+#include <vnx/ModuleInterface_vnx_stop.hxx>
+#include <vnx/ModuleInterface_vnx_stop_return.hxx>
 #include <vnx/TopicPtr.hpp>
 #include <vnx/search/CrawlFrontend_fetch.hxx>
 #include <vnx/search/CrawlFrontend_fetch_return.hxx>
@@ -28,7 +32,7 @@
 #include <vnx/search/CrawlFrontend_register_parser.hxx>
 #include <vnx/search/CrawlFrontend_register_parser_return.hxx>
 #include <vnx/search/FetchResult.hxx>
-#include <vnx/search/UrlInfo.hxx>
+#include <vnx/search/LoadResult.hxx>
 
 #include <vnx/vnx.h>
 
@@ -43,13 +47,13 @@ const vnx::Hash64 CrawlFrontendBase::VNX_CODE_HASH(0x9fc0db083bc886dull);
 CrawlFrontendBase::CrawlFrontendBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
-	vnx::read_config(vnx_name + ".max_content_length", max_content_length);
-	vnx::read_config(vnx_name + ".max_response_size", max_response_size);
-	vnx::read_config(vnx_name + ".num_threads", num_threads);
 	vnx::read_config(vnx_name + ".output_http", output_http);
 	vnx::read_config(vnx_name + ".output_text", output_text);
+	vnx::read_config(vnx_name + ".num_threads", num_threads);
 	vnx::read_config(vnx_name + ".response_timeout_ms", response_timeout_ms);
 	vnx::read_config(vnx_name + ".stats_interval_ms", stats_interval_ms);
+	vnx::read_config(vnx_name + ".max_content_length", max_content_length);
+	vnx::read_config(vnx_name + ".max_response_size", max_response_size);
 	vnx::read_config(vnx_name + ".user_agent", user_agent);
 }
 
@@ -57,7 +61,7 @@ vnx::Hash64 CrawlFrontendBase::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* CrawlFrontendBase::get_type_name() const {
+std::string CrawlFrontendBase::get_type_name() const {
 	return "vnx.search.CrawlFrontend";
 }
 
@@ -93,31 +97,14 @@ void CrawlFrontendBase::write(std::ostream& _out) const {
 }
 
 void CrawlFrontendBase::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "max_content_length") {
-			vnx::from_string(_entry.second, max_content_length);
-		} else if(_entry.first == "max_response_size") {
-			vnx::from_string(_entry.second, max_response_size);
-		} else if(_entry.first == "num_threads") {
-			vnx::from_string(_entry.second, num_threads);
-		} else if(_entry.first == "output_http") {
-			vnx::from_string(_entry.second, output_http);
-		} else if(_entry.first == "output_text") {
-			vnx::from_string(_entry.second, output_text);
-		} else if(_entry.first == "response_timeout_ms") {
-			vnx::from_string(_entry.second, response_timeout_ms);
-		} else if(_entry.first == "stats_interval_ms") {
-			vnx::from_string(_entry.second, stats_interval_ms);
-		} else if(_entry.first == "user_agent") {
-			vnx::from_string(_entry.second, user_agent);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
 vnx::Object CrawlFrontendBase::to_object() const {
 	vnx::Object _object;
+	_object["__type"] = "vnx.search.CrawlFrontend";
 	_object["output_http"] = output_http;
 	_object["output_text"] = output_text;
 	_object["num_threads"] = num_threads;
@@ -227,17 +214,19 @@ std::shared_ptr<vnx::TypeCode> CrawlFrontendBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0xd91536edf3f184e2ull);
 	type_code->code_hash = vnx::Hash64(0x9fc0db083bc886dull);
 	type_code->is_native = true;
-	type_code->methods.resize(10);
+	type_code->methods.resize(12);
 	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_config_object::static_get_type_code();
 	type_code->methods[1] = ::vnx::ModuleInterface_vnx_get_config::static_get_type_code();
 	type_code->methods[2] = ::vnx::ModuleInterface_vnx_set_config_object::static_get_type_code();
 	type_code->methods[3] = ::vnx::ModuleInterface_vnx_set_config::static_get_type_code();
 	type_code->methods[4] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
-	type_code->methods[5] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
-	type_code->methods[6] = ::vnx::ModuleInterface_vnx_close::static_get_type_code();
-	type_code->methods[7] = ::vnx::search::CrawlFrontend_load::static_get_type_code();
-	type_code->methods[8] = ::vnx::search::CrawlFrontend_fetch::static_get_type_code();
-	type_code->methods[9] = ::vnx::search::CrawlFrontend_register_parser::static_get_type_code();
+	type_code->methods[5] = ::vnx::ModuleInterface_vnx_get_module_info::static_get_type_code();
+	type_code->methods[6] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
+	type_code->methods[7] = ::vnx::ModuleInterface_vnx_stop::static_get_type_code();
+	type_code->methods[8] = ::vnx::ModuleInterface_vnx_self_test::static_get_type_code();
+	type_code->methods[9] = ::vnx::search::CrawlFrontend_load::static_get_type_code();
+	type_code->methods[10] = ::vnx::search::CrawlFrontend_fetch::static_get_type_code();
+	type_code->methods[11] = ::vnx::search::CrawlFrontend_register_parser::static_get_type_code();
 	type_code->fields.resize(8);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -339,6 +328,14 @@ std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(std::shared_ptr<c
 		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
 		_return_value->_ret_0 = vnx_get_type_code();
 		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0xf6d82bdf66d034a1ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_module_info>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_module_info_return::create();
+		_return_value->_ret_0 = vnx_get_module_info();
+		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x9e95dc280cecca1bull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_restart>(_method);
 		if(!_args) {
@@ -347,13 +344,21 @@ std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(std::shared_ptr<c
 		auto _return_value = ::vnx::ModuleInterface_vnx_restart_return::create();
 		vnx_restart();
 		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x9e165e2b50bad84bull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_close>(_method);
+	} else if(_type_hash == vnx::Hash64(0x7ab49ce3d1bfc0d2ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_stop>(_method);
 		if(!_args) {
 			throw std::logic_error("vnx_call_switch(): !_args");
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_close_return::create();
-		vnx_close();
+		auto _return_value = ::vnx::ModuleInterface_vnx_stop_return::create();
+		vnx_stop();
+		return _return_value;
+	} else if(_type_hash == vnx::Hash64(0x6ce3775b41a42697ull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_self_test>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_self_test_return::create();
+		_return_value->_ret_0 = vnx_self_test();
 		return _return_value;
 	} else if(_type_hash == vnx::Hash64(0x3fc44f9cec7e6237ull)) {
 		auto _args = std::dynamic_pointer_cast<const ::vnx::search::CrawlFrontend_load>(_method);
@@ -379,12 +384,12 @@ std::shared_ptr<vnx::Value> CrawlFrontendBase::vnx_call_switch(std::shared_ptr<c
 		return _return_value;
 	}
 	auto _ex = vnx::NoSuchMethod::create();
-	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
+	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : vnx::Hash64();
 	_ex->method = _method->get_type_name();
 	return _ex;
 }
 
-void CrawlFrontendBase::load_async_return(const vnx::request_id_t& _request_id, const ::vnx::search::UrlInfo& _ret_0) const {
+void CrawlFrontendBase::load_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::LoadResult>& _ret_0) const {
 	auto _return_value = ::vnx::search::CrawlFrontend_load_return::create();
 	_return_value->_ret_0 = _ret_0;
 	vnx_async_return(_request_id, _return_value);
@@ -420,13 +425,17 @@ void read(TypeInput& in, ::vnx::search::CrawlFrontendBase& value, const TypeCode
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -482,7 +491,7 @@ void write(TypeOutput& out, const ::vnx::search::CrawlFrontendBase& value, const
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::CrawlFrontendBase>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(28);

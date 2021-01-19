@@ -8,6 +8,7 @@
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/query_options_t.hxx>
 
+#include <vnx/Generic.hxx>
 #include <vnx/vnx.h>
 
 
@@ -24,70 +25,79 @@ QueryInterfaceAsyncClient::QueryInterfaceAsyncClient(vnx::Hash64 service_addr)
 {
 }
 
-uint64_t QueryInterfaceAsyncClient::query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback, const std::function<void(const std::exception&)>& _error_callback) {
+uint64_t QueryInterfaceAsyncClient::query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, const std::function<void(std::shared_ptr<const ::vnx::search::SearchResult>)>& _callback, const std::function<void(const vnx::exception&)>& _error_callback) {
 	auto _method = ::vnx::search::QueryInterface_query::create();
 	_method->words = words;
 	_method->options = options;
 	const auto _request_id = ++vnx_next_id;
 	{
 		std::lock_guard<std::mutex> _lock(vnx_mutex);
+		vnx_pending[_request_id] = 0;
 		vnx_queue_query[_request_id] = std::make_pair(_callback, _error_callback);
-		vnx_num_pending++;
 	}
 	vnx_request(_method, _request_id);
 	return _request_id;
 }
 
-std::vector<uint64_t> QueryInterfaceAsyncClient::vnx_get_pending_ids() const {
-	std::lock_guard<std::mutex> _lock(vnx_mutex);
-	std::vector<uint64_t> _list;
-	for(const auto& entry : vnx_queue_query) {
-		_list.push_back(entry.first);
-	}
-	return _list;
-}
-
-void QueryInterfaceAsyncClient::vnx_purge_request(uint64_t _request_id, const std::exception& _ex) {
+int32_t QueryInterfaceAsyncClient::vnx_purge_request(uint64_t _request_id, const vnx::exception& _ex) {
 	std::unique_lock<std::mutex> _lock(vnx_mutex);
-	{
-		const auto _iter = vnx_queue_query.find(_request_id);
-		if(_iter != vnx_queue_query.end()) {
-			const auto _callback = std::move(_iter->second.second);
-			vnx_queue_query.erase(_iter);
-			vnx_num_pending--;
-			_lock.unlock();
-			if(_callback) {
-				_callback(_ex);
+	const auto _iter = vnx_pending.find(_request_id);
+	if(_iter == vnx_pending.end()) {
+		return -1;
+	}
+	const auto _index = _iter->second;
+	vnx_pending.erase(_iter);
+	switch(_index) {
+		case 0: {
+			const auto _iter = vnx_queue_query.find(_request_id);
+			if(_iter != vnx_queue_query.end()) {
+				const auto _callback = std::move(_iter->second.second);
+				vnx_queue_query.erase(_iter);
+				_lock.unlock();
+				if(_callback) {
+					_callback(_ex);
+				}
 			}
-			return;
+			break;
 		}
 	}
+	return _index;
 }
 
-void QueryInterfaceAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
+int32_t QueryInterfaceAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
 	std::unique_lock<std::mutex> _lock(vnx_mutex);
-	const auto _type_hash = _value->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x9132d7d126fc55a6ull)) {
-		auto _result = std::dynamic_pointer_cast<const ::vnx::search::QueryInterface_query_return>(_value);
-		if(!_result) {
-			throw std::logic_error("QueryInterfaceAsyncClient: !_result");
-		}
-		const auto _iter = vnx_queue_query.find(_request_id);
-		if(_iter != vnx_queue_query.end()) {
+	const auto _iter = vnx_pending.find(_request_id);
+	if(_iter == vnx_pending.end()) {
+		throw std::runtime_error("QueryInterfaceAsyncClient: received unknown return");
+	}
+	const auto _index = _iter->second;
+	vnx_pending.erase(_iter);
+	switch(_index) {
+		case 0: {
+			const auto _iter = vnx_queue_query.find(_request_id);
+			if(_iter == vnx_queue_query.end()) {
+				throw std::runtime_error("QueryInterfaceAsyncClient: callback not found");
+			}
 			const auto _callback = std::move(_iter->second.first);
 			vnx_queue_query.erase(_iter);
-			vnx_num_pending--;
 			_lock.unlock();
 			if(_callback) {
-				_callback(_result->_ret_0);
+				if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::QueryInterface_query_return>(_value)) {
+					_callback(_result->_ret_0);
+				} else if(_value && !_value->is_void()) {
+					_callback(_value->get_field_by_index(0).to<std::shared_ptr<const ::vnx::search::SearchResult>>());
+				} else {
+					throw std::logic_error("QueryInterfaceAsyncClient: invalid return value");
+				}
 			}
-		} else {
-			throw std::runtime_error("QueryInterfaceAsyncClient: received unknown return request_id");
+			break;
 		}
+		default:
+			if(_index >= 0) {
+				throw std::logic_error("QueryInterfaceAsyncClient: invalid callback index");
+			}
 	}
-	else {
-		throw std::runtime_error("QueryInterfaceAsyncClient: received unknown return type");
-	}
+	return _index;
 }
 
 

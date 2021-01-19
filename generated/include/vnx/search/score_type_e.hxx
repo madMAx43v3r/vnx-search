@@ -13,26 +13,28 @@ namespace search {
 
 struct score_type_e {
 	
-	enum {
-		AVG_SCORE = 2574294013,
-		MAX_SCORE = 1752201142,
-		TOTAL_SCORE = 212660196,
+	enum enum_t {
+		AVG_SCORE = 2574294013l,
+		MAX_SCORE = 1752201142l,
+		TOTAL_SCORE = 212660196l,
 	};
 	
-	uint32_t value = 0;
+	enum_t value = ::vnx::search::score_type_e::enum_t(0);
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
 	score_type_e() {}
-	score_type_e(uint32_t _value) { value = _value; }
+	score_type_e(const enum_t& _value) { value = _value; }
+	score_type_e(const ::vnx::search::score_type_e& _other) { value = _other.value; }
 	
 	vnx::Hash64 get_type_hash() const;
-	const char* get_type_name() const;
+	std::string get_type_name() const;
 	const vnx::TypeCode* get_type_code() const;
 	
-	operator uint32_t() const { return value; }
-	score_type_e& operator=(uint32_t _value) { value = _value; return *this; }
+	operator enum_t() const { return value; }
+	score_type_e& operator=(const enum_t& _value) { value = _value; return *this; }
+	score_type_e& operator=(const ::vnx::search::score_type_e& _other) { value = _other.value; return *this; }
 	
 	static std::shared_ptr<score_type_e> create();
 	std::shared_ptr<score_type_e> clone() const;
@@ -44,6 +46,13 @@ struct score_type_e {
 	void write(std::ostream& _out) const;
 	
 	void accept(vnx::Visitor& _visitor) const;
+	
+	std::string to_string() const;
+	std::string to_string_value() const;
+	std::string to_string_value_full() const;
+	
+	void from_string(const std::string& str);
+	void from_string_value(const std::string& name);
 	
 	vnx::Object to_object() const;
 	void from_object(const vnx::Object& object);
@@ -62,5 +71,32 @@ struct score_type_e {
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+void read(TypeInput& in, ::vnx::search::score_type_e::enum_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+
+void write(TypeOutput& out, const ::vnx::search::score_type_e::enum_t& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+
+template<>
+std::string to_string(const ::vnx::search::score_type_e& _value); ///< \private
+
+template<>
+std::string to_string_value(const ::vnx::search::score_type_e& _value); ///< \private
+
+template<>
+std::string to_string_value_full(const ::vnx::search::score_type_e& _value); ///< \private
+
+template<>
+std::string to_string(const ::vnx::search::score_type_e::enum_t& _value); ///< \private
+
+template<>
+std::string to_string_value(const ::vnx::search::score_type_e::enum_t& _value); ///< \private
+
+template<>
+std::string to_string_value_full(const ::vnx::search::score_type_e::enum_t& _value); ///< \private
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_score_type_e_HXX_

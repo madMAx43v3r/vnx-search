@@ -12,13 +12,13 @@ namespace search {
 
 
 const vnx::Hash64 score_type_e::VNX_TYPE_HASH(0x433d867b180521adull);
-const vnx::Hash64 score_type_e::VNX_CODE_HASH(0xd6bcf9734d975571ull);
+const vnx::Hash64 score_type_e::VNX_CODE_HASH(0x76508aee38d3ef96ull);
 
 vnx::Hash64 score_type_e::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* score_type_e::get_type_name() const {
+std::string score_type_e::get_type_name() const {
 	return "vnx.search.score_type_e";
 }
 
@@ -42,6 +42,52 @@ void score_type_e::write(vnx::TypeOutput& _out, const vnx::TypeCode* _type_code,
 	vnx::write(_out, *this, _type_code, _code);
 }
 
+std::string score_type_e::to_string() const {
+	switch(value) {
+		case AVG_SCORE: return "\"AVG_SCORE\"";
+		case MAX_SCORE: return "\"MAX_SCORE\"";
+		case TOTAL_SCORE: return "\"TOTAL_SCORE\"";
+	}
+	return std::to_string(value);
+}
+
+std::string score_type_e::to_string_value() const {
+	switch(value) {
+		case AVG_SCORE: return "AVG_SCORE";
+		case MAX_SCORE: return "MAX_SCORE";
+		case TOTAL_SCORE: return "TOTAL_SCORE";
+	}
+	return std::to_string(value);
+}
+
+std::string score_type_e::to_string_value_full() const {
+	switch(value) {
+		case AVG_SCORE: return "vnx.search.score_type_e.AVG_SCORE";
+		case MAX_SCORE: return "vnx.search.score_type_e.MAX_SCORE";
+		case TOTAL_SCORE: return "vnx.search.score_type_e.TOTAL_SCORE";
+	}
+	return std::to_string(value);
+}
+
+void score_type_e::from_string(const std::string& _str) {
+	std::string _name;
+	vnx::from_string(_str, _name);
+	from_string_value(_name);
+}
+
+void score_type_e::from_string_value(const std::string& _name) {
+	vnx::Variant var;
+	vnx::from_string_value(_name, var);
+	if(var.is_string()) {
+		if(_name == "AVG_SCORE") value = AVG_SCORE;
+		else if(_name == "MAX_SCORE") value = MAX_SCORE;
+		else if(_name == "TOTAL_SCORE") value = TOTAL_SCORE;
+		else value = enum_t(vnx::hash64(_name));
+	} else {
+		value = enum_t(std::stoul(_name.c_str(), nullptr, 0));
+	}
+}
+
 void score_type_e::accept(vnx::Visitor& _visitor) const {
 	std::string _name;
 	switch(value) {
@@ -62,16 +108,12 @@ void score_type_e::write(std::ostream& _out) const {
 }
 
 void score_type_e::read(std::istream& _in) {
-	std::string _name;
-	vnx::read(_in, _name);
-	if(_name == "AVG_SCORE") value = 2574294013;
-	else if(_name == "MAX_SCORE") value = 1752201142;
-	else if(_name == "TOTAL_SCORE") value = 212660196;
-	else value = std::atoi(_name.c_str());
+	from_string_value(vnx::read(_in).to_string_value());
 }
 
 vnx::Object score_type_e::to_object() const {
 	vnx::Object _object;
+	_object["__type"] = "vnx.search.score_type_e";
 	_object["value"] = value;
 	return _object;
 }
@@ -123,7 +165,7 @@ std::shared_ptr<vnx::TypeCode> score_type_e::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.score_type_e";
 	type_code->type_hash = vnx::Hash64(0x433d867b180521adull);
-	type_code->code_hash = vnx::Hash64(0xd6bcf9734d975571ull);
+	type_code->code_hash = vnx::Hash64(0x76508aee38d3ef96ull);
 	type_code->is_native = true;
 	type_code->is_enum = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<score_type_e>>(); };
@@ -169,7 +211,7 @@ void read(TypeInput& in, ::vnx::search::score_type_e& value, const TypeCode* typ
 		if(tmp.is_string()) {
 			vnx::from_string(tmp.to_string(), value);
 		} else if(tmp.is_ulong()) {
-			value = ::vnx::search::score_type_e(tmp.to<uint32_t>());
+			value = ::vnx::search::score_type_e::enum_t(tmp.to<uint32_t>());
 		} else {
 			value = ::vnx::search::score_type_e();
 		}
@@ -179,7 +221,10 @@ void read(TypeInput& in, ::vnx::search::score_type_e& value, const TypeCode* typ
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -208,7 +253,7 @@ void write(TypeOutput& out, const ::vnx::search::score_type_e& value, const Type
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::score_type_e>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(4);
@@ -225,6 +270,46 @@ void write(std::ostream& out, const ::vnx::search::score_type_e& value) {
 
 void accept(Visitor& visitor, const ::vnx::search::score_type_e& value) {
 	value.accept(visitor);
+}
+
+void read(TypeInput& in, ::vnx::search::score_type_e::enum_t& value, const TypeCode* type_code, const uint16_t* code) {
+	uint32_t tmp = 0;
+	vnx::read(in, tmp, type_code, code);
+	value = ::vnx::search::score_type_e::enum_t(tmp);
+}
+
+void write(TypeOutput& out, const ::vnx::search::score_type_e::enum_t& value, const TypeCode* type_code, const uint16_t* code) {
+	vnx::write(out, uint32_t(value), type_code, code);
+}
+
+template<>
+std::string to_string(const ::vnx::search::score_type_e& _value) {
+	return _value.to_string();
+}
+
+template<>
+std::string to_string_value(const ::vnx::search::score_type_e& _value) {
+	return _value.to_string_value();
+}
+
+template<>
+std::string to_string_value_full(const ::vnx::search::score_type_e& _value) {
+	return _value.to_string_value_full();
+}
+
+template<>
+std::string to_string(const ::vnx::search::score_type_e::enum_t& _value) {
+	return ::vnx::search::score_type_e(_value).to_string();
+}
+
+template<>
+std::string to_string_value(const ::vnx::search::score_type_e::enum_t& _value) {
+	return ::vnx::search::score_type_e(_value).to_string_value();
+}
+
+template<>
+std::string to_string_value_full(const ::vnx::search::score_type_e::enum_t& _value) {
+	return ::vnx::search::score_type_e(_value).to_string_value_full();
 }
 
 } // vnx

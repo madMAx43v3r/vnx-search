@@ -8,6 +8,7 @@
 #include <vnx/search/SearchResult.hxx>
 #include <vnx/search/query_options_t.hxx>
 
+#include <vnx/Generic.hxx>
 #include <vnx/vnx.h>
 
 
@@ -29,11 +30,13 @@ std::shared_ptr<const ::vnx::search::SearchResult> QueryInterfaceClient::query(c
 	_method->words = words;
 	_method->options = options;
 	auto _return_value = vnx_request(_method, false);
-	auto _result = std::dynamic_pointer_cast<const ::vnx::search::QueryInterface_query_return>(_return_value);
-	if(!_result) {
-		throw std::logic_error("QueryInterfaceClient: !_result");
+	if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::QueryInterface_query_return>(_return_value)) {
+		return _result->_ret_0;
+	} else if(_return_value && !_return_value->is_void()) {
+		return _return_value->get_field_by_index(0).to<std::shared_ptr<const ::vnx::search::SearchResult>>();
+	} else {
+		throw std::logic_error("QueryInterfaceClient: invalid return value");
 	}
-	return _result->_ret_0;
 }
 
 

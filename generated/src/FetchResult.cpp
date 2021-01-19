@@ -20,7 +20,7 @@ vnx::Hash64 FetchResult::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* FetchResult::get_type_name() const {
+std::string FetchResult::get_type_name() const {
 	return "vnx.search.FetchResult";
 }
 
@@ -76,30 +76,8 @@ void FetchResult::write(std::ostream& _out) const {
 }
 
 void FetchResult::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "content_type") {
-			vnx::from_string(_entry.second, content_type);
-		} else if(_entry.first == "curl_status") {
-			vnx::from_string(_entry.second, curl_status);
-		} else if(_entry.first == "fetch_duration_us") {
-			vnx::from_string(_entry.second, fetch_duration_us);
-		} else if(_entry.first == "http_status") {
-			vnx::from_string(_entry.second, http_status);
-		} else if(_entry.first == "is_fail") {
-			vnx::from_string(_entry.second, is_fail);
-		} else if(_entry.first == "last_fetched") {
-			vnx::from_string(_entry.second, last_fetched);
-		} else if(_entry.first == "last_modified") {
-			vnx::from_string(_entry.second, last_modified);
-		} else if(_entry.first == "num_bytes") {
-			vnx::from_string(_entry.second, num_bytes);
-		} else if(_entry.first == "redirect") {
-			vnx::from_string(_entry.second, redirect);
-		} else if(_entry.first == "response") {
-			vnx::from_string(_entry.second, response);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -320,13 +298,17 @@ void read(TypeInput& in, ::vnx::search::FetchResult& value, const TypeCode* type
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -394,7 +376,7 @@ void write(TypeOutput& out, const ::vnx::search::FetchResult& value, const TypeC
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::FetchResult>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(33);

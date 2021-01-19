@@ -25,6 +25,8 @@ public:
 	
 	std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset);
 	
+	std::vector<std::pair<std::string, uint32_t>> get_page_ranking(const int32_t& limit, const uint32_t& offset);
+	
 	std::vector<std::string> reverse_lookup(const std::string& url_key);
 	
 	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key);

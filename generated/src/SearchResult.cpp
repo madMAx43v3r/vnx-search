@@ -15,13 +15,13 @@ namespace search {
 
 
 const vnx::Hash64 SearchResult::VNX_TYPE_HASH(0x659ce58d97581ddull);
-const vnx::Hash64 SearchResult::VNX_CODE_HASH(0x4e38812d120b08ffull);
+const vnx::Hash64 SearchResult::VNX_CODE_HASH(0x55b157546a4d47dfull);
 
 vnx::Hash64 SearchResult::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* SearchResult::get_type_name() const {
+std::string SearchResult::get_type_name() const {
 	return "vnx.search.SearchResult";
 }
 
@@ -77,30 +77,8 @@ void SearchResult::write(std::ostream& _out) const {
 }
 
 void SearchResult::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "compute_time_us") {
-			vnx::from_string(_entry.second, compute_time_us);
-		} else if(_entry.first == "error_msg") {
-			vnx::from_string(_entry.second, error_msg);
-		} else if(_entry.first == "has_more") {
-			vnx::from_string(_entry.second, has_more);
-		} else if(_entry.first == "is_fail") {
-			vnx::from_string(_entry.second, is_fail);
-		} else if(_entry.first == "items") {
-			vnx::from_string(_entry.second, items);
-		} else if(_entry.first == "load_time_us") {
-			vnx::from_string(_entry.second, load_time_us);
-		} else if(_entry.first == "num_results_total") {
-			vnx::from_string(_entry.second, num_results_total);
-		} else if(_entry.first == "options") {
-			vnx::from_string(_entry.second, options);
-		} else if(_entry.first == "timing_info") {
-			vnx::from_string(_entry.second, timing_info);
-		} else if(_entry.first == "words") {
-			vnx::from_string(_entry.second, words);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -230,7 +208,7 @@ std::shared_ptr<vnx::TypeCode> SearchResult::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchResult";
 	type_code->type_hash = vnx::Hash64(0x659ce58d97581ddull);
-	type_code->code_hash = vnx::Hash64(0x4e38812d120b08ffull);
+	type_code->code_hash = vnx::Hash64(0x55b157546a4d47dfull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchResult>(); };
@@ -321,13 +299,17 @@ void read(TypeInput& in, ::vnx::search::SearchResult& value, const TypeCode* typ
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -385,7 +367,7 @@ void write(TypeOutput& out, const ::vnx::search::SearchResult& value, const Type
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::SearchResult>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(14);

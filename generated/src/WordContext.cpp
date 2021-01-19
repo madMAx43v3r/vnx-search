@@ -13,13 +13,13 @@ namespace search {
 
 
 const vnx::Hash64 WordContext::VNX_TYPE_HASH(0xdaa75d84f367905bull);
-const vnx::Hash64 WordContext::VNX_CODE_HASH(0xbd7edb273f226af7ull);
+const vnx::Hash64 WordContext::VNX_CODE_HASH(0xc795231f2be0f18bull);
 
 vnx::Hash64 WordContext::get_type_hash() const {
 	return VNX_TYPE_HASH;
 }
 
-const char* WordContext::get_type_name() const {
+std::string WordContext::get_type_name() const {
 	return "vnx.search.WordContext";
 }
 
@@ -61,16 +61,8 @@ void WordContext::write(std::ostream& _out) const {
 }
 
 void WordContext::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "id") {
-			vnx::from_string(_entry.second, id);
-		} else if(_entry.first == "last_update") {
-			vnx::from_string(_entry.second, last_update);
-		} else if(_entry.first == "pages") {
-			vnx::from_string(_entry.second, pages);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -144,7 +136,7 @@ std::shared_ptr<vnx::TypeCode> WordContext::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.WordContext";
 	type_code->type_hash = vnx::Hash64(0xdaa75d84f367905bull);
-	type_code->code_hash = vnx::Hash64(0xbd7edb273f226af7ull);
+	type_code->code_hash = vnx::Hash64(0xc795231f2be0f18bull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<WordContext>(); };
@@ -163,7 +155,7 @@ std::shared_ptr<vnx::TypeCode> WordContext::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "pages";
-		field.code = {12, 3};
+		field.code = {12, 23, 2, 4, 5, 3, 9};
 	}
 	type_code->build();
 	return type_code;
@@ -193,13 +185,17 @@ void read(TypeInput& in, ::vnx::search::WordContext& value, const TypeCode* type
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
@@ -235,7 +231,7 @@ void write(TypeOutput& out, const ::vnx::search::WordContext& value, const TypeC
 		out.write_type_code(type_code);
 		vnx::write_class_header<::vnx::search::WordContext>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(12);

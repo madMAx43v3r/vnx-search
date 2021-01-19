@@ -25,16 +25,19 @@ public:
 	std::string url_index_server = "UrlIndex";
 	std::string page_index_server = "PageIndex";
 	std::string page_content_server = "PageContent";
-	int32_t max_link_cache = 100000;
+	int32_t max_info_cache = 100000;
+	int32_t max_page_cache = 100000;
 	int32_t max_word_cache = 500000;
 	int32_t max_num_pending = 100;
 	int32_t num_update_threads = 4;
 	int32_t commit_delay = 10;
-	int32_t link_commit_interval = 60;
+	int32_t info_commit_interval = 1800;
 	int32_t word_commit_interval = 3600;
 	int32_t lock_timeout = 100;
+	int32_t page_ranking_size = 1000;
 	int32_t queue_interval_ms = 10;
 	int32_t stats_interval_ms = 10000;
+	vnx::float32_t rank_update_interval = 1440;
 	vnx::float32_t rank_decay = 0.5;
 	vnx::bool_t update_word_array = 0;
 	vnx::bool_t update_word_context = 0;
@@ -49,20 +52,20 @@ public:
 	
 	SearchEngineBase(const std::string& _vnx_name);
 	
-	vnx::Hash64 get_type_hash() const;
-	const char* get_type_name() const;
-	const vnx::TypeCode* get_type_code() const;
+	vnx::Hash64 get_type_hash() const override;
+	std::string get_type_name() const override;
+	const vnx::TypeCode* get_type_code() const override;
 	
-	void read(std::istream& _in);
-	void write(std::ostream& _out) const;
+	void read(std::istream& _in) override;
+	void write(std::ostream& _out) const override;
 	
-	void accept(vnx::Visitor& _visitor) const;
+	void accept(vnx::Visitor& _visitor) const override;
 	
-	vnx::Object to_object() const;
-	void from_object(const vnx::Object& object);
+	vnx::Object to_object() const override;
+	void from_object(const vnx::Object& object) override;
 	
-	vnx::Variant get_field(const std::string& name) const;
-	void set_field(const std::string& name, const vnx::Variant& value);
+	vnx::Variant get_field(const std::string& name) const override;
+	void set_field(const std::string& name, const vnx::Variant& value) override;
 	
 	friend std::ostream& operator<<(std::ostream& _out, const SearchEngineBase& _value);
 	friend std::istream& operator>>(std::istream& _in, SearchEngineBase& _value);
@@ -73,9 +76,7 @@ public:
 protected:
 	virtual void get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& _request_id) const = 0;
 	void get_page_entries_async_return(const vnx::request_id_t& _request_id, const std::vector<::vnx::search::page_entry_t>& _ret_0) const;
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value) {}
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncInfo> _value) {}
 	virtual void get_domain_info_async(const std::string& host, const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
 	void get_domain_info_async_return(const vnx::request_id_t& _request_id, const ::vnx::Object& _ret_0) const;
@@ -84,6 +85,8 @@ protected:
 	virtual void get_page_ranks_async(const std::vector<std::string>& url_keys, const vnx::bool_t& direct, const vnx::request_id_t& _request_id) const = 0;
 	void get_page_ranks_async_return(const vnx::request_id_t& _request_id, const std::vector<vnx::float32_t>& _ret_0) const;
 	virtual std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const = 0;
+	virtual void get_page_ranking_async(const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
+	void get_page_ranking_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, uint32_t>>& _ret_0) const;
 	virtual void reverse_lookup_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;
 	void reverse_lookup_async_return(const vnx::request_id_t& _request_id, const std::vector<std::string>& _ret_0) const;
 	virtual void reverse_domain_lookup_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;
