@@ -8,4 +8,6 @@ struct word_entry_t {
 	
 	ushort size;			// word size in bytes
 	
+	ushort _padding;
+	
 }
