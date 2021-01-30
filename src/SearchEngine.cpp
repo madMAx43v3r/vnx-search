@@ -885,9 +885,9 @@ void SearchEngine::update_page(std::shared_ptr<page_update_job_t> job)
 		new_job->url_key = url_key;
 		new_job->page_id = page_id;
 		for(const auto& entry : job->words) {
-			if(entry.second >= 0) {
+			if(entry.second > 0) {
 				new_job->update_words.push_back(entry.first);
-			} else {
+			} else if(entry.second < 0) {
 				new_job->rem_words.push_back(entry.first);
 			}
 		}
