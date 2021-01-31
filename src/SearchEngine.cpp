@@ -173,14 +173,14 @@ void SearchEngine::get_page_info_callback(	const std::string& url_key,
 
 void SearchEngine::get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& req_id) const
 {
-	std::vector<page_entry_t> result;
-	for(auto page_id : page_ids) {
-		if(const auto* page = find_page(page_id)) {
+	std::vector<page_entry_t> result(page_ids.size());
+	for(size_t i = 0; i < page_ids.size(); ++i) {
+		if(const auto* page = find_page(page_ids[i])) {
 			page_entry_t entry;
 			entry.id = page->id;
 			entry.rank_value = page->rank_value;
 			entry.url = page->get_url();
-			result.emplace_back(std::move(entry));
+			result[i] = std::move(entry);
 		}
 	}
 	get_page_entries_async_return(req_id, result);

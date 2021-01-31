@@ -191,6 +191,9 @@ void QueryEngine::query_callback_2(std::shared_ptr<query_job_t> job,
 	{
 		const auto& entry = entries[i];
 		const auto& found = job->found[i];
+		if(entry.id != found.first) {
+			continue;
+		}
 		const Url::Url parsed(entry.url);
 		auto& domain_id = job->domain_set[parsed.host()];
 		if(!domain_id) {
