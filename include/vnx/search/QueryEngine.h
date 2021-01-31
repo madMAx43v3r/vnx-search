@@ -83,8 +83,7 @@ private:
 	
 	void query_task_0(std::shared_ptr<query_job_t> job, size_t index) const noexcept;
 	
-	void query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
-						std::shared_ptr<const WordArray> word_array) const noexcept;
+	void query_task_1(std::shared_ptr<query_job_t> job, size_t index) const noexcept;
 	
 private:
 	std::shared_ptr<ThreadPool> query_threads;

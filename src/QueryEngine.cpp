@@ -187,8 +187,6 @@ void QueryEngine::query_callback_2(std::shared_ptr<query_job_t> job,
 		job->result->timing_info["get_page_entries"] = delta;
 		job->time_begin = now;
 	}
-	std::multimap<float, result_t, std::greater<float>> selected;
-	
 	for(size_t i = 0; i < entries.size(); ++i)
 	{
 		const auto& entry = entries[i];
@@ -204,10 +202,7 @@ void QueryEngine::query_callback_2(std::shared_ptr<query_job_t> job,
 		item.scheme = parsed.scheme();
 		item.url_key = get_url_key(parsed);
 		item.score = found.second;
-		limited_emplace(selected, item.score, item, job->options.max_results);
-	}
-	for(auto& entry : selected) {
-		job->items.emplace_back(std::move(entry.second));
+		job->items.emplace_back(std::move(item));
 	}
 	std::vector<Variant> url_keys;
 	for(const auto& item : job->items) {
@@ -229,19 +224,19 @@ void QueryEngine::query_callback_3(	std::shared_ptr<query_job_t> job,
 		job->time_begin = now;
 	}
 	job->num_left = 0;
+	job->word_arrays.clear();
 	job->word_arrays.resize(entries.size());
 	
 	for(size_t i = 0; i < entries.size(); ++i) {
-		auto array = std::dynamic_pointer_cast<const WordArray>(entries[i]->value);
-		job->word_arrays[i] = array;
-		if(array) {
+		if(auto array = std::dynamic_pointer_cast<const WordArray>(entries[i]->value)) {
+			job->word_arrays[i] = array;
 			job->num_left++;
 		}
 	}
 	if(job->num_left) {
 		for(size_t i = 0; i < entries.size(); ++i) {
 			if(auto array = job->word_arrays[i]) {
-				query_threads->add_task(std::bind(&QueryEngine::query_task_1, this, job, i, array));
+				query_threads->add_task(std::bind(&QueryEngine::query_task_1, this, job, i));
 			}
 		}
 	} else {
@@ -258,12 +253,11 @@ void QueryEngine::query_callback_4(std::shared_ptr<query_job_t> job) const
 		job->result->timing_info["query_task_1"] = delta;
 		job->time_begin = now;
 	}
-	std::vector<std::pair<float, const result_t*>> sorted;
+	std::multimap<float, const result_t*, std::greater<float>> sorted;
 	
 	if(has_flag(job->options.flags, search_flags_e::GROUP_BY_DOMAIN))
 	{
 		std::unordered_map<uint32_t, std::multimap<float, const result_t*, std::greater<float>>> best_of;
-		
 		for(const auto& item : job->items) {
 			best_of[item.domain_id].emplace(item.score, &item);
 		}
@@ -271,29 +265,35 @@ void QueryEngine::query_callback_4(std::shared_ptr<query_job_t> job) const
 			int i = 0;
 			const auto& list = entry.second;
 			for(auto iter = list.begin(); i < job->options.max_group_size && iter != list.end(); ++iter, ++i) {
-				sorted.emplace_back(*iter);
+				sorted.emplace(*iter);
 			}
 		}
 	}
 	else {
 		for(const auto& result : job->items) {
-			sorted.emplace_back(result.score, &result);
+			sorted.emplace(result.score, &result);
 		}
 	}
-	std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<float, const result_t*>>());
 	
-	job->url_keys.clear();
 	std::vector<result_t> selected;
-	
-	for(uint32_t i = 0; i < uint32_t(job->options.limit) && job->options.offset + i < sorted.size(); ++i)
 	{
-		const auto* tmp_item = sorted[job->options.offset + i].second;
-		selected.emplace_back(*tmp_item);
-		job->url_keys.emplace_back(tmp_item->url_key);
-		
+		uint32_t i = 0;
+		for(const auto& entry : sorted) {
+			if(i++ >= job->options.offset) {
+				if(selected.size() < size_t(job->options.limit)) {
+					selected.emplace_back(*entry.second);
+				} else {
+					break;
+				}
+			}
+		}
+	}
+	job->url_keys.clear();
+	for(const auto& sel : selected) {
 		result_item_t item;
-		item.score = tmp_item->score;
-		item.url = tmp_item->scheme + ":" + tmp_item->url_key;
+		item.score = sel.score;
+		item.url = sel.scheme + ":" + sel.url_key;
+		job->url_keys.emplace_back(sel.url_key);
 		job->result->items.emplace_back(std::move(item));
 	}
 	job->items = selected;
@@ -322,8 +322,7 @@ void QueryEngine::query_callback_5( std::shared_ptr<query_job_t> job,
 		job->time_begin = now;
 	}
 	for(size_t i = 0; i < entries.size(); ++i) {
-		auto index = std::dynamic_pointer_cast<const PageIndex>(entries[i]->value);
-		if(index) {
+		if(auto index = std::dynamic_pointer_cast<const PageIndex>(entries[i]->value)) {
 			job->result->items[i].title = index->title;
 			job->result->items[i].last_modified = index->last_modified;
 		}
@@ -344,8 +343,7 @@ void QueryEngine::query_callback_6( std::shared_ptr<query_job_t> job,
 		job->time_begin = now;
 	}
 	for(size_t i = 0; i < entries.size(); ++i) {
-		auto content = std::dynamic_pointer_cast<const PageContent>(entries[i]->value);
-		if(content) {
+		if(auto content = std::dynamic_pointer_cast<const PageContent>(entries[i]->value)) {
 			const auto& item = job->items[i];
 			const auto begin = std::max(item.context.first, int64_t(0));
 			const auto end = std::min(item.context.second, int64_t(content->text.size()));
@@ -386,11 +384,10 @@ void QueryEngine::query_task_0(std::shared_ptr<query_job_t> job, size_t index) c
 	}
 }
 
-void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
-								std::shared_ptr<const WordArray> word_array) const noexcept
+void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index) const noexcept
 {
 	auto& item = job->items[index];
-	const auto& array = word_array->list;
+	const auto& array = job->word_arrays[index]->list;
 	
 	std::vector<uint16_t> word_list(array.size());
 	for(ssize_t k = 0; k < array.size(); ++k) {
@@ -440,10 +437,10 @@ void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index,
 	}
 	
 	switch(job->options.score_type) {
+		default:
 		case score_type_e::MAX_SCORE:
 			item.score *= best_score;
 			break;
-		default:
 		case score_type_e::AVG_SCORE:
 			item.score *= total_score / array.size();
 			break;

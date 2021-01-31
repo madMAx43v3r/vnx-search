@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	options["f"] = "flags";
 	options["server"] = "backend server url";
 	options["words"] = "search words";
-	options["limit"] = "max results";
+	options["limit"] = "page size";
 	options["page"] = "page index";
 	options["type"] = "score type";
 	options["flags"] = "search flags";
