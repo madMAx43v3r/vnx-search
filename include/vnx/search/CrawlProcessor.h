@@ -36,8 +36,6 @@ namespace search {
 
 class CrawlProcessor : public CrawlProcessorBase {
 public:
-	TopicPtr input_url_index_sync;
-	
 	CrawlProcessor(const std::string& _vnx_name);
 	
 protected:
@@ -168,6 +166,7 @@ private:
 	void work_loop() const noexcept;
 	
 private:
+	std::shared_ptr<Stream> url_index_stream;
 	std::shared_ptr<ThreadPool> work_threads;
 	
 	std::unordered_map<std::string, url_t> url_map;

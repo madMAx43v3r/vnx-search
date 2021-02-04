@@ -21,8 +21,6 @@ namespace search {
 CrawlProcessor::CrawlProcessor(const std::string& _vnx_name)
 	:	CrawlProcessorBase(_vnx_name)
 {
-	input_url_index_sync = vnx_name + ".url_index.sync_" + std::to_string(vnx::rand64());
-	
 	protocols.push_back("http");
 	protocols.push_back("https");
 	
@@ -37,7 +35,6 @@ void CrawlProcessor::init()
 void CrawlProcessor::main()
 {
 	subscribe(input_url_index, 100);
-	subscribe(input_url_index_sync, 100, 100);
 	
 	protocols = unique(protocols);
 	domain_blacklist = unique(domain_blacklist);
@@ -47,6 +44,9 @@ void CrawlProcessor::main()
 	for(const auto& entry : regex_blacklist) {
 		regex_blacklist_.emplace_back(entry);
 	}
+	
+	url_index_stream = std::make_shared<Stream>(url_index_server);
+	url_index_stream->connect(this, 100, 1000);
 	
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
@@ -504,7 +504,7 @@ void CrawlProcessor::check_fetch_queue()
 
 void CrawlProcessor::check_all_urls()
 {
-	url_index_async->sync_all(input_url_index_sync);
+	url_index_async->sync_all_private(url_index_stream->get_src_mac());
 }
 
 void CrawlProcessor::check_root_urls()
