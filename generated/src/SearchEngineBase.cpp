@@ -411,11 +411,12 @@ const vnx::TypeCode* SearchEngineBase::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchEngine";
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
 	type_code->code_hash = vnx::Hash64(0x4c8a70c7f5aafddull);
 	type_code->is_native = true;
+	type_code->native_size = sizeof(::vnx::search::SearchEngineBase);
 	type_code->methods.resize(19);
 	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_config_object::static_get_type_code();
 	type_code->methods[1] = ::vnx::ModuleInterface_vnx_get_config::static_get_type_code();
@@ -438,153 +439,171 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	type_code->methods[18] = ::vnx::search::SearchInterface_suggest_domains::static_get_type_code();
 	type_code->fields.resize(25);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "input_url_index";
 		field.value = vnx::to_string("backend.url_index.updates");
 		field.code = {12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "input_page_index";
 		field.value = vnx::to_string("backend.page_index.key_updates");
 		field.code = {12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		auto& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "input_page_content";
 		field.value = vnx::to_string("backend.page_content.key_updates");
 		field.code = {12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[3];
+		auto& field = type_code->fields[3];
 		field.is_extended = true;
 		field.name = "url_index_server";
 		field.value = vnx::to_string("UrlIndex");
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		auto& field = type_code->fields[4];
 		field.is_extended = true;
 		field.name = "page_index_server";
 		field.value = vnx::to_string("PageIndex");
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		auto& field = type_code->fields[5];
 		field.is_extended = true;
 		field.name = "page_content_server";
 		field.value = vnx::to_string("PageContent");
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[6];
+		auto& field = type_code->fields[6];
+		field.data_size = 4;
 		field.name = "max_info_cache";
 		field.value = vnx::to_string(100000);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[7];
+		auto& field = type_code->fields[7];
+		field.data_size = 4;
 		field.name = "max_page_cache";
 		field.value = vnx::to_string(100000);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[8];
+		auto& field = type_code->fields[8];
+		field.data_size = 4;
 		field.name = "max_word_cache";
 		field.value = vnx::to_string(500000);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[9];
+		auto& field = type_code->fields[9];
+		field.data_size = 4;
 		field.name = "max_num_pending";
 		field.value = vnx::to_string(100);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[10];
+		auto& field = type_code->fields[10];
+		field.data_size = 4;
 		field.name = "num_update_threads";
 		field.value = vnx::to_string(4);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[11];
+		auto& field = type_code->fields[11];
+		field.data_size = 4;
 		field.name = "commit_delay";
 		field.value = vnx::to_string(10);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[12];
+		auto& field = type_code->fields[12];
+		field.data_size = 4;
 		field.name = "info_commit_interval";
 		field.value = vnx::to_string(1800);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[13];
+		auto& field = type_code->fields[13];
+		field.data_size = 4;
 		field.name = "word_commit_interval";
 		field.value = vnx::to_string(3600);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[14];
+		auto& field = type_code->fields[14];
+		field.data_size = 4;
 		field.name = "lock_timeout";
 		field.value = vnx::to_string(100);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[15];
+		auto& field = type_code->fields[15];
+		field.data_size = 4;
 		field.name = "page_ranking_size";
 		field.value = vnx::to_string(1000);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[16];
+		auto& field = type_code->fields[16];
+		field.data_size = 4;
 		field.name = "queue_interval_ms";
 		field.value = vnx::to_string(10);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[17];
+		auto& field = type_code->fields[17];
+		field.data_size = 4;
 		field.name = "stats_interval_ms";
 		field.value = vnx::to_string(10000);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[18];
+		auto& field = type_code->fields[18];
+		field.data_size = 4;
 		field.name = "rank_update_interval";
 		field.value = vnx::to_string(1440);
 		field.code = {9};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[19];
+		auto& field = type_code->fields[19];
+		field.data_size = 4;
 		field.name = "rank_decay";
 		field.value = vnx::to_string(0.5);
 		field.code = {9};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[20];
+		auto& field = type_code->fields[20];
+		field.data_size = 1;
 		field.name = "update_word_array";
 		field.code = {31};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[21];
+		auto& field = type_code->fields[21];
+		field.data_size = 1;
 		field.name = "update_word_context";
 		field.code = {31};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[22];
+		auto& field = type_code->fields[22];
+		field.data_size = 1;
 		field.name = "update_page_info";
 		field.code = {31};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[23];
+		auto& field = type_code->fields[23];
+		field.data_size = 1;
 		field.name = "reset_rank_values";
 		field.code = {31};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[24];
+		auto& field = type_code->fields[24];
 		field.is_extended = true;
 		field.name = "protocols";
 		field.code = {12, 32};
@@ -593,170 +612,132 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	return type_code;
 }
 
-void SearchEngineBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
-	{
-		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::SyncUpdate>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
+void SearchEngineBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) {
+	const auto* _type_code = _value->get_type_code();
+	while(_type_code) {
+		switch(_type_code->type_hash) {
+			case 0x4f9820ae95813502ull:
+				handle(std::static_pointer_cast<const ::vnx::keyvalue::SyncInfo>(_value));
+				return;
+			case 0xcf6f029ce644d6e3ull:
+				handle(std::static_pointer_cast<const ::vnx::keyvalue::SyncUpdate>(_value));
+				return;
+			default:
+				_type_code = _type_code->super;
 		}
 	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::vnx::keyvalue::SyncInfo>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
+	handle(std::static_pointer_cast<const vnx::Value>(_value));
 }
 
 std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
-	const auto _type_hash = _method->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x17f58f68bf83abc0ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+	switch(_method->get_type_hash()) {
+		case 0x17f58f68bf83abc0ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_config_object_return::create();
+			_return_value->_ret_0 = vnx_get_config_object();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_get_config_object_return::create();
-		_return_value->_ret_0 = vnx_get_config_object();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0xbbc7f1a01044d294ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xbbc7f1a01044d294ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_config_return::create();
+			_return_value->_ret_0 = vnx_get_config(_args->name);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_get_config_return::create();
-		_return_value->_ret_0 = vnx_get_config(_args->name);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0xca30f814f17f322full)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config_object>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xca30f814f17f322full: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config_object>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_set_config_object_return::create();
+			vnx_set_config_object(_args->config);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_set_config_object_return::create();
-		vnx_set_config_object(_args->config);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x362aac91373958b7ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x362aac91373958b7ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_set_config_return::create();
+			vnx_set_config(_args->name, _args->value);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_set_config_return::create();
-		vnx_set_config(_args->name, _args->value);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x305ec4d628960e5dull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
+			_return_value->_ret_0 = vnx_get_type_code();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
-		_return_value->_ret_0 = vnx_get_type_code();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0xf6d82bdf66d034a1ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_module_info>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xf6d82bdf66d034a1ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_module_info>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_module_info_return::create();
+			_return_value->_ret_0 = vnx_get_module_info();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_get_module_info_return::create();
-		_return_value->_ret_0 = vnx_get_module_info();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x9e95dc280cecca1bull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_restart>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x9e95dc280cecca1bull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_restart>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_restart_return::create();
+			vnx_restart();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_restart_return::create();
-		vnx_restart();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x7ab49ce3d1bfc0d2ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_stop>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x7ab49ce3d1bfc0d2ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_stop>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_stop_return::create();
+			vnx_stop();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_stop_return::create();
-		vnx_stop();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x6ce3775b41a42697ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_self_test>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x6ce3775b41a42697ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_self_test>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_self_test_return::create();
+			_return_value->_ret_0 = vnx_self_test();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_self_test_return::create();
-		_return_value->_ret_0 = vnx_self_test();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x7570dd1b83810e89ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchEngine_get_page_entries>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x7570dd1b83810e89ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchEngine_get_page_entries>(_method);
+			get_page_entries_async(_args->page_ids, _request_id);
+			return nullptr;
 		}
-		get_page_entries_async(_args->page_ids, _request_id);
-		return 0;
-	} else if(_type_hash == vnx::Hash64(0xb84144e4266a295cull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_domain_info>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xb84144e4266a295cull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_get_domain_info>(_method);
+			get_domain_info_async(_args->host, _args->limit, _args->offset, _request_id);
+			return nullptr;
 		}
-		get_domain_info_async(_args->host, _args->limit, _args->offset, _request_id);
-		return 0;
-	} else if(_type_hash == vnx::Hash64(0x1b751835bab2e72aull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_page_info>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x1b751835bab2e72aull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_get_page_info>(_method);
+			get_page_info_async(_args->url_key, _request_id);
+			return nullptr;
 		}
-		get_page_info_async(_args->url_key, _request_id);
-		return 0;
-	} else if(_type_hash == vnx::Hash64(0x4962db7ff53f4da4ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_page_ranks>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x4962db7ff53f4da4ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_get_page_ranks>(_method);
+			get_page_ranks_async(_args->url_keys, _args->direct, _request_id);
+			return nullptr;
 		}
-		get_page_ranks_async(_args->url_keys, _args->direct, _request_id);
-		return 0;
-	} else if(_type_hash == vnx::Hash64(0x176656c3d09f57e8ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_domain_list>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x176656c3d09f57e8ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_get_domain_list>(_method);
+			auto _return_value = ::vnx::search::SearchInterface_get_domain_list_return::create();
+			_return_value->_ret_0 = get_domain_list(_args->limit, _args->offset);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::search::SearchInterface_get_domain_list_return::create();
-		_return_value->_ret_0 = get_domain_list(_args->limit, _args->offset);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0xd3878abff5f383d6ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_page_ranking>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xd3878abff5f383d6ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_get_page_ranking>(_method);
+			get_page_ranking_async(_args->limit, _args->offset, _request_id);
+			return nullptr;
 		}
-		get_page_ranking_async(_args->limit, _args->offset, _request_id);
-		return 0;
-	} else if(_type_hash == vnx::Hash64(0x5610708b5fe56530ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_reverse_lookup>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x5610708b5fe56530ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_reverse_lookup>(_method);
+			reverse_lookup_async(_args->url_key, _request_id);
+			return nullptr;
 		}
-		reverse_lookup_async(_args->url_key, _request_id);
-		return 0;
-	} else if(_type_hash == vnx::Hash64(0x4fbc87c18553f7c6ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_reverse_domain_lookup>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x4fbc87c18553f7c6ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_reverse_domain_lookup>(_method);
+			reverse_domain_lookup_async(_args->url_key, _request_id);
+			return nullptr;
 		}
-		reverse_domain_lookup_async(_args->url_key, _request_id);
-		return 0;
-	} else if(_type_hash == vnx::Hash64(0xe51abc2dddd35827ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_suggest_words>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xe51abc2dddd35827ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_suggest_words>(_method);
+			auto _return_value = ::vnx::search::SearchInterface_suggest_words_return::create();
+			_return_value->_ret_0 = suggest_words(_args->prefix, _args->limit);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::search::SearchInterface_suggest_words_return::create();
-		_return_value->_ret_0 = suggest_words(_args->prefix, _args->limit);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x658934ab6e353dfeull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_suggest_domains>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x658934ab6e353dfeull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_suggest_domains>(_method);
+			auto _return_value = ::vnx::search::SearchInterface_suggest_domains_return::create();
+			_return_value->_ret_0 = suggest_domains(_args->prefix, _args->limit);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::search::SearchInterface_suggest_domains_return::create();
-		_return_value->_ret_0 = suggest_domains(_args->prefix, _args->limit);
-		return _return_value;
 	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : vnx::Hash64();
@@ -845,116 +826,62 @@ void read(TypeInput& in, ::vnx::search::SearchEngineBase& value, const TypeCode*
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[6];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_info_cache, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[6]) {
+			vnx::read_value(_buf + _field->offset, value.max_info_cache, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[7];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_page_cache, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[7]) {
+			vnx::read_value(_buf + _field->offset, value.max_page_cache, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[8];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_word_cache, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[8]) {
+			vnx::read_value(_buf + _field->offset, value.max_word_cache, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[9];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_num_pending, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[9]) {
+			vnx::read_value(_buf + _field->offset, value.max_num_pending, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[10];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.num_update_threads, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[10]) {
+			vnx::read_value(_buf + _field->offset, value.num_update_threads, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[11];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.commit_delay, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[11]) {
+			vnx::read_value(_buf + _field->offset, value.commit_delay, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[12];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.info_commit_interval, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[12]) {
+			vnx::read_value(_buf + _field->offset, value.info_commit_interval, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[13];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.word_commit_interval, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[13]) {
+			vnx::read_value(_buf + _field->offset, value.word_commit_interval, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[14];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.lock_timeout, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[14]) {
+			vnx::read_value(_buf + _field->offset, value.lock_timeout, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[15];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.page_ranking_size, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[15]) {
+			vnx::read_value(_buf + _field->offset, value.page_ranking_size, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[16];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.queue_interval_ms, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[16]) {
+			vnx::read_value(_buf + _field->offset, value.queue_interval_ms, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[17];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.stats_interval_ms, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[17]) {
+			vnx::read_value(_buf + _field->offset, value.stats_interval_ms, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[18];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.rank_update_interval, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[18]) {
+			vnx::read_value(_buf + _field->offset, value.rank_update_interval, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[19];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.rank_decay, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[19]) {
+			vnx::read_value(_buf + _field->offset, value.rank_decay, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[20];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.update_word_array, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[20]) {
+			vnx::read_value(_buf + _field->offset, value.update_word_array, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[21];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.update_word_context, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[21]) {
+			vnx::read_value(_buf + _field->offset, value.update_word_context, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[22];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.update_page_info, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[22]) {
+			vnx::read_value(_buf + _field->offset, value.update_page_info, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[23];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.reset_rank_values, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[23]) {
+			vnx::read_value(_buf + _field->offset, value.reset_rank_values, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.input_url_index, type_code, _field->code.data()); break;
 			case 1: vnx::read(in, value.input_page_index, type_code, _field->code.data()); break;

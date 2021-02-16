@@ -14,7 +14,7 @@ namespace search {
 
 
 const vnx::Hash64 query_options_t::VNX_TYPE_HASH(0x8abc6f7a05400550ull);
-const vnx::Hash64 query_options_t::VNX_CODE_HASH(0x80cd696060487985ull);
+const vnx::Hash64 query_options_t::VNX_CODE_HASH(0x824b6220899efb3ull);
 
 vnx::Hash64 query_options_t::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -184,60 +184,67 @@ const vnx::TypeCode* query_options_t::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> query_options_t::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.query_options_t";
 	type_code->type_hash = vnx::Hash64(0x8abc6f7a05400550ull);
-	type_code->code_hash = vnx::Hash64(0x80cd696060487985ull);
+	type_code->code_hash = vnx::Hash64(0x824b6220899efb3ull);
 	type_code->is_native = true;
+	type_code->native_size = sizeof(::vnx::search::query_options_t);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<query_options_t>>(); };
 	type_code->depends.resize(2);
 	type_code->depends[0] = ::vnx::search::score_type_e::static_get_type_code();
 	type_code->depends[1] = ::vnx::search::search_flags_e::static_get_type_code();
 	type_code->fields.resize(8);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
+		field.data_size = 4;
 		field.name = "limit";
 		field.value = vnx::to_string(10);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
+		field.data_size = 4;
 		field.name = "offset";
 		field.code = {3};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		auto& field = type_code->fields[2];
+		field.data_size = 4;
 		field.name = "context";
 		field.value = vnx::to_string(20);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[3];
+		auto& field = type_code->fields[3];
+		field.data_size = 4;
 		field.name = "max_group_size";
 		field.value = vnx::to_string(1);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		auto& field = type_code->fields[4];
+		field.data_size = 4;
 		field.name = "max_results";
 		field.value = vnx::to_string(1000);
 		field.code = {3};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		auto& field = type_code->fields[5];
+		field.data_size = 4;
 		field.name = "score_power";
 		field.value = vnx::to_string(2);
 		field.code = {9};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[6];
+		auto& field = type_code->fields[6];
 		field.is_extended = true;
 		field.name = "score_type";
 		field.value = vnx::to_string("MAX_SCORE");
 		field.code = {19, 0};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[7];
+		auto& field = type_code->fields[7];
 		field.is_extended = true;
 		field.name = "flags";
 		field.code = {12, 19, 1};
@@ -285,44 +292,26 @@ void read(TypeInput& in, ::vnx::search::query_options_t& value, const TypeCode* 
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[0];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.limit, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[0]) {
+			vnx::read_value(_buf + _field->offset, value.limit, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[1];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.offset, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[1]) {
+			vnx::read_value(_buf + _field->offset, value.offset, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[2];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.context, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[2]) {
+			vnx::read_value(_buf + _field->offset, value.context, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[3];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_group_size, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[3]) {
+			vnx::read_value(_buf + _field->offset, value.max_group_size, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[4];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_results, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[4]) {
+			vnx::read_value(_buf + _field->offset, value.max_results, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[5];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.score_power, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[5]) {
+			vnx::read_value(_buf + _field->offset, value.score_power, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 6: vnx::read(in, value.score_type, type_code, _field->code.data()); break;
 			case 7: vnx::read(in, value.flags, type_code, _field->code.data()); break;
@@ -365,6 +354,14 @@ void write(std::ostream& out, const ::vnx::search::query_options_t& value) {
 
 void accept(Visitor& visitor, const ::vnx::search::query_options_t& value) {
 	value.accept(visitor);
+}
+
+bool is_equivalent<::vnx::search::query_options_t>::operator()(const uint16_t* code, const TypeCode* type_code) {
+	if(code[0] != CODE_STRUCT || !type_code) {
+		return false;
+	}
+	type_code = type_code->depends[code[1]];
+	return type_code->type_hash == ::vnx::search::query_options_t::VNX_TYPE_HASH && type_code->is_equivalent;
 }
 
 } // vnx

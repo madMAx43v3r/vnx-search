@@ -14,7 +14,7 @@ namespace search {
 
 
 const vnx::Hash64 WordArray::VNX_TYPE_HASH(0xabb8eb197035a035ull);
-const vnx::Hash64 WordArray::VNX_CODE_HASH(0x28b84a0b48dce955ull);
+const vnx::Hash64 WordArray::VNX_CODE_HASH(0x5acf8e010ba29d17ull);
 
 vnx::Hash64 WordArray::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -124,23 +124,25 @@ const vnx::TypeCode* WordArray::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> WordArray::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.WordArray";
 	type_code->type_hash = vnx::Hash64(0xabb8eb197035a035ull);
-	type_code->code_hash = vnx::Hash64(0x28b84a0b48dce955ull);
+	type_code->code_hash = vnx::Hash64(0x5acf8e010ba29d17ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
+	type_code->native_size = sizeof(::vnx::search::WordArray);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<WordArray>(); };
 	type_code->depends.resize(1);
 	type_code->depends[0] = ::vnx::search::word_entry_t::static_get_type_code();
 	type_code->fields.resize(2);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
+		field.data_size = 8;
 		field.name = "last_update";
 		field.code = {8};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "list";
 		field.code = {12, 19, 0};
@@ -188,14 +190,11 @@ void read(TypeInput& in, ::vnx::search::WordArray& value, const TypeCode* type_c
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[0];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.last_update, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[0]) {
+			vnx::read_value(_buf + _field->offset, value.last_update, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 1: vnx::read(in, value.list, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());

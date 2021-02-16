@@ -17,9 +17,12 @@ struct word_entry_t {
 	uint32_t word_id = 0;
 	uint32_t offset = 0;
 	uint16_t size = 0;
+	uint16_t _padding = 0;
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
+	
+	static constexpr uint64_t VNX_TYPE_ID = 0x49376c2d78d6a529ull;
 	
 	vnx::Hash64 get_type_hash() const;
 	std::string get_type_name() const;
@@ -53,5 +56,15 @@ struct word_entry_t {
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+template<>
+struct is_equivalent<::vnx::search::word_entry_t> {
+	bool operator()(const uint16_t* code, const TypeCode* type_code);
+};
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_word_entry_t_HXX_

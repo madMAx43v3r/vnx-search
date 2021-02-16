@@ -13,16 +13,18 @@ namespace search {
 
 struct score_type_e {
 	
-	enum enum_t {
+	enum enum_t : uint32_t {
 		AVG_SCORE = 2574294013l,
 		MAX_SCORE = 1752201142l,
 		TOTAL_SCORE = 212660196l,
 	};
 	
-	enum_t value = ::vnx::search::score_type_e::enum_t(0);
+	::vnx::search::score_type_e::enum_t value = ::vnx::search::score_type_e::enum_t(0);
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
+	
+	static constexpr uint64_t VNX_TYPE_ID = 0x433d867b180521adull;
 	
 	score_type_e() {}
 	score_type_e(const enum_t& _value) { value = _value; }
@@ -96,6 +98,11 @@ std::string to_string_value(const ::vnx::search::score_type_e::enum_t& _value); 
 
 template<>
 std::string to_string_value_full(const ::vnx::search::score_type_e::enum_t& _value); ///< \private
+
+template<>
+struct is_equivalent<::vnx::search::score_type_e> {
+	bool operator()(const uint16_t* code, const TypeCode* type_code);
+};
 
 } // vnx
 

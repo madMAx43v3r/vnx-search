@@ -12,7 +12,7 @@ namespace search {
 
 
 const vnx::Hash64 score_type_e::VNX_TYPE_HASH(0x433d867b180521adull);
-const vnx::Hash64 score_type_e::VNX_CODE_HASH(0x76508aee38d3ef96ull);
+const vnx::Hash64 score_type_e::VNX_CODE_HASH(0xb5a24ad3d97bec06ull);
 
 vnx::Hash64 score_type_e::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -162,16 +162,18 @@ const vnx::TypeCode* score_type_e::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> score_type_e::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.score_type_e";
 	type_code->type_hash = vnx::Hash64(0x433d867b180521adull);
-	type_code->code_hash = vnx::Hash64(0x76508aee38d3ef96ull);
+	type_code->code_hash = vnx::Hash64(0xb5a24ad3d97bec06ull);
 	type_code->is_native = true;
 	type_code->is_enum = true;
+	type_code->native_size = sizeof(::vnx::search::score_type_e);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<score_type_e>>(); };
 	type_code->fields.resize(1);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
+		field.data_size = 4;
 		field.name = "value";
 		field.code = {3};
 	}
@@ -229,14 +231,11 @@ void read(TypeInput& in, ::vnx::search::score_type_e& value, const TypeCode* typ
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[0];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.value, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[0]) {
+			vnx::read_value(_buf + _field->offset, value.value, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
@@ -310,6 +309,14 @@ std::string to_string_value(const ::vnx::search::score_type_e::enum_t& _value) {
 template<>
 std::string to_string_value_full(const ::vnx::search::score_type_e::enum_t& _value) {
 	return ::vnx::search::score_type_e(_value).to_string_value_full();
+}
+
+bool is_equivalent<::vnx::search::score_type_e>::operator()(const uint16_t* code, const TypeCode* type_code) {
+	if(code[0] != CODE_STRUCT || !type_code) {
+		return false;
+	}
+	type_code = type_code->depends[code[1]];
+	return type_code->type_hash == ::vnx::search::score_type_e::VNX_TYPE_HASH && type_code->is_equivalent;
 }
 
 } // vnx

@@ -114,17 +114,18 @@ const vnx::TypeCode* CrawlFrontend_fetch_return::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> CrawlFrontend_fetch_return::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.CrawlFrontend.fetch.return";
 	type_code->type_hash = vnx::Hash64(0xce1d8d53217a282eull);
 	type_code->code_hash = vnx::Hash64(0xc7e28554800fbe60ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_return = true;
+	type_code->native_size = sizeof(::vnx::search::CrawlFrontend_fetch_return);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<CrawlFrontend_fetch_return>(); };
 	type_code->fields.resize(1);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "_ret_0";
 		field.code = {16};
@@ -172,7 +173,7 @@ void read(TypeInput& in, ::vnx::search::CrawlFrontend_fetch_return& value, const
 	}
 	if(type_code->is_matched) {
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value._ret_0, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());

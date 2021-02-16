@@ -175,52 +175,56 @@ const vnx::TypeCode* PageIndex::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> PageIndex::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.PageIndex";
 	type_code->type_hash = vnx::Hash64(0x4c9c9cf43a382f0ull);
 	type_code->code_hash = vnx::Hash64(0xcfc6aa33297ad488ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
+	type_code->native_size = sizeof(::vnx::search::PageIndex);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<PageIndex>(); };
 	type_code->depends.resize(2);
 	type_code->depends[0] = ::vnx::search::page_link_t::static_get_type_code();
 	type_code->depends[1] = ::vnx::search::image_link_t::static_get_type_code();
 	type_code->fields.resize(7);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
+		field.data_size = 2;
 		field.name = "version";
 		field.code = {2};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
+		field.data_size = 4;
 		field.name = "word_count";
 		field.code = {3};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		auto& field = type_code->fields[2];
+		field.data_size = 8;
 		field.name = "last_modified";
 		field.code = {8};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[3];
+		auto& field = type_code->fields[3];
 		field.is_extended = true;
 		field.name = "title";
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		auto& field = type_code->fields[4];
 		field.is_extended = true;
 		field.name = "links";
 		field.code = {12, 19, 0};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		auto& field = type_code->fields[5];
 		field.is_extended = true;
 		field.name = "images";
 		field.code = {12, 19, 1};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[6];
+		auto& field = type_code->fields[6];
 		field.is_extended = true;
 		field.name = "words";
 		field.code = {12, 23, 2, 4, 5, 32, 2};
@@ -268,26 +272,17 @@ void read(TypeInput& in, ::vnx::search::PageIndex& value, const TypeCode* type_c
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[0];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.version, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[0]) {
+			vnx::read_value(_buf + _field->offset, value.version, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[1];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.word_count, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[1]) {
+			vnx::read_value(_buf + _field->offset, value.word_count, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[2];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.last_modified, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[2]) {
+			vnx::read_value(_buf + _field->offset, value.last_modified, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 3: vnx::read(in, value.title, type_code, _field->code.data()); break;
 			case 4: vnx::read(in, value.links, type_code, _field->code.data()); break;

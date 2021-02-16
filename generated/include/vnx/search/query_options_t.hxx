@@ -28,6 +28,8 @@ struct query_options_t {
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
+	static constexpr uint64_t VNX_TYPE_ID = 0x8abc6f7a05400550ull;
+	
 	vnx::Hash64 get_type_hash() const;
 	std::string get_type_name() const;
 	const vnx::TypeCode* get_type_code() const;
@@ -60,5 +62,15 @@ struct query_options_t {
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+template<>
+struct is_equivalent<::vnx::search::query_options_t> {
+	bool operator()(const uint16_t* code, const TypeCode* type_code);
+};
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_query_options_t_HXX_

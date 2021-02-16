@@ -19,10 +19,17 @@ struct SearchInterface {
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
+	static constexpr uint64_t VNX_TYPE_ID = 0x5b93eaac5e932e73ull;
+	
 };
 
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_SearchInterface_HXX_

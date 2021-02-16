@@ -12,7 +12,7 @@ namespace search {
 
 
 const vnx::Hash64 word_entry_t::VNX_TYPE_HASH(0x49376c2d78d6a529ull);
-const vnx::Hash64 word_entry_t::VNX_CODE_HASH(0xae1ff924cd14102aull);
+const vnx::Hash64 word_entry_t::VNX_CODE_HASH(0x562c9380f79f0bfeull);
 
 vnx::Hash64 word_entry_t::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -48,6 +48,7 @@ void word_entry_t::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, word_id);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, offset);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, size);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, _padding);
 	_visitor.type_end(*_type_code);
 }
 
@@ -56,6 +57,7 @@ void word_entry_t::write(std::ostream& _out) const {
 	_out << "\"word_id\": "; vnx::write(_out, word_id);
 	_out << ", \"offset\": "; vnx::write(_out, offset);
 	_out << ", \"size\": "; vnx::write(_out, size);
+	_out << ", \"_padding\": "; vnx::write(_out, _padding);
 	_out << "}";
 }
 
@@ -71,12 +73,15 @@ vnx::Object word_entry_t::to_object() const {
 	_object["word_id"] = word_id;
 	_object["offset"] = offset;
 	_object["size"] = size;
+	_object["_padding"] = _padding;
 	return _object;
 }
 
 void word_entry_t::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "offset") {
+		if(_entry.first == "_padding") {
+			_entry.second.to(_padding);
+		} else if(_entry.first == "offset") {
 			_entry.second.to(offset);
 		} else if(_entry.first == "size") {
 			_entry.second.to(size);
@@ -96,6 +101,9 @@ vnx::Variant word_entry_t::get_field(const std::string& _name) const {
 	if(_name == "size") {
 		return vnx::Variant(size);
 	}
+	if(_name == "_padding") {
+		return vnx::Variant(_padding);
+	}
 	return vnx::Variant();
 }
 
@@ -106,6 +114,8 @@ void word_entry_t::set_field(const std::string& _name, const vnx::Variant& _valu
 		_value.to(offset);
 	} else if(_name == "size") {
 		_value.to(size);
+	} else if(_name == "_padding") {
+		_value.to(_padding);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -132,26 +142,36 @@ const vnx::TypeCode* word_entry_t::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> word_entry_t::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.word_entry_t";
 	type_code->type_hash = vnx::Hash64(0x49376c2d78d6a529ull);
-	type_code->code_hash = vnx::Hash64(0xae1ff924cd14102aull);
+	type_code->code_hash = vnx::Hash64(0x562c9380f79f0bfeull);
 	type_code->is_native = true;
+	type_code->native_size = sizeof(::vnx::search::word_entry_t);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<word_entry_t>>(); };
-	type_code->fields.resize(3);
+	type_code->fields.resize(4);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
+		field.data_size = 4;
 		field.name = "word_id";
 		field.code = {3};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
+		field.data_size = 4;
 		field.name = "offset";
 		field.code = {3};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		auto& field = type_code->fields[2];
+		field.data_size = 2;
 		field.name = "size";
+		field.code = {2};
+	}
+	{
+		auto& field = type_code->fields[3];
+		field.data_size = 2;
+		field.name = "_padding";
 		field.code = {2};
 	}
 	type_code->build();
@@ -197,26 +217,20 @@ void read(TypeInput& in, ::vnx::search::word_entry_t& value, const TypeCode* typ
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[0];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.word_id, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[0]) {
+			vnx::read_value(_buf + _field->offset, value.word_id, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[1];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.offset, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[1]) {
+			vnx::read_value(_buf + _field->offset, value.offset, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[2];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.size, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[2]) {
+			vnx::read_value(_buf + _field->offset, value.size, _field->code.data());
+		}
+		if(const auto* const _field = type_code->field_map[3]) {
+			vnx::read_value(_buf + _field->offset, value._padding, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
@@ -236,10 +250,11 @@ void write(TypeOutput& out, const ::vnx::search::word_entry_t& value, const Type
 	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(10);
+	char* const _buf = out.write(12);
 	vnx::write_value(_buf + 0, value.word_id);
 	vnx::write_value(_buf + 4, value.offset);
 	vnx::write_value(_buf + 8, value.size);
+	vnx::write_value(_buf + 10, value._padding);
 }
 
 void read(std::istream& in, ::vnx::search::word_entry_t& value) {
@@ -252,6 +267,14 @@ void write(std::ostream& out, const ::vnx::search::word_entry_t& value) {
 
 void accept(Visitor& visitor, const ::vnx::search::word_entry_t& value) {
 	value.accept(visitor);
+}
+
+bool is_equivalent<::vnx::search::word_entry_t>::operator()(const uint16_t* code, const TypeCode* type_code) {
+	if(code[0] != CODE_STRUCT || !type_code) {
+		return false;
+	}
+	type_code = type_code->depends[code[1]];
+	return type_code->type_hash == ::vnx::search::word_entry_t::VNX_TYPE_HASH && type_code->is_equivalent;
 }
 
 } // vnx

@@ -13,15 +13,17 @@ namespace search {
 
 struct search_flags_e {
 	
-	enum enum_t {
+	enum enum_t : uint32_t {
 		GROUP_BY_DOMAIN = 1161442717l,
 		LATEST_NEWS = 1050161006l,
 	};
 	
-	enum_t value = ::vnx::search::search_flags_e::enum_t(0);
+	::vnx::search::search_flags_e::enum_t value = ::vnx::search::search_flags_e::enum_t(0);
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
+	
+	static constexpr uint64_t VNX_TYPE_ID = 0xe55b90a8ffab58ffull;
 	
 	search_flags_e() {}
 	search_flags_e(const enum_t& _value) { value = _value; }
@@ -95,6 +97,11 @@ std::string to_string_value(const ::vnx::search::search_flags_e::enum_t& _value)
 
 template<>
 std::string to_string_value_full(const ::vnx::search::search_flags_e::enum_t& _value); ///< \private
+
+template<>
+struct is_equivalent<::vnx::search::search_flags_e> {
+	bool operator()(const uint16_t* code, const TypeCode* type_code);
+};
 
 } // vnx
 

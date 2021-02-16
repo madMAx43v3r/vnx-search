@@ -124,24 +124,27 @@ const vnx::TypeCode* SearchInterface_get_domain_list::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> SearchInterface_get_domain_list::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchInterface.get_domain_list";
 	type_code->type_hash = vnx::Hash64(0x176656c3d09f57e8ull);
 	type_code->code_hash = vnx::Hash64(0x38eb09d55beea4cull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
+	type_code->native_size = sizeof(::vnx::search::SearchInterface_get_domain_list);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchInterface_get_domain_list>(); };
 	type_code->is_const = true;
 	type_code->return_type = ::vnx::search::SearchInterface_get_domain_list_return::static_get_type_code();
 	type_code->fields.resize(2);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
+		field.data_size = 4;
 		field.name = "limit";
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
+		field.data_size = 4;
 		field.name = "offset";
 		field.code = {3};
 	}
@@ -188,20 +191,14 @@ void read(TypeInput& in, ::vnx::search::SearchInterface_get_domain_list& value, 
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[0];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.limit, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[0]) {
+			vnx::read_value(_buf + _field->offset, value.limit, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[1];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.offset, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[1]) {
+			vnx::read_value(_buf + _field->offset, value.offset, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			default: vnx::skip(in, type_code, _field->code.data());
 		}

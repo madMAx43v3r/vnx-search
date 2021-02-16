@@ -21,6 +21,8 @@ struct page_entry_t {
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
+	static constexpr uint64_t VNX_TYPE_ID = 0xb803150fd74a8e74ull;
+	
 	vnx::Hash64 get_type_hash() const;
 	std::string get_type_name() const;
 	const vnx::TypeCode* get_type_code() const;
@@ -53,5 +55,15 @@ struct page_entry_t {
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+template<>
+struct is_equivalent<::vnx::search::page_entry_t> {
+	bool operator()(const uint16_t* code, const TypeCode* type_code);
+};
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_page_entry_t_HXX_

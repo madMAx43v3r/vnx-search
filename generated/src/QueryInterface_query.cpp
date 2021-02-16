@@ -15,7 +15,7 @@ namespace search {
 
 
 const vnx::Hash64 QueryInterface_query::VNX_TYPE_HASH(0xd7ca13b33b457bbaull);
-const vnx::Hash64 QueryInterface_query::VNX_CODE_HASH(0xb7717bc621b44f01ull);
+const vnx::Hash64 QueryInterface_query::VNX_CODE_HASH(0xb099e3b2c339e9cfull);
 
 vnx::Hash64 QueryInterface_query::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -125,13 +125,14 @@ const vnx::TypeCode* QueryInterface_query::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> QueryInterface_query::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.QueryInterface.query";
 	type_code->type_hash = vnx::Hash64(0xd7ca13b33b457bbaull);
-	type_code->code_hash = vnx::Hash64(0xb7717bc621b44f01ull);
+	type_code->code_hash = vnx::Hash64(0xb099e3b2c339e9cfull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
+	type_code->native_size = sizeof(::vnx::search::QueryInterface_query);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<QueryInterface_query>(); };
 	type_code->depends.resize(1);
 	type_code->depends[0] = ::vnx::search::query_options_t::static_get_type_code();
@@ -140,13 +141,13 @@ std::shared_ptr<vnx::TypeCode> QueryInterface_query::static_create_type_code() {
 	type_code->return_type = ::vnx::search::QueryInterface_query_return::static_get_type_code();
 	type_code->fields.resize(2);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "words";
 		field.code = {12, 32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "options";
 		field.code = {19, 0};
@@ -194,7 +195,7 @@ void read(TypeInput& in, ::vnx::search::QueryInterface_query& value, const TypeC
 	}
 	if(type_code->is_matched) {
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.words, type_code, _field->code.data()); break;
 			case 1: vnx::read(in, value.options, type_code, _field->code.data()); break;

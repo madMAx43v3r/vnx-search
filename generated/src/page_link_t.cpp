@@ -133,27 +133,28 @@ const vnx::TypeCode* page_link_t::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> page_link_t::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.page_link_t";
 	type_code->type_hash = vnx::Hash64(0x9c679ca5cdee712dull);
 	type_code->code_hash = vnx::Hash64(0xed76cd61d687f45full);
 	type_code->is_native = true;
+	type_code->native_size = sizeof(::vnx::search::page_link_t);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<vnx::Struct<page_link_t>>(); };
 	type_code->fields.resize(3);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "url";
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "text";
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		auto& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "words";
 		field.code = {12, 32};
@@ -205,7 +206,7 @@ void read(TypeInput& in, ::vnx::search::page_link_t& value, const TypeCode* type
 	}
 	if(type_code->is_matched) {
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.url, type_code, _field->code.data()); break;
 			case 1: vnx::read(in, value.text, type_code, _field->code.data()); break;
@@ -243,6 +244,14 @@ void write(std::ostream& out, const ::vnx::search::page_link_t& value) {
 
 void accept(Visitor& visitor, const ::vnx::search::page_link_t& value) {
 	value.accept(visitor);
+}
+
+bool is_equivalent<::vnx::search::page_link_t>::operator()(const uint16_t* code, const TypeCode* type_code) {
+	if(code[0] != CODE_STRUCT || !type_code) {
+		return false;
+	}
+	type_code = type_code->depends[code[1]];
+	return type_code->type_hash == ::vnx::search::page_link_t::VNX_TYPE_HASH && type_code->is_equivalent;
 }
 
 } // vnx

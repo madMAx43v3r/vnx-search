@@ -29,6 +29,8 @@ public:
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
+	static constexpr uint64_t VNX_TYPE_ID = 0x9b39d0de19a6c209ull;
+	
 	QueryEngineBase(const std::string& _vnx_name);
 	
 	vnx::Hash64 get_type_hash() const override;
@@ -53,10 +55,12 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	using Super::handle;
+	
 	virtual void query_async(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options, const vnx::request_id_t& _request_id) const = 0;
 	void query_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::search::SearchResult>& _ret_0) const;
 	
-	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
+	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;
 	
 };
@@ -64,5 +68,10 @@ protected:
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_QueryEngineBase_HXX_

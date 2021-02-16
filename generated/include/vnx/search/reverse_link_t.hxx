@@ -21,6 +21,8 @@ struct reverse_link_t {
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
+	static constexpr uint64_t VNX_TYPE_ID = 0xaaf3ea38b730dac0ull;
+	
 	vnx::Hash64 get_type_hash() const;
 	std::string get_type_name() const;
 	const vnx::TypeCode* get_type_code() const;
@@ -55,5 +57,15 @@ struct reverse_link_t {
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+template<>
+struct is_equivalent<::vnx::search::reverse_link_t> {
+	bool operator()(const uint16_t* code, const TypeCode* type_code);
+};
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_reverse_link_t_HXX_

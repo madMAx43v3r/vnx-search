@@ -114,20 +114,21 @@ const vnx::TypeCode* SearchInterface_reverse_lookup::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> SearchInterface_reverse_lookup::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchInterface.reverse_lookup";
 	type_code->type_hash = vnx::Hash64(0x5610708b5fe56530ull);
 	type_code->code_hash = vnx::Hash64(0xffa774786f633606ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
+	type_code->native_size = sizeof(::vnx::search::SearchInterface_reverse_lookup);
 	type_code->create_value = []() -> std::shared_ptr<vnx::Value> { return std::make_shared<SearchInterface_reverse_lookup>(); };
 	type_code->is_const = true;
 	type_code->is_async = true;
 	type_code->return_type = ::vnx::search::SearchInterface_reverse_lookup_return::static_get_type_code();
 	type_code->fields.resize(1);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "url_key";
 		field.code = {32};
@@ -175,7 +176,7 @@ void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup& value, c
 	}
 	if(type_code->is_matched) {
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.url_key, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());

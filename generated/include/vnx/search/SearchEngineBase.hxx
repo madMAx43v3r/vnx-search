@@ -50,6 +50,8 @@ public:
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
+	static constexpr uint64_t VNX_TYPE_ID = 0x4e0f26d3496896a1ull;
+	
 	SearchEngineBase(const std::string& _vnx_name);
 	
 	vnx::Hash64 get_type_hash() const override;
@@ -74,6 +76,8 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	using Super::handle;
+	
 	virtual void get_page_entries_async(const std::vector<uint32_t>& page_ids, const vnx::request_id_t& _request_id) const = 0;
 	void get_page_entries_async_return(const vnx::request_id_t& _request_id, const std::vector<::vnx::search::page_entry_t>& _ret_0) const;
 	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value) {}
@@ -94,7 +98,7 @@ protected:
 	virtual std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit) const = 0;
 	virtual std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit) const = 0;
 	
-	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
+	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;
 	
 };
@@ -102,5 +106,10 @@ protected:
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_SearchEngineBase_HXX_

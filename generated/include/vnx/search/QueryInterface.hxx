@@ -20,10 +20,17 @@ struct QueryInterface {
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
 	
+	static constexpr uint64_t VNX_TYPE_ID = 0x5fcd4dc650f2e161ull;
+	
 };
 
 
 } // namespace vnx
 } // namespace search
+
+
+namespace vnx {
+
+} // vnx
 
 #endif // INCLUDE_vnx_search_QueryInterface_HXX_
