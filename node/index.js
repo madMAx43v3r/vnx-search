@@ -1,5 +1,5 @@
 const express = require('express')
-const http = require('http')
+const axios = require('axios')
 const app = express()
 const port = 3000
 
@@ -8,14 +8,14 @@ app.set('view engine', 'ejs')
 
 app.use(express.static('data'))
 
-function get_query(query, page)
+function get_query_string(query, page)
 {
 	return "t=" + encodeURIComponent(query) + "&p=" + page;
 }
 
-function on_result(res, args, json)
+function on_result(res, args, ret)
 {
-	const result = JSON.parse(json);
+	const result = ret.data;
 	for(const item of result.items)
 	{
 		let date = new Date(item.last_modified * 1000);
@@ -26,7 +26,6 @@ function on_result(res, args, json)
 		item.url_str = url_str;
 		item.date_str = date.toDateString();
 	}
-//	console.log(result);
 	args.result = result;
 	res.render('index', args);
 }
@@ -40,14 +39,9 @@ app.get('/', (req, res) => {
 	args.page = page;
 	
 	if(query) {
-		console.log(`Got query="${query}", page=${page}`);
-		const sreq = http.request({
-				method: 'GET', hostname: 'localhost', port: 8080,
-				path: '/search/query?' + get_query(query, page)
-			}, (sres) => {
-				sres.on('data', on_result.bind(null, res, args));
-			})
-		sreq.end();
+		console.log(req.query);
+		axios.get('http://localhost:8080/search/query?' + get_query_string(query, page))
+			.then(on_result.bind(null, res, args));
 	} else {
 		args.items = [];
 		args.result = null;
