@@ -30,6 +30,12 @@ function on_result(res, args, ret)
 	res.render('index', args);
 }
 
+function on_error(res, ex)
+{
+	console.log(ex.message);
+	res.status(500).send(ex.message);
+}
+
 app.get('/', (req, res) => {
 	const query = req.query.t;
 	const page = req.query.p;
@@ -41,7 +47,8 @@ app.get('/', (req, res) => {
 	if(query) {
 		console.log(req.query);
 		axios.get('http://localhost:8080/search/query?' + get_query_string(query, page))
-			.then(on_result.bind(null, res, args));
+			.then(on_result.bind(null, res, args))
+			.catch(on_error.bind(null, res));
 	} else {
 		args.items = [];
 		args.result = null;
