@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>fcknwo.com - Search Engine</title>
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+	body {
+		margin: 20px;
+		max-width: 70em;
+	}
+	.item {
+		margin-top: 30px;
+		margin-bottom: 30px;
+	}
+	.title {
+		font-size: 120%;
+		word-wrap: break-word;
+	}
+	.url {
+		color: rgb(0,100,0);
+		word-wrap: break-word;
+	}
+	.date {
+		color: rgb(0,0,0);
+	}
+	.context {
+		color: rgb(50,50,50);
+		word-wrap: break-word;
+	}
+	.center {
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	div#stats {
+		color: rgb(80,80,80);
+		font-size: 80%;
+	}
+	div#header {
+		color: rgb(50,50,50);
+		font-size: 100%;
+		margin-top: 20px;
+	}
+	div#search_form {
+		margin-top: 20px;
+	}
+	div#page_list {
+		font-size: 120%;
+		text-align: center
+	}
+	a#page {
+		margin-left: 5px;
+		margin-right: 5px;
+	}
+</style>
+</head>
+
+<body>
+
+<img src="apple-touch-icon.png"/>
+
+<div id="search_form">
+<form method="get">
+	<span style="font-size: 100%;">Search: </span>
+	<input id="query" name="t" type="text" value="<%= query %>" style="width: 50%; font-size: 100%;">
+	<input id="page" name="p" value="0" type="hidden">
+	<input type="submit" value="Submit" style="font-size: 100%;">
+</form>
+</div>
+
+<div id="header">
+<% if(page) { %>
+	Page <%= parseInt(page) + 1 %> of <% if(result.has_more) { %>&#62;<% } %><%= result.num_results_total %> results
+<% } %>
+</div>
+
+<% if(result) { %>
+
+<div id="results">
+<% result.items.forEach(function(item) { %>
+<div class="item">
+	<span class="url"><%= item.url_str %></span><br>
+	<a class="title" href="<%= item.url %>" target="_blank"><%= item.title %></a><br>
+	<span class="date"><%= item.date_str %> | </span>
+	<span class="context"><%- item.context %></span><br>
+</div>
+<% }); %>
+<% if(!result.items.length) { %>
+No Results!
+<% } %>
+</div>
+
+<div id="stats">
+<hr>
+Load: <%= result.load_time_us / 1000 %> ms | 
+Compute: <%= result.compute_time_us / 1000 %> ms |
+Total: <%= (result.load_time_us + result.compute_time_us) / 1000 %> ms
+</div>
+
+<div id="perf_stats" style="display: none">
+<%= result.timing_info %>
+</div>
+
+<% } %>
+
+</body>
+</html>

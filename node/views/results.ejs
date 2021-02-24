@@ -1,0 +1,29 @@
+
+<div id="header">
+TODO
+</div>
+
+<div id="results">
+<% result.items.forEach(function(item) { %>
+<div class="item">
+	<span class="url"><%= item.url_str %></span><br>
+	<a class="title" href="<%= item.url %>" target="_blank"><%= item.title %></a><br>
+	<span class="date"><%= item.date_str %> | </span>
+	<span class="context"><%= item.context %></span><br>
+</div>
+<% }); %>
+<% if(!result.items.length) { %>
+No Results!
+<% } %>
+</div>
+
+<div id="stats">
+<hr>
+Load: <%= result.load_time_us / 1000 %> ms | 
+Compute: <%= result.compute_time_us / 1000 %> ms |
+Total: <%= (result.load_time_us + result.compute_time_us) / 1000 %> ms
+</div>
+
+<div id="perf_stats" style="display: none">
+<%= result.timing_info %>
+</div>
