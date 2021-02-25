@@ -26,6 +26,36 @@ function on_result(res, args, ret)
 		item.url_str = url_str;
 		item.date_str = date.toDateString();
 	}
+	const num_pages = Math.ceil(result.num_results_total / result.options.limit);
+	if(args.page > 0) {
+		args.page_list.push({
+			href: "?" + get_query_string(args.query, args.page - 1),
+			text: "Prev"
+		});
+	}
+	for(let i = 0; i < num_pages;) {
+		if(i != args.page) {
+			args.page_list.push({
+				href: "?" + get_query_string(args.query, i),
+				text: `${i+1}`
+			});
+		} else {
+			args.page_list.push({
+				text: `${i+1}`
+			});
+		}
+		if(i < 9) {
+			i++;
+		} else {
+			i += 10;
+		}
+	}
+	if(args.page + 1 < num_pages) {
+		args.page_list.push({
+			href: "?" + get_query_string(args.query, args.page + 1),
+			text: "Next"
+		});
+	}
 	args.result = result;
 	res.render('index', args);
 }
@@ -42,7 +72,9 @@ app.get('/', (req, res) => {
 	
 	let args = {};
 	args.query = query;
-	args.page = page;
+	args.page = parseInt(page);
+	args.result = null;
+	args.page_list = [];
 	
 	if(query) {
 		console.log(req.query);
@@ -50,12 +82,10 @@ app.get('/', (req, res) => {
 			.then(on_result.bind(null, res, args))
 			.catch(on_error.bind(null, res));
 	} else {
-		args.items = [];
-		args.result = null;
 		res.render('index', args);
 	}
 })
 
 app.listen(port, '0.0.0.0', () => {
-	console.log(`Listening at http://0.0.0.0:${port}`)
+	console.log(`Listening at http://0.0.0.0:${port}`);
 })

@@ -17,6 +17,15 @@ Page <%= parseInt(page) + 1 %> of <% if(result.has_more) { %>&#62;<% } %><%= res
 <% } %>
 </div>
 
+<div id="page_list">
+<% page_list.forEach(function(entry) { %>
+<% if(entry.href) { %>
+	<a class="page" href="<%- entry.href %>"><%= entry.text %></a>
+<% } else { %>
+	<%= entry.text %>
+<% }}); %>
+</div>
+
 <div id="stats">
 <hr>
 Load: <%= result.load_time_us / 1000 %> ms |
@@ -25,5 +34,5 @@ Total: <%= (result.load_time_us + result.compute_time_us) / 1000 %> ms
 </div>
 
 <div id="timing_info" style="display: none">
-<%= result.timing_info %>
+<%- JSON.stringify(result.timing_info) %>
 </div>
