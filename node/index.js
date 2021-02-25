@@ -16,23 +16,21 @@ function get_query_string(query, page)
 function on_result(res, args, ret)
 {
 	const result = ret.data;
-	if(result.items && result.items.length)
+	if(!result) {
+		res.status(500).send("internal error: result == null");
+		return;
+	}
+	for(const item of result.items)
 	{
-		for(const item of result.items)
-		{
-			let date = new Date(item.last_modified * 1000);
-			let url_str = item.url.replace(/(^\w+:|^)\/\//, '');
-			if(!item.title.length) {
-				item.title = url_str;
-			}
-			item.url_str = url_str;
-			item.date_str = date.toDateString();
+		let date = new Date(item.last_modified * 1000);
+		let url_str = item.url.replace(/(^\w+:|^)\/\//, '');
+		if(!item.title.length) {
+			item.title = url_str;
 		}
+		item.url_str = url_str;
+		item.date_str = date.toDateString();
 	}
-	let num_pages = 0;
-	if(result.num_results_total && result.options && result.options.limit) {
-		num_pages = Math.ceil(result.num_results_total / result.options.limit);
-	}
+	const num_pages = Math.ceil(result.num_results_total / result.options.limit);
 	if(args.page > 0) {
 		args.page_list.push({
 			href: "?" + get_query_string(args.query, args.page - 1),
