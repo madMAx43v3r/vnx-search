@@ -29,7 +29,10 @@ function on_result(res, args, ret)
 			item.date_str = date.toDateString();
 		}
 	}
-	const num_pages = Math.ceil(result.num_results_total / result.options.limit);
+	let num_pages = 0;
+	if(result.num_results_total && result.options && result.options.limit) {
+		num_pages = Math.ceil(result.num_results_total / result.options.limit);
+	}
 	if(args.page > 0) {
 		args.page_list.push({
 			href: "?" + get_query_string(args.query, args.page - 1),
