@@ -16,15 +16,18 @@ function get_query_string(query, page)
 function on_result(res, args, ret)
 {
 	const result = ret.data;
-	for(const item of result.items)
+	if(result.items && result.items.length)
 	{
-		let date = new Date(item.last_modified * 1000);
-		let url_str = item.url.replace(/(^\w+:|^)\/\//, '');
-		if(!item.title.length) {
-			item.title = url_str;
+		for(const item of result.items)
+		{
+			let date = new Date(item.last_modified * 1000);
+			let url_str = item.url.replace(/(^\w+:|^)\/\//, '');
+			if(!item.title.length) {
+				item.title = url_str;
+			}
+			item.url_str = url_str;
+			item.date_str = date.toDateString();
 		}
-		item.url_str = url_str;
-		item.date_str = date.toDateString();
 	}
 	const num_pages = Math.ceil(result.num_results_total / result.options.limit);
 	if(args.page > 0) {
