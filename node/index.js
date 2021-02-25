@@ -16,10 +16,6 @@ function get_query_string(query, page)
 function on_result(res, args, ret)
 {
 	const result = ret.data;
-	if(!result) {
-		res.status(500).send("internal error: result == null");
-		return;
-	}
 	for(const item of result.items)
 	{
 		let date = new Date(item.last_modified * 1000);
