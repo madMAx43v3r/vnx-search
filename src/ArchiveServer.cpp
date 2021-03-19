@@ -72,6 +72,7 @@ void ArchiveServer::http_response(	const std::string& url_key, const request_id_
 			if(!http->content_charset.empty()) {
 				response->content_type += "; charset=" + http->content_charset;
 			}
+			response->headers.emplace_back("Cache-Control", "public");
 			response->payload = http->payload;
 		}
 		else if(fallback) {
