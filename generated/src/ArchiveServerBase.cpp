@@ -38,7 +38,7 @@ namespace search {
 
 
 const vnx::Hash64 ArchiveServerBase::VNX_TYPE_HASH(0x7f75b82c5c7df1b7ull);
-const vnx::Hash64 ArchiveServerBase::VNX_CODE_HASH(0xe7015cb4179ab2f4ull);
+const vnx::Hash64 ArchiveServerBase::VNX_CODE_HASH(0x55df0a2b59ccf9acull);
 
 ArchiveServerBase::ArchiveServerBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -46,7 +46,7 @@ ArchiveServerBase::ArchiveServerBase(const std::string& _vnx_name)
 	vnx::read_config(vnx_name + ".http_archive_server", http_archive_server);
 	vnx::read_config(vnx_name + ".path", path);
 	vnx::read_config(vnx_name + ".link_map", link_map);
-	vnx::read_config(vnx_name + ".enable_fallback", enable_fallback);
+	vnx::read_config(vnx_name + ".fallback", fallback);
 }
 
 vnx::Hash64 ArchiveServerBase::get_type_hash() const {
@@ -67,7 +67,7 @@ void ArchiveServerBase::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, http_archive_server);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, path);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, link_map);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, enable_fallback);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, fallback);
 	_visitor.type_end(*_type_code);
 }
 
@@ -76,7 +76,7 @@ void ArchiveServerBase::write(std::ostream& _out) const {
 	_out << "\"http_archive_server\": "; vnx::write(_out, http_archive_server);
 	_out << ", \"path\": "; vnx::write(_out, path);
 	_out << ", \"link_map\": "; vnx::write(_out, link_map);
-	_out << ", \"enable_fallback\": "; vnx::write(_out, enable_fallback);
+	_out << ", \"fallback\": "; vnx::write(_out, fallback);
 	_out << "}";
 }
 
@@ -92,14 +92,14 @@ vnx::Object ArchiveServerBase::to_object() const {
 	_object["http_archive_server"] = http_archive_server;
 	_object["path"] = path;
 	_object["link_map"] = link_map;
-	_object["enable_fallback"] = enable_fallback;
+	_object["fallback"] = fallback;
 	return _object;
 }
 
 void ArchiveServerBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "enable_fallback") {
-			_entry.second.to(enable_fallback);
+		if(_entry.first == "fallback") {
+			_entry.second.to(fallback);
 		} else if(_entry.first == "http_archive_server") {
 			_entry.second.to(http_archive_server);
 		} else if(_entry.first == "link_map") {
@@ -120,8 +120,8 @@ vnx::Variant ArchiveServerBase::get_field(const std::string& _name) const {
 	if(_name == "link_map") {
 		return vnx::Variant(link_map);
 	}
-	if(_name == "enable_fallback") {
-		return vnx::Variant(enable_fallback);
+	if(_name == "fallback") {
+		return vnx::Variant(fallback);
 	}
 	return vnx::Variant();
 }
@@ -133,8 +133,8 @@ void ArchiveServerBase::set_field(const std::string& _name, const vnx::Variant& 
 		_value.to(path);
 	} else if(_name == "link_map") {
 		_value.to(link_map);
-	} else if(_name == "enable_fallback") {
-		_value.to(enable_fallback);
+	} else if(_name == "fallback") {
+		_value.to(fallback);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -164,7 +164,7 @@ std::shared_ptr<vnx::TypeCode> ArchiveServerBase::static_create_type_code() {
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.ArchiveServer";
 	type_code->type_hash = vnx::Hash64(0x7f75b82c5c7df1b7ull);
-	type_code->code_hash = vnx::Hash64(0xe7015cb4179ab2f4ull);
+	type_code->code_hash = vnx::Hash64(0x55df0a2b59ccf9acull);
 	type_code->is_native = true;
 	type_code->native_size = sizeof(::vnx::search::ArchiveServerBase);
 	type_code->methods.resize(11);
@@ -203,7 +203,7 @@ std::shared_ptr<vnx::TypeCode> ArchiveServerBase::static_create_type_code() {
 	{
 		auto& field = type_code->fields[3];
 		field.data_size = 1;
-		field.name = "enable_fallback";
+		field.name = "fallback";
 		field.value = vnx::to_string(true);
 		field.code = {31};
 	}
@@ -347,7 +347,7 @@ void read(TypeInput& in, ::vnx::search::ArchiveServerBase& value, const TypeCode
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
 		if(const auto* const _field = type_code->field_map[3]) {
-			vnx::read_value(_buf + _field->offset, value.enable_fallback, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.fallback, _field->code.data());
 		}
 	}
 	for(const auto* _field : type_code->ext_fields) {
@@ -374,7 +374,7 @@ void write(TypeOutput& out, const ::vnx::search::ArchiveServerBase& value, const
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(1);
-	vnx::write_value(_buf + 0, value.enable_fallback);
+	vnx::write_value(_buf + 0, value.fallback);
 	vnx::write(out, value.http_archive_server, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.path, type_code, type_code->fields[1].code.data());
 	vnx::write(out, value.link_map, type_code, type_code->fields[2].code.data());

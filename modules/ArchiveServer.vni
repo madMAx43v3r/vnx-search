@@ -8,6 +8,6 @@ module ArchiveServer implements vnx.addons.HttpComponent {
 	
 	map<string, string> link_map;
 	
-	bool enable_fallback = true;
+	bool fallback = true;
 	
 }

@@ -19,7 +19,7 @@ public:
 	std::string http_archive_server = "HttpArchive";
 	std::string path = "/archive/";
 	std::map<std::string, std::string> link_map;
-	vnx::bool_t enable_fallback = true;
+	vnx::bool_t fallback = true;
 	
 	typedef ::vnx::Module Super;
 	

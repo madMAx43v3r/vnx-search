@@ -74,7 +74,7 @@ void ArchiveServer::http_response(	const std::string& url_key, const request_id_
 			}
 			response->payload = http->payload;
 		}
-		else if(enable_fallback) {
+		else if(fallback) {
 			response->status = 302;
 			response->headers.emplace_back("Location", url_key);
 		}
