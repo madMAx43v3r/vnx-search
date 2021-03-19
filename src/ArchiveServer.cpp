@@ -44,7 +44,7 @@ void ArchiveServer::http_request_async(	std::shared_ptr<const addons::HttpReques
 	
 	http_archive_async->get_value(Variant(url_key),
 			std::bind(&ArchiveServer::http_response, this, url_key, req_id, std::placeholders::_1),
-			std::bind(&ArchiveServer::http_failure, this, req_id, std::placeholders::_1));
+			std::bind(&ArchiveServer::http_failure, this, url_key, req_id, std::placeholders::_1));
 }
 
 void ArchiveServer::http_request_chunk_async(	std::shared_ptr<const addons::HttpRequest> request,
@@ -58,34 +58,42 @@ void ArchiveServer::http_request_chunk_async(	std::shared_ptr<const addons::Http
 void ArchiveServer::http_response(	const std::string& url_key, const request_id_t& req_id,
 									std::shared_ptr<const keyvalue::Entry> entry) const
 {
-	auto response = addons::HttpResponse::create();
-	response->status = 404;
+	try {
+		auto response = addons::HttpResponse::create();
+		response->status = 404;
 	
-	if(auto http = std::dynamic_pointer_cast<const HttpResponse>(entry->value))
-	{
-		if(g_html_content_types.count(http->content_type)) {
-			http = transform(http, url_key);
+		if(auto http = std::dynamic_pointer_cast<const HttpResponse>(entry->value))
+		{
+			if(g_html_content_types.count(http->content_type)) {
+				http = transform_html(http, url_key);
+			}
+			response->status = 200;
+			response->content_type = http->content_type;
+			if(!http->content_charset.empty()) {
+				response->content_type += "; charset=" + http->content_charset;
+			}
+			response->payload = http->payload;
 		}
-		response->status = 200;
-		response->content_type = http->content_type;
-		if(!http->content_charset.empty()) {
-			response->content_type += "; charset=" + http->content_charset;
+		else if(enable_fallback) {
+			response->status = 302;
+			response->headers.emplace_back("Location", url_key);
 		}
-		response->payload = http->payload;
+		http_request_async_return(req_id, response);
 	}
-	http_request_async_return(req_id, response);
+	catch(const std::exception& ex) {
+		vnx_async_return(req_id, vnx::Exception::from_what(ex.what()));
+	}
 }
 
-void ArchiveServer::http_failure(const request_id_t& req_id, const vnx::exception& ex) const
+void ArchiveServer::http_failure(	const std::string& url_key, const request_id_t& req_id,
+									const vnx::exception& ex) const
 {
-	auto response = addons::HttpResponse::create();
-	response->status = 404;
-	http_request_async_return(req_id, response);
+	vnx_async_return(req_id, vnx::Exception::from_what(ex.what()));
 }
 
 std::shared_ptr<HttpResponse>
-ArchiveServer::transform(	std::shared_ptr<const HttpResponse> http,
-							const std::string& url_key) const
+ArchiveServer::transform_html(	std::shared_ptr<const HttpResponse> http,
+								const std::string& url_key) const
 {
 	const Url::Url parsed(url_key);
 	const auto domain = parsed.host();
@@ -117,6 +125,7 @@ ArchiveServer::transform(	std::shared_ptr<const HttpResponse> http,
 	
 	auto out = vnx::clone(http);
 	out->payload = doc_pp->write_to_string("UTF-8");
+	delete doc_pp;
 	return out;
 }
 
