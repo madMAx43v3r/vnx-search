@@ -42,18 +42,6 @@ int main(int argc, char** argv)
 		vnx::Handle<vnx::Server> module = new vnx::Server("TcpServer", vnx::TcpEndpoint::create("0.0.0.0", port));
 		module.start_detached();
 	}
-	{
-		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("BackendProxy", vnx::Endpoint::from_url(server));
-		
-		vnx::Handle<vnx::search::QueryEngine> module = new vnx::search::QueryEngine("QueryEngine");
-		proxy->tunnel_map[vnx::Hash64("fast/" + module->page_index_server)] = module->page_index_server;
-		proxy->tunnel_map[vnx::Hash64("fast/" + module->page_content_server)] = module->page_content_server;
-		module->page_index_server = "fast/" + module->page_index_server;
-		module->page_content_server = "fast/" + module->page_content_server;
-		
-		proxy.start_detached();
-		module.start_detached();
-	}
 	
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("BackendProxy", vnx::Endpoint::from_url(server));
 	proxy->max_queue_ms = 0;		// quick fix
@@ -71,6 +59,11 @@ int main(int argc, char** argv)
 	
 	proxy.start_detached();
 	module.start_detached();
+	
+	{
+		vnx::Handle<vnx::search::QueryEngine> module = new vnx::search::QueryEngine("QueryEngine");
+		module.start_detached();
+	}
 	
 	vnx::wait();
 }
