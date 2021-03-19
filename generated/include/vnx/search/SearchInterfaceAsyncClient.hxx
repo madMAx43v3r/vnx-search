@@ -17,39 +17,39 @@ public:
 	
 	SearchInterfaceAsyncClient(vnx::Hash64 service_addr);
 	
-	uint64_t get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset, 
+	uint64_t get_domain_info(const std::string& host = "", const int32_t& limit = 0, const uint32_t& offset = 0, 
 			const std::function<void(const ::vnx::Object&)>& _callback = std::function<void(const ::vnx::Object&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t get_page_info(const std::string& url_key, 
+	uint64_t get_page_info(const std::string& url_key = "", 
 			const std::function<void(const ::vnx::Object&)>& _callback = std::function<void(const ::vnx::Object&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t get_page_ranks(const std::vector<std::string>& url_keys, const vnx::bool_t& direct, 
+	uint64_t get_page_ranks(const std::vector<std::string>& url_keys = {}, const vnx::bool_t& direct = 0, 
 			const std::function<void(const std::vector<vnx::float32_t>&)>& _callback = std::function<void(const std::vector<vnx::float32_t>&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t get_domain_list(const int32_t& limit, const uint32_t& offset, 
+	uint64_t get_domain_list(const int32_t& limit = 0, const uint32_t& offset = 0, 
 			const std::function<void(const std::vector<::vnx::Object>&)>& _callback = std::function<void(const std::vector<::vnx::Object>&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t get_page_ranking(const int32_t& limit, const uint32_t& offset, 
+	uint64_t get_page_ranking(const int32_t& limit = 0, const uint32_t& offset = 0, 
 			const std::function<void(const std::vector<std::pair<std::string, uint32_t>>&)>& _callback = std::function<void(const std::vector<std::pair<std::string, uint32_t>>&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t reverse_lookup(const std::string& url_key, 
+	uint64_t reverse_lookup(const std::string& url_key = "", 
 			const std::function<void(const std::vector<std::string>&)>& _callback = std::function<void(const std::vector<std::string>&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t reverse_domain_lookup(const std::string& url_key, 
+	uint64_t reverse_domain_lookup(const std::string& url_key = "", 
 			const std::function<void(const std::vector<std::pair<std::string, uint32_t>>&)>& _callback = std::function<void(const std::vector<std::pair<std::string, uint32_t>>&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t suggest_words(const std::string& prefix, const int32_t& limit, 
+	uint64_t suggest_words(const std::string& prefix = "", const int32_t& limit = 0, 
 			const std::function<void(const std::vector<std::string>&)>& _callback = std::function<void(const std::vector<std::string>&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	
-	uint64_t suggest_domains(const std::string& prefix, const int32_t& limit, 
+	uint64_t suggest_domains(const std::string& prefix = "", const int32_t& limit = 0, 
 			const std::function<void(const std::vector<std::string>&)>& _callback = std::function<void(const std::vector<std::string>&)>(),
 			const std::function<void(const vnx::exception&)>& _error_callback = std::function<void(const vnx::exception&)>());
 	

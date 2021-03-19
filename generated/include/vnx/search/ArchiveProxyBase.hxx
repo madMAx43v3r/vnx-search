@@ -18,7 +18,9 @@ public:
 	
 	::vnx::TopicPtr input_http;
 	std::string server_name = "HttpArchive";
-	int32_t buffer_size = 100;
+	int32_t max_buffer_size = 100;
+	int32_t max_queue_sec = 300;
+	int32_t max_queue_size = 4096;
 	
 	typedef ::vnx::Module Super;
 	

@@ -18,7 +18,7 @@ public:
 	
 	QueryInterfaceClient(vnx::Hash64 service_addr);
 	
-	std::shared_ptr<const ::vnx::search::SearchResult> query(const std::vector<std::string>& words, const ::vnx::search::query_options_t& options);
+	std::shared_ptr<const ::vnx::search::SearchResult> query(const std::vector<std::string>& words = {}, const ::vnx::search::query_options_t& options = ::vnx::search::query_options_t());
 	
 };
 

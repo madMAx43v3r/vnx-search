@@ -23,8 +23,12 @@
 #include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
 #include <vnx/ModuleInterface_vnx_stop.hxx>
 #include <vnx/ModuleInterface_vnx_stop_return.hxx>
-#include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/SyncUpdate.hxx>
+#include <vnx/addons/HttpComponent_http_request.hxx>
+#include <vnx/addons/HttpComponent_http_request_return.hxx>
+#include <vnx/addons/HttpComponent_http_request_chunk.hxx>
+#include <vnx/addons/HttpComponent_http_request_chunk_return.hxx>
+#include <vnx/addons/HttpRequest.hxx>
+#include <vnx/addons/HttpResponse.hxx>
 
 #include <vnx/vnx.h>
 
@@ -34,22 +38,15 @@ namespace search {
 
 
 const vnx::Hash64 ArchiveServerBase::VNX_TYPE_HASH(0x7f75b82c5c7df1b7ull);
-const vnx::Hash64 ArchiveServerBase::VNX_CODE_HASH(0xa4ec761886c9a6eaull);
+const vnx::Hash64 ArchiveServerBase::VNX_CODE_HASH(0xe7015cb4179ab2f4ull);
 
 ArchiveServerBase::ArchiveServerBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
-	vnx::read_config(vnx_name + ".input_updates", input_updates);
-	vnx::read_config(vnx_name + ".frontend_server", frontend_server);
 	vnx::read_config(vnx_name + ".http_archive_server", http_archive_server);
-	vnx::read_config(vnx_name + ".url_index_server", url_index_server);
-	vnx::read_config(vnx_name + ".max_per_minute", max_per_minute);
-	vnx::read_config(vnx_name + ".max_num_pending", max_num_pending);
-	vnx::read_config(vnx_name + ".num_threads", num_threads);
-	vnx::read_config(vnx_name + ".bytes_per_day", bytes_per_day);
-	vnx::read_config(vnx_name + ".check_interval_ms", check_interval_ms);
-	vnx::read_config(vnx_name + ".lock_timeout", lock_timeout);
-	vnx::read_config(vnx_name + ".update_all", update_all);
+	vnx::read_config(vnx_name + ".path", path);
+	vnx::read_config(vnx_name + ".link_map", link_map);
+	vnx::read_config(vnx_name + ".enable_fallback", enable_fallback);
 }
 
 vnx::Hash64 ArchiveServerBase::get_type_hash() const {
@@ -67,33 +64,19 @@ const vnx::TypeCode* ArchiveServerBase::get_type_code() const {
 void ArchiveServerBase::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_ArchiveServerBase;
 	_visitor.type_begin(*_type_code);
-	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, input_updates);
-	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, frontend_server);
-	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, http_archive_server);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, url_index_server);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, max_per_minute);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, max_num_pending);
-	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, num_threads);
-	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, bytes_per_day);
-	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, check_interval_ms);
-	_visitor.type_field(_type_code->fields[9], 9); vnx::accept(_visitor, lock_timeout);
-	_visitor.type_field(_type_code->fields[10], 10); vnx::accept(_visitor, update_all);
+	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, http_archive_server);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, path);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, link_map);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, enable_fallback);
 	_visitor.type_end(*_type_code);
 }
 
 void ArchiveServerBase::write(std::ostream& _out) const {
 	_out << "{";
-	_out << "\"input_updates\": "; vnx::write(_out, input_updates);
-	_out << ", \"frontend_server\": "; vnx::write(_out, frontend_server);
-	_out << ", \"http_archive_server\": "; vnx::write(_out, http_archive_server);
-	_out << ", \"url_index_server\": "; vnx::write(_out, url_index_server);
-	_out << ", \"max_per_minute\": "; vnx::write(_out, max_per_minute);
-	_out << ", \"max_num_pending\": "; vnx::write(_out, max_num_pending);
-	_out << ", \"num_threads\": "; vnx::write(_out, num_threads);
-	_out << ", \"bytes_per_day\": "; vnx::write(_out, bytes_per_day);
-	_out << ", \"check_interval_ms\": "; vnx::write(_out, check_interval_ms);
-	_out << ", \"lock_timeout\": "; vnx::write(_out, lock_timeout);
-	_out << ", \"update_all\": "; vnx::write(_out, update_all);
+	_out << "\"http_archive_server\": "; vnx::write(_out, http_archive_server);
+	_out << ", \"path\": "; vnx::write(_out, path);
+	_out << ", \"link_map\": "; vnx::write(_out, link_map);
+	_out << ", \"enable_fallback\": "; vnx::write(_out, enable_fallback);
 	_out << "}";
 }
 
@@ -106,108 +89,52 @@ void ArchiveServerBase::read(std::istream& _in) {
 vnx::Object ArchiveServerBase::to_object() const {
 	vnx::Object _object;
 	_object["__type"] = "vnx.search.ArchiveServer";
-	_object["input_updates"] = input_updates;
-	_object["frontend_server"] = frontend_server;
 	_object["http_archive_server"] = http_archive_server;
-	_object["url_index_server"] = url_index_server;
-	_object["max_per_minute"] = max_per_minute;
-	_object["max_num_pending"] = max_num_pending;
-	_object["num_threads"] = num_threads;
-	_object["bytes_per_day"] = bytes_per_day;
-	_object["check_interval_ms"] = check_interval_ms;
-	_object["lock_timeout"] = lock_timeout;
-	_object["update_all"] = update_all;
+	_object["path"] = path;
+	_object["link_map"] = link_map;
+	_object["enable_fallback"] = enable_fallback;
 	return _object;
 }
 
 void ArchiveServerBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "bytes_per_day") {
-			_entry.second.to(bytes_per_day);
-		} else if(_entry.first == "check_interval_ms") {
-			_entry.second.to(check_interval_ms);
-		} else if(_entry.first == "frontend_server") {
-			_entry.second.to(frontend_server);
+		if(_entry.first == "enable_fallback") {
+			_entry.second.to(enable_fallback);
 		} else if(_entry.first == "http_archive_server") {
 			_entry.second.to(http_archive_server);
-		} else if(_entry.first == "input_updates") {
-			_entry.second.to(input_updates);
-		} else if(_entry.first == "lock_timeout") {
-			_entry.second.to(lock_timeout);
-		} else if(_entry.first == "max_num_pending") {
-			_entry.second.to(max_num_pending);
-		} else if(_entry.first == "max_per_minute") {
-			_entry.second.to(max_per_minute);
-		} else if(_entry.first == "num_threads") {
-			_entry.second.to(num_threads);
-		} else if(_entry.first == "update_all") {
-			_entry.second.to(update_all);
-		} else if(_entry.first == "url_index_server") {
-			_entry.second.to(url_index_server);
+		} else if(_entry.first == "link_map") {
+			_entry.second.to(link_map);
+		} else if(_entry.first == "path") {
+			_entry.second.to(path);
 		}
 	}
 }
 
 vnx::Variant ArchiveServerBase::get_field(const std::string& _name) const {
-	if(_name == "input_updates") {
-		return vnx::Variant(input_updates);
-	}
-	if(_name == "frontend_server") {
-		return vnx::Variant(frontend_server);
-	}
 	if(_name == "http_archive_server") {
 		return vnx::Variant(http_archive_server);
 	}
-	if(_name == "url_index_server") {
-		return vnx::Variant(url_index_server);
+	if(_name == "path") {
+		return vnx::Variant(path);
 	}
-	if(_name == "max_per_minute") {
-		return vnx::Variant(max_per_minute);
+	if(_name == "link_map") {
+		return vnx::Variant(link_map);
 	}
-	if(_name == "max_num_pending") {
-		return vnx::Variant(max_num_pending);
-	}
-	if(_name == "num_threads") {
-		return vnx::Variant(num_threads);
-	}
-	if(_name == "bytes_per_day") {
-		return vnx::Variant(bytes_per_day);
-	}
-	if(_name == "check_interval_ms") {
-		return vnx::Variant(check_interval_ms);
-	}
-	if(_name == "lock_timeout") {
-		return vnx::Variant(lock_timeout);
-	}
-	if(_name == "update_all") {
-		return vnx::Variant(update_all);
+	if(_name == "enable_fallback") {
+		return vnx::Variant(enable_fallback);
 	}
 	return vnx::Variant();
 }
 
 void ArchiveServerBase::set_field(const std::string& _name, const vnx::Variant& _value) {
-	if(_name == "input_updates") {
-		_value.to(input_updates);
-	} else if(_name == "frontend_server") {
-		_value.to(frontend_server);
-	} else if(_name == "http_archive_server") {
+	if(_name == "http_archive_server") {
 		_value.to(http_archive_server);
-	} else if(_name == "url_index_server") {
-		_value.to(url_index_server);
-	} else if(_name == "max_per_minute") {
-		_value.to(max_per_minute);
-	} else if(_name == "max_num_pending") {
-		_value.to(max_num_pending);
-	} else if(_name == "num_threads") {
-		_value.to(num_threads);
-	} else if(_name == "bytes_per_day") {
-		_value.to(bytes_per_day);
-	} else if(_name == "check_interval_ms") {
-		_value.to(check_interval_ms);
-	} else if(_name == "lock_timeout") {
-		_value.to(lock_timeout);
-	} else if(_name == "update_all") {
-		_value.to(update_all);
+	} else if(_name == "path") {
+		_value.to(path);
+	} else if(_name == "link_map") {
+		_value.to(link_map);
+	} else if(_name == "enable_fallback") {
+		_value.to(enable_fallback);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -237,10 +164,10 @@ std::shared_ptr<vnx::TypeCode> ArchiveServerBase::static_create_type_code() {
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.ArchiveServer";
 	type_code->type_hash = vnx::Hash64(0x7f75b82c5c7df1b7ull);
-	type_code->code_hash = vnx::Hash64(0xa4ec761886c9a6eaull);
+	type_code->code_hash = vnx::Hash64(0xe7015cb4179ab2f4ull);
 	type_code->is_native = true;
 	type_code->native_size = sizeof(::vnx::search::ArchiveServerBase);
-	type_code->methods.resize(9);
+	type_code->methods.resize(11);
 	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_config_object::static_get_type_code();
 	type_code->methods[1] = ::vnx::ModuleInterface_vnx_get_config::static_get_type_code();
 	type_code->methods[2] = ::vnx::ModuleInterface_vnx_set_config_object::static_get_type_code();
@@ -250,80 +177,34 @@ std::shared_ptr<vnx::TypeCode> ArchiveServerBase::static_create_type_code() {
 	type_code->methods[6] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
 	type_code->methods[7] = ::vnx::ModuleInterface_vnx_stop::static_get_type_code();
 	type_code->methods[8] = ::vnx::ModuleInterface_vnx_self_test::static_get_type_code();
-	type_code->fields.resize(11);
+	type_code->methods[9] = ::vnx::addons::HttpComponent_http_request::static_get_type_code();
+	type_code->methods[10] = ::vnx::addons::HttpComponent_http_request_chunk::static_get_type_code();
+	type_code->fields.resize(4);
 	{
 		auto& field = type_code->fields[0];
-		field.is_extended = true;
-		field.name = "input_updates";
-		field.code = {12, 5};
-	}
-	{
-		auto& field = type_code->fields[1];
-		field.is_extended = true;
-		field.name = "frontend_server";
-		field.value = vnx::to_string("CrawlFrontend");
-		field.code = {32};
-	}
-	{
-		auto& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "http_archive_server";
 		field.value = vnx::to_string("HttpArchive");
 		field.code = {32};
 	}
 	{
-		auto& field = type_code->fields[3];
+		auto& field = type_code->fields[1];
 		field.is_extended = true;
-		field.name = "url_index_server";
-		field.value = vnx::to_string("UrlIndex");
+		field.name = "path";
+		field.value = vnx::to_string("/archive/");
 		field.code = {32};
 	}
 	{
-		auto& field = type_code->fields[4];
-		field.data_size = 4;
-		field.name = "max_per_minute";
-		field.value = vnx::to_string(12);
-		field.code = {7};
+		auto& field = type_code->fields[2];
+		field.is_extended = true;
+		field.name = "link_map";
+		field.code = {13, 3, 32, 32};
 	}
 	{
-		auto& field = type_code->fields[5];
-		field.data_size = 4;
-		field.name = "max_num_pending";
-		field.value = vnx::to_string(100);
-		field.code = {7};
-	}
-	{
-		auto& field = type_code->fields[6];
-		field.data_size = 4;
-		field.name = "num_threads";
-		field.value = vnx::to_string(4);
-		field.code = {7};
-	}
-	{
-		auto& field = type_code->fields[7];
-		field.data_size = 4;
-		field.name = "bytes_per_day";
-		field.value = vnx::to_string(1024);
-		field.code = {7};
-	}
-	{
-		auto& field = type_code->fields[8];
-		field.data_size = 4;
-		field.name = "check_interval_ms";
-		field.value = vnx::to_string(500);
-		field.code = {7};
-	}
-	{
-		auto& field = type_code->fields[9];
-		field.data_size = 4;
-		field.name = "lock_timeout";
-		field.value = vnx::to_string(100);
-		field.code = {7};
-	}
-	{
-		auto& field = type_code->fields[10];
+		auto& field = type_code->fields[3];
 		field.data_size = 1;
-		field.name = "update_all";
+		field.name = "enable_fallback";
+		field.value = vnx::to_string(true);
 		field.code = {31};
 	}
 	type_code->build();
@@ -334,9 +215,6 @@ void ArchiveServerBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _val
 	const auto* _type_code = _value->get_type_code();
 	while(_type_code) {
 		switch(_type_code->type_hash) {
-			case 0xcf6f029ce644d6e3ull:
-				handle(std::static_pointer_cast<const ::vnx::keyvalue::SyncUpdate>(_value));
-				return;
 			default:
 				_type_code = _type_code->super;
 		}
@@ -400,11 +278,33 @@ std::shared_ptr<vnx::Value> ArchiveServerBase::vnx_call_switch(std::shared_ptr<c
 			_return_value->_ret_0 = vnx_self_test();
 			return _return_value;
 		}
+		case 0xe0b6c38f619bad92ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::addons::HttpComponent_http_request>(_method);
+			http_request_async(_args->request, _args->sub_path, _request_id);
+			return nullptr;
+		}
+		case 0x97e79d08440406d5ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::addons::HttpComponent_http_request_chunk>(_method);
+			http_request_chunk_async(_args->request, _args->sub_path, _args->offset, _args->max_bytes, _request_id);
+			return nullptr;
+		}
 	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : vnx::Hash64();
 	_ex->method = _method->get_type_name();
 	return _ex;
+}
+
+void ArchiveServerBase::http_request_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::addons::HttpResponse>& _ret_0) const {
+	auto _return_value = ::vnx::addons::HttpComponent_http_request_return::create();
+	_return_value->_ret_0 = _ret_0;
+	vnx_async_return(_request_id, _return_value);
+}
+
+void ArchiveServerBase::http_request_chunk_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::addons::HttpResponse>& _ret_0) const {
+	auto _return_value = ::vnx::addons::HttpComponent_http_request_chunk_return::create();
+	_return_value->_ret_0 = _ret_0;
+	vnx_async_return(_request_id, _return_value);
 }
 
 
@@ -446,34 +346,15 @@ void read(TypeInput& in, ::vnx::search::ArchiveServerBase& value, const TypeCode
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		if(const auto* const _field = type_code->field_map[4]) {
-			vnx::read_value(_buf + _field->offset, value.max_per_minute, _field->code.data());
-		}
-		if(const auto* const _field = type_code->field_map[5]) {
-			vnx::read_value(_buf + _field->offset, value.max_num_pending, _field->code.data());
-		}
-		if(const auto* const _field = type_code->field_map[6]) {
-			vnx::read_value(_buf + _field->offset, value.num_threads, _field->code.data());
-		}
-		if(const auto* const _field = type_code->field_map[7]) {
-			vnx::read_value(_buf + _field->offset, value.bytes_per_day, _field->code.data());
-		}
-		if(const auto* const _field = type_code->field_map[8]) {
-			vnx::read_value(_buf + _field->offset, value.check_interval_ms, _field->code.data());
-		}
-		if(const auto* const _field = type_code->field_map[9]) {
-			vnx::read_value(_buf + _field->offset, value.lock_timeout, _field->code.data());
-		}
-		if(const auto* const _field = type_code->field_map[10]) {
-			vnx::read_value(_buf + _field->offset, value.update_all, _field->code.data());
+		if(const auto* const _field = type_code->field_map[3]) {
+			vnx::read_value(_buf + _field->offset, value.enable_fallback, _field->code.data());
 		}
 	}
 	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 0: vnx::read(in, value.input_updates, type_code, _field->code.data()); break;
-			case 1: vnx::read(in, value.frontend_server, type_code, _field->code.data()); break;
-			case 2: vnx::read(in, value.http_archive_server, type_code, _field->code.data()); break;
-			case 3: vnx::read(in, value.url_index_server, type_code, _field->code.data()); break;
+			case 0: vnx::read(in, value.http_archive_server, type_code, _field->code.data()); break;
+			case 1: vnx::read(in, value.path, type_code, _field->code.data()); break;
+			case 2: vnx::read(in, value.link_map, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -492,18 +373,11 @@ void write(TypeOutput& out, const ::vnx::search::ArchiveServerBase& value, const
 	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(25);
-	vnx::write_value(_buf + 0, value.max_per_minute);
-	vnx::write_value(_buf + 4, value.max_num_pending);
-	vnx::write_value(_buf + 8, value.num_threads);
-	vnx::write_value(_buf + 12, value.bytes_per_day);
-	vnx::write_value(_buf + 16, value.check_interval_ms);
-	vnx::write_value(_buf + 20, value.lock_timeout);
-	vnx::write_value(_buf + 24, value.update_all);
-	vnx::write(out, value.input_updates, type_code, type_code->fields[0].code.data());
-	vnx::write(out, value.frontend_server, type_code, type_code->fields[1].code.data());
-	vnx::write(out, value.http_archive_server, type_code, type_code->fields[2].code.data());
-	vnx::write(out, value.url_index_server, type_code, type_code->fields[3].code.data());
+	char* const _buf = out.write(1);
+	vnx::write_value(_buf + 0, value.enable_fallback);
+	vnx::write(out, value.http_archive_server, type_code, type_code->fields[0].code.data());
+	vnx::write(out, value.path, type_code, type_code->fields[1].code.data());
+	vnx::write(out, value.link_map, type_code, type_code->fields[2].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::ArchiveServerBase& value) {

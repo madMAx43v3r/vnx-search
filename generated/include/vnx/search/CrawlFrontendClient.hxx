@@ -23,15 +23,15 @@ public:
 	
 	::vnx::Object vnx_get_config_object();
 	
-	::vnx::Variant vnx_get_config(const std::string& name);
+	::vnx::Variant vnx_get_config(const std::string& name = "");
 	
-	void vnx_set_config_object(const ::vnx::Object& config);
+	void vnx_set_config_object(const ::vnx::Object& config = ::vnx::Object());
 	
-	void vnx_set_config_object_async(const ::vnx::Object& config);
+	void vnx_set_config_object_async(const ::vnx::Object& config = ::vnx::Object());
 	
-	void vnx_set_config(const std::string& name, const ::vnx::Variant& value);
+	void vnx_set_config(const std::string& name = "", const ::vnx::Variant& value = ::vnx::Variant());
 	
-	void vnx_set_config_async(const std::string& name, const ::vnx::Variant& value);
+	void vnx_set_config_async(const std::string& name = "", const ::vnx::Variant& value = ::vnx::Variant());
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
@@ -47,13 +47,13 @@ public:
 	
 	vnx::bool_t vnx_self_test();
 	
-	std::shared_ptr<const ::vnx::search::LoadResult> load(const std::string& url);
+	std::shared_ptr<const ::vnx::search::LoadResult> load(const std::string& url = "");
 	
-	std::shared_ptr<const ::vnx::search::FetchResult> fetch(const std::string& url);
+	std::shared_ptr<const ::vnx::search::FetchResult> fetch(const std::string& url = "");
 	
-	void register_parser(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads);
+	void register_parser(const ::vnx::Hash64& address = ::vnx::Hash64(), const std::vector<std::string>& mime_types = {}, const int32_t& num_threads = 0);
 	
-	void register_parser_async(const ::vnx::Hash64& address, const std::vector<std::string>& mime_types, const int32_t& num_threads);
+	void register_parser_async(const ::vnx::Hash64& address = ::vnx::Hash64(), const std::vector<std::string>& mime_types = {}, const int32_t& num_threads = 0);
 	
 };
 

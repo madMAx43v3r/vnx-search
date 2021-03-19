@@ -34,14 +34,16 @@ namespace search {
 
 
 const vnx::Hash64 ArchiveProxyBase::VNX_TYPE_HASH(0x9e3c150e38d34ccaull);
-const vnx::Hash64 ArchiveProxyBase::VNX_CODE_HASH(0xbf49a785cf21606ull);
+const vnx::Hash64 ArchiveProxyBase::VNX_CODE_HASH(0xfdb5a4ea36ee1735ull);
 
 ArchiveProxyBase::ArchiveProxyBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
 	vnx::read_config(vnx_name + ".input_http", input_http);
 	vnx::read_config(vnx_name + ".server_name", server_name);
-	vnx::read_config(vnx_name + ".buffer_size", buffer_size);
+	vnx::read_config(vnx_name + ".max_buffer_size", max_buffer_size);
+	vnx::read_config(vnx_name + ".max_queue_sec", max_queue_sec);
+	vnx::read_config(vnx_name + ".max_queue_size", max_queue_size);
 }
 
 vnx::Hash64 ArchiveProxyBase::get_type_hash() const {
@@ -61,7 +63,9 @@ void ArchiveProxyBase::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, input_http);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, server_name);
-	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, buffer_size);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, max_buffer_size);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, max_queue_sec);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, max_queue_size);
 	_visitor.type_end(*_type_code);
 }
 
@@ -69,7 +73,9 @@ void ArchiveProxyBase::write(std::ostream& _out) const {
 	_out << "{";
 	_out << "\"input_http\": "; vnx::write(_out, input_http);
 	_out << ", \"server_name\": "; vnx::write(_out, server_name);
-	_out << ", \"buffer_size\": "; vnx::write(_out, buffer_size);
+	_out << ", \"max_buffer_size\": "; vnx::write(_out, max_buffer_size);
+	_out << ", \"max_queue_sec\": "; vnx::write(_out, max_queue_sec);
+	_out << ", \"max_queue_size\": "; vnx::write(_out, max_queue_size);
 	_out << "}";
 }
 
@@ -84,16 +90,22 @@ vnx::Object ArchiveProxyBase::to_object() const {
 	_object["__type"] = "vnx.search.ArchiveProxy";
 	_object["input_http"] = input_http;
 	_object["server_name"] = server_name;
-	_object["buffer_size"] = buffer_size;
+	_object["max_buffer_size"] = max_buffer_size;
+	_object["max_queue_sec"] = max_queue_sec;
+	_object["max_queue_size"] = max_queue_size;
 	return _object;
 }
 
 void ArchiveProxyBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "buffer_size") {
-			_entry.second.to(buffer_size);
-		} else if(_entry.first == "input_http") {
+		if(_entry.first == "input_http") {
 			_entry.second.to(input_http);
+		} else if(_entry.first == "max_buffer_size") {
+			_entry.second.to(max_buffer_size);
+		} else if(_entry.first == "max_queue_sec") {
+			_entry.second.to(max_queue_sec);
+		} else if(_entry.first == "max_queue_size") {
+			_entry.second.to(max_queue_size);
 		} else if(_entry.first == "server_name") {
 			_entry.second.to(server_name);
 		}
@@ -107,8 +119,14 @@ vnx::Variant ArchiveProxyBase::get_field(const std::string& _name) const {
 	if(_name == "server_name") {
 		return vnx::Variant(server_name);
 	}
-	if(_name == "buffer_size") {
-		return vnx::Variant(buffer_size);
+	if(_name == "max_buffer_size") {
+		return vnx::Variant(max_buffer_size);
+	}
+	if(_name == "max_queue_sec") {
+		return vnx::Variant(max_queue_sec);
+	}
+	if(_name == "max_queue_size") {
+		return vnx::Variant(max_queue_size);
 	}
 	return vnx::Variant();
 }
@@ -118,8 +136,12 @@ void ArchiveProxyBase::set_field(const std::string& _name, const vnx::Variant& _
 		_value.to(input_http);
 	} else if(_name == "server_name") {
 		_value.to(server_name);
-	} else if(_name == "buffer_size") {
-		_value.to(buffer_size);
+	} else if(_name == "max_buffer_size") {
+		_value.to(max_buffer_size);
+	} else if(_name == "max_queue_sec") {
+		_value.to(max_queue_sec);
+	} else if(_name == "max_queue_size") {
+		_value.to(max_queue_size);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -149,7 +171,7 @@ std::shared_ptr<vnx::TypeCode> ArchiveProxyBase::static_create_type_code() {
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.ArchiveProxy";
 	type_code->type_hash = vnx::Hash64(0x9e3c150e38d34ccaull);
-	type_code->code_hash = vnx::Hash64(0xbf49a785cf21606ull);
+	type_code->code_hash = vnx::Hash64(0xfdb5a4ea36ee1735ull);
 	type_code->is_native = true;
 	type_code->native_size = sizeof(::vnx::search::ArchiveProxyBase);
 	type_code->methods.resize(9);
@@ -162,7 +184,7 @@ std::shared_ptr<vnx::TypeCode> ArchiveProxyBase::static_create_type_code() {
 	type_code->methods[6] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
 	type_code->methods[7] = ::vnx::ModuleInterface_vnx_stop::static_get_type_code();
 	type_code->methods[8] = ::vnx::ModuleInterface_vnx_self_test::static_get_type_code();
-	type_code->fields.resize(3);
+	type_code->fields.resize(5);
 	{
 		auto& field = type_code->fields[0];
 		field.is_extended = true;
@@ -179,8 +201,22 @@ std::shared_ptr<vnx::TypeCode> ArchiveProxyBase::static_create_type_code() {
 	{
 		auto& field = type_code->fields[2];
 		field.data_size = 4;
-		field.name = "buffer_size";
+		field.name = "max_buffer_size";
 		field.value = vnx::to_string(100);
+		field.code = {7};
+	}
+	{
+		auto& field = type_code->fields[3];
+		field.data_size = 4;
+		field.name = "max_queue_sec";
+		field.value = vnx::to_string(300);
+		field.code = {7};
+	}
+	{
+		auto& field = type_code->fields[4];
+		field.data_size = 4;
+		field.name = "max_queue_size";
+		field.value = vnx::to_string(4096);
 		field.code = {7};
 	}
 	type_code->build();
@@ -304,7 +340,13 @@ void read(TypeInput& in, ::vnx::search::ArchiveProxyBase& value, const TypeCode*
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
 		if(const auto* const _field = type_code->field_map[2]) {
-			vnx::read_value(_buf + _field->offset, value.buffer_size, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.max_buffer_size, _field->code.data());
+		}
+		if(const auto* const _field = type_code->field_map[3]) {
+			vnx::read_value(_buf + _field->offset, value.max_queue_sec, _field->code.data());
+		}
+		if(const auto* const _field = type_code->field_map[4]) {
+			vnx::read_value(_buf + _field->offset, value.max_queue_size, _field->code.data());
 		}
 	}
 	for(const auto* _field : type_code->ext_fields) {
@@ -329,8 +371,10 @@ void write(TypeOutput& out, const ::vnx::search::ArchiveProxyBase& value, const 
 	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(4);
-	vnx::write_value(_buf + 0, value.buffer_size);
+	char* const _buf = out.write(12);
+	vnx::write_value(_buf + 0, value.max_buffer_size);
+	vnx::write_value(_buf + 4, value.max_queue_sec);
+	vnx::write_value(_buf + 8, value.max_queue_size);
 	vnx::write(out, value.input_http, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.server_name, type_code, type_code->fields[1].code.data());
 }

@@ -21,15 +21,15 @@ public:
 	
 	::vnx::Object vnx_get_config_object();
 	
-	::vnx::Variant vnx_get_config(const std::string& name);
+	::vnx::Variant vnx_get_config(const std::string& name = "");
 	
-	void vnx_set_config_object(const ::vnx::Object& config);
+	void vnx_set_config_object(const ::vnx::Object& config = ::vnx::Object());
 	
-	void vnx_set_config_object_async(const ::vnx::Object& config);
+	void vnx_set_config_object_async(const ::vnx::Object& config = ::vnx::Object());
 	
-	void vnx_set_config(const std::string& name, const ::vnx::Variant& value);
+	void vnx_set_config(const std::string& name = "", const ::vnx::Variant& value = ::vnx::Variant());
 	
-	void vnx_set_config_async(const std::string& name, const ::vnx::Variant& value);
+	void vnx_set_config_async(const std::string& name = "", const ::vnx::Variant& value = ::vnx::Variant());
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
@@ -45,7 +45,7 @@ public:
 	
 	vnx::bool_t vnx_self_test();
 	
-	std::shared_ptr<const ::vnx::search::TextResponse> parse(std::shared_ptr<const ::vnx::search::HttpResponse> response);
+	std::shared_ptr<const ::vnx::search::TextResponse> parse(std::shared_ptr<const ::vnx::search::HttpResponse> response = nullptr);
 	
 };
 

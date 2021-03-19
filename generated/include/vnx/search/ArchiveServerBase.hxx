@@ -6,8 +6,8 @@
 
 #include <vnx/search/package.hxx>
 #include <vnx/Module.h>
-#include <vnx/TopicPtr.hpp>
-#include <vnx/keyvalue/SyncUpdate.hxx>
+#include <vnx/addons/HttpRequest.hxx>
+#include <vnx/addons/HttpResponse.hxx>
 
 
 namespace vnx {
@@ -16,17 +16,10 @@ namespace search {
 class ArchiveServerBase : public ::vnx::Module {
 public:
 	
-	::vnx::TopicPtr input_updates;
-	std::string frontend_server = "CrawlFrontend";
 	std::string http_archive_server = "HttpArchive";
-	std::string url_index_server = "UrlIndex";
-	int32_t max_per_minute = 12;
-	int32_t max_num_pending = 100;
-	int32_t num_threads = 4;
-	int32_t bytes_per_day = 1024;
-	int32_t check_interval_ms = 500;
-	int32_t lock_timeout = 100;
-	vnx::bool_t update_all = 0;
+	std::string path = "/archive/";
+	std::map<std::string, std::string> link_map;
+	vnx::bool_t enable_fallback = true;
 	
 	typedef ::vnx::Module Super;
 	
@@ -61,7 +54,10 @@ public:
 protected:
 	using Super::handle;
 	
-	virtual void handle(std::shared_ptr<const ::vnx::keyvalue::SyncUpdate> _value) {}
+	virtual void http_request_async(std::shared_ptr<const ::vnx::addons::HttpRequest> request, const std::string& sub_path, const vnx::request_id_t& _request_id) const = 0;
+	void http_request_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::addons::HttpResponse>& _ret_0) const;
+	virtual void http_request_chunk_async(std::shared_ptr<const ::vnx::addons::HttpRequest> request, const std::string& sub_path, const int64_t& offset, const int64_t& max_bytes, const vnx::request_id_t& _request_id) const = 0;
+	void http_request_chunk_async_return(const vnx::request_id_t& _request_id, const std::shared_ptr<const ::vnx::addons::HttpResponse>& _ret_0) const;
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;

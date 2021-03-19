@@ -24,15 +24,15 @@ public:
 	
 	::vnx::Object vnx_get_config_object();
 	
-	::vnx::Variant vnx_get_config(const std::string& name);
+	::vnx::Variant vnx_get_config(const std::string& name = "");
 	
-	void vnx_set_config_object(const ::vnx::Object& config);
+	void vnx_set_config_object(const ::vnx::Object& config = ::vnx::Object());
 	
-	void vnx_set_config_object_async(const ::vnx::Object& config);
+	void vnx_set_config_object_async(const ::vnx::Object& config = ::vnx::Object());
 	
-	void vnx_set_config(const std::string& name, const ::vnx::Variant& value);
+	void vnx_set_config(const std::string& name = "", const ::vnx::Variant& value = ::vnx::Variant());
 	
-	void vnx_set_config_async(const std::string& name, const ::vnx::Variant& value);
+	void vnx_set_config_async(const std::string& name = "", const ::vnx::Variant& value = ::vnx::Variant());
 	
 	::vnx::TypeCode vnx_get_type_code();
 	
@@ -48,25 +48,25 @@ public:
 	
 	vnx::bool_t vnx_self_test();
 	
-	std::vector<::vnx::search::page_entry_t> get_page_entries(const std::vector<uint32_t>& page_ids);
+	std::vector<::vnx::search::page_entry_t> get_page_entries(const std::vector<uint32_t>& page_ids = {});
 	
-	::vnx::Object get_domain_info(const std::string& host, const int32_t& limit, const uint32_t& offset);
+	::vnx::Object get_domain_info(const std::string& host = "", const int32_t& limit = 0, const uint32_t& offset = 0);
 	
-	::vnx::Object get_page_info(const std::string& url_key);
+	::vnx::Object get_page_info(const std::string& url_key = "");
 	
-	std::vector<vnx::float32_t> get_page_ranks(const std::vector<std::string>& url_keys, const vnx::bool_t& direct);
+	std::vector<vnx::float32_t> get_page_ranks(const std::vector<std::string>& url_keys = {}, const vnx::bool_t& direct = 0);
 	
-	std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset);
+	std::vector<::vnx::Object> get_domain_list(const int32_t& limit = 0, const uint32_t& offset = 0);
 	
-	std::vector<std::pair<std::string, uint32_t>> get_page_ranking(const int32_t& limit, const uint32_t& offset);
+	std::vector<std::pair<std::string, uint32_t>> get_page_ranking(const int32_t& limit = 0, const uint32_t& offset = 0);
 	
-	std::vector<std::string> reverse_lookup(const std::string& url_key);
+	std::vector<std::string> reverse_lookup(const std::string& url_key = "");
 	
-	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key);
+	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key = "");
 	
-	std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit);
+	std::vector<std::string> suggest_words(const std::string& prefix = "", const int32_t& limit = 0);
 	
-	std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit);
+	std::vector<std::string> suggest_domains(const std::string& prefix = "", const int32_t& limit = 0);
 	
 };
 
