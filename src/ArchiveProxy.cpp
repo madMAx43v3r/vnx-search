@@ -34,7 +34,7 @@ void ArchiveProxy::handle(std::shared_ptr<const HttpResponse> value)
 {
 	buffer.emplace_back(get_url_key(value->url), value);
 	
-	if(buffer.size() >= buffer_size) {
+	if(buffer.size() >= max_buffer_size) {
 		flush();
 	}
 }
@@ -44,7 +44,9 @@ void ArchiveProxy::flush()
 	try {
 		client->store_values(buffer);
 	} catch(const std::exception& ex) {
-		log(WARN) << "flush(): " << ex.what();
+		if(vnx_do_run()) {
+			log(WARN) << "flush(): " << ex.what();
+		}
 	}
 	buffer.clear();
 }
