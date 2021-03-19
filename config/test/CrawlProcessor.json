@@ -2,5 +2,8 @@
 	"max_depth": 9,
 	"reload_power": 2,
 	"reload_interval": 900,
-	"root_urls": ["https://www.heise.de/"]
+	"root_urls": [
+		"https://www.heise.de/",
+		"https://www.corbettreport.com/"
+	]
 }
