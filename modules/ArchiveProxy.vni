@@ -8,6 +8,9 @@ module ArchiveProxy {
 	
 	int max_buffer_size = 100;
 	
+	int max_queue_sec = 300;
+	int max_queue_size = 4096;
+	
 	
 	void handle(HttpResponse sample);
 	

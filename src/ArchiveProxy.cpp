@@ -19,7 +19,7 @@ ArchiveProxy::ArchiveProxy(const std::string& _vnx_name)
 
 void ArchiveProxy::main()
 {
-	subscribe(input_http, 300 * 1000);
+	subscribe(input_http, max_queue_sec * 1000, max_queue_size);
 	
 	client = std::make_shared<keyvalue::StorageClient>(server_name);
 	

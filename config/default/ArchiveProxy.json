@@ -1,0 +1,4 @@
+{
+	"max_queue_sec": 3600,
+	"max_queue_size": 65536
+}
