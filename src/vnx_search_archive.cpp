@@ -7,6 +7,8 @@
 
 #include <vnx/keyvalue/Server.h>
 #include <vnx/search/ArchiveProxy.h>
+#include <vnx/search/ArchiveServer.h>
+#include <vnx/addons/HttpServer.h>
 
 #include <vnx/vnx.h>
 #include <vnx/Terminal.h>
@@ -49,6 +51,17 @@ int main(int argc, char** argv)
 	{
 		vnx::Handle<vnx::search::ArchiveProxy> module = new vnx::search::ArchiveProxy("ArchiveProxy");
 		module->input_http = "frontend.http_responses";
+		module.start_detached();
+	}
+	std::string archive_path;
+	{
+		vnx::Handle<vnx::search::ArchiveServer> module = new vnx::search::ArchiveServer("ArchiveServer");
+		archive_path = module->path;
+		module.start_detached();
+	}
+	{
+		vnx::Handle<vnx::addons::HttpServerBase> module = vnx::addons::new_HttpServer("HttpServer");
+		module->components[archive_path] = "ArchiveServer";
 		module.start_detached();
 	}
 	

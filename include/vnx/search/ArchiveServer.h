@@ -10,9 +10,7 @@
 
 #include <vnx/search/ArchiveServerBase.hxx>
 #include <vnx/search/HttpResponse.hxx>
-#include <vnx/search/CrawlFrontendAsyncClient.hxx>
 #include <vnx/keyvalue/StorageAsyncClient.hxx>
-#include <vnx/ThreadPool.h>
 
 
 namespace vnx {
@@ -27,55 +25,22 @@ protected:
 	
 	void main() override;
 	
-	void handle(std::shared_ptr<const keyvalue::SyncUpdate> entry) override;
+	void http_request_async(std::shared_ptr<const addons::HttpRequest> request,
+							const std::string& sub_path,
+							const request_id_t& req_id) const override;
+	
+	void http_request_chunk_async(	std::shared_ptr<const addons::HttpRequest> request,
+									const std::string& sub_path,
+									const int64_t& offset, const int64_t& max_bytes,
+									const request_id_t& req_id) const override;
 	
 private:
-	struct url_t {
-		uint64_t request_id = -1;
-	};
+	void http_response(const request_id_t& req_id, std::shared_ptr<const keyvalue::Entry> entry) const;
 	
-	struct domain_t {
-		int64_t last_fetch_us = 0;
-		std::queue<std::string> queue;
-	};
-	
-	void check_queue();
-	
-	void parse_html(std::shared_ptr<const HttpResponse> response);
-	
-	void check_url(const std::string& url);
-	
-	void check_url_callback_1(	const std::string& url,
-								std::shared_ptr<const keyvalue::Entry> entry);
-	
-	void check_url_callback_2(	const std::string& url,
-								std::shared_ptr<const UrlIndex> url_index,
-								std::shared_ptr<const keyvalue::Entry> entry);
-	
-	void load_callback(const std::string& url, UrlInfo url_info);
-	
-	void url_update(	const std::string& url_key,
-						const std::string& new_scheme,
-						const UrlInfo& info);
-	
-	void url_update_callback(	const std::string& url_key,
-								const std::string& new_scheme,
-								const UrlInfo& info,
-								std::shared_ptr<const keyvalue::Entry> entry);
-	
-	void print_stats();
+	void http_failure(const request_id_t& req_id, const vnx::exception& ex) const;
 	
 private:
-	std::unordered_map<std::string, url_t> url_map;
-	std::map<std::string, domain_t> domain_map;
-	
-	std::shared_ptr<ThreadPool> threads;
-	std::shared_ptr<CrawlFrontendAsyncClient> frontend_async;
 	std::shared_ptr<keyvalue::StorageAsyncClient> http_archive_async;
-	std::shared_ptr<keyvalue::StorageAsyncClient> url_index_async;
-	
-	int64_t fetch_counter = 0;
-	int64_t error_counter = 0;
 	
 };
 
