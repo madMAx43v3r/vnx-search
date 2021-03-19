@@ -135,7 +135,7 @@ std::string ArchiveServer::transform_link(const std::string& domain, const std::
 	const Url::Url parsed(url);
 	const auto url_host = parsed.host();
 	const auto url_path = parsed.path();
-	if(url_path.empty() && url_path.front() != '/') {
+	if(!url_path.empty() && url_path.front() != '/') {
 		return url;
 	}
 	std::string out = path;
