@@ -108,15 +108,14 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 	result->Response::operator=(*response);
 	result->base_url = response->url;
 	
-	const std::string payload((const char*)response->payload.data(), response->payload.size());
+	const auto content = response->payload.as_string();
 	
-	xmlDoc* doc = ::htmlReadDoc((xmlChar*)payload.data(), 0, response->content_charset.c_str(),
+	xmlDoc* doc = ::htmlReadDoc((const xmlChar*)content.data(), 0, response->content_charset.c_str(),
 			HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
 	
 	if(!doc) {
 		throw std::runtime_error("htmlReadDoc() failed");
 	}
-	
 	xmlpp::Document* doc_pp = new xmlpp::Document(doc);
 	xmlpp::Element* root = doc_pp->get_root_node();
 	
@@ -124,7 +123,7 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 		throw std::runtime_error("get_root_node() failed");
 	}
 	
-	for(auto node : root->find("//head/meta")) {
+	for(auto node : root->find("/html/head/meta")) {
 		if(auto element = dynamic_cast<const xmlpp::Element*>(node)) {
 			if(element->get_attribute_value("http-equiv") == "Refresh") {
 				const std::string content = element->get_attribute_value("content");
@@ -138,7 +137,7 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 		}
 	}
 	
-	for(auto node : root->find("//head/link")) {
+	for(auto node : root->find("/html/head/link")) {
 		if(auto element = dynamic_cast<const xmlpp::Element*>(node)) {
 			if(auto* href = element->get_attribute("href")) {
 				std::string tmp(href->get_value());
@@ -147,7 +146,7 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 		}
 	}
 	
-	const auto title = root->find("//head/title");
+	const auto title = root->find("/html/head/title");
 	if(!title.empty()) {
 		if(auto element = dynamic_cast<const xmlpp::Element*>(title[0])) {
 			if(auto text = element->get_child_text()) {
@@ -160,7 +159,7 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 		}
 	}
 	
-	const auto base = root->find("//head/base");
+	const auto base = root->find("/html/head/base");
 	if(!base.empty()) {
 		if(auto element = dynamic_cast<const xmlpp::Element*>(base[0])) {
 			if(auto href = element->get_attribute("href")) {
@@ -169,9 +168,8 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 		}
 	}
 	
-	const auto body = root->find("//body");
-	if(!body.empty()) {
-		parse_node(body[0], result);
+	for(auto node : root->find("/html/body")) {
+		parse_node(node, result);
 	}
 	
 	delete doc_pp;
