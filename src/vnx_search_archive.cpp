@@ -61,7 +61,10 @@ int main(int argc, char** argv)
 	}
 	{
 		vnx::Handle<vnx::addons::HttpServerBase> module = vnx::addons::new_HttpServer("HttpServer");
+		module->chunk_size = 16 * 1024 * 1024;
 		module->components[archive_path] = "ArchiveServer";
+		module->output_request = "http.request";
+		module->output_response = "http.response";
 		module.start_detached();
 	}
 	

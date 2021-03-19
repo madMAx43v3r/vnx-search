@@ -6,4 +6,6 @@ module ArchiveServer implements vnx.addons.HttpComponent {
 	
 	string path = "/archive/";
 	
+	map<string, string> link_map;
+	
 }

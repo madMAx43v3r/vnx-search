@@ -1,0 +1,7 @@
+{
+	"link_map": [
+		["a", "href"],
+		["link", "href"],
+		["img", "src"]
+	]
+}

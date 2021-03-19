@@ -35,9 +35,15 @@ protected:
 									const request_id_t& req_id) const override;
 	
 private:
-	void http_response(const request_id_t& req_id, std::shared_ptr<const keyvalue::Entry> entry) const;
+	void http_response(	const std::string& url_key, const request_id_t& req_id,
+						std::shared_ptr<const keyvalue::Entry> entry) const;
 	
 	void http_failure(const request_id_t& req_id, const vnx::exception& ex) const;
+	
+	std::shared_ptr<HttpResponse>
+	transform(std::shared_ptr<const HttpResponse> http, const std::string& url_key) const;
+	
+	std::string transform_link(const std::string& domain, const std::string& url) const;
 	
 private:
 	std::shared_ptr<keyvalue::StorageAsyncClient> http_archive_async;
