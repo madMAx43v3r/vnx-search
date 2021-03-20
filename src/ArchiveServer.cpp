@@ -106,9 +106,9 @@ ArchiveServer::transform_html(	std::shared_ptr<const HttpResponse> http,
 	if(!doc) {
 		throw std::runtime_error("htmlReadDoc() failed");
 	}
-	xmlpp::Document* doc_pp = new xmlpp::Document(doc);
-	xmlpp::Element* root = doc_pp->get_root_node();
+	auto doc_pp = std::make_shared<xmlpp::Document>(doc);
 	
+	xmlpp::Element* root = doc_pp->get_root_node();
 	if(!root) {
 		throw std::runtime_error("get_root_node() failed");
 	}
@@ -119,14 +119,17 @@ ArchiveServer::transform_html(	std::shared_ptr<const HttpResponse> http,
 		
 		for(auto node : root->find("//" + name)) {
 			if(auto elem = dynamic_cast<xmlpp::Element*>(node)) {
-				elem->set_attribute(attr, transform_link(domain, elem->get_attribute_value(attr)));
+				try {
+					elem->set_attribute(attr, transform_link(domain, elem->get_attribute_value(attr)));
+				} catch(...) {
+					// ignore
+				}
 			}
 		}
 	}
 	
 	auto out = vnx::clone(http);
 	out->payload = doc_pp->write_to_string("UTF-8");
-	delete doc_pp;
 	return out;
 }
 
