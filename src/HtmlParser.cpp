@@ -116,9 +116,9 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 	if(!doc) {
 		throw std::runtime_error("htmlReadDoc() failed");
 	}
-	xmlpp::Document* doc_pp = new xmlpp::Document(doc);
-	xmlpp::Element* root = doc_pp->get_root_node();
+	auto doc_pp = std::make_shared<xmlpp::Document>(doc);
 	
+	xmlpp::Element* root = doc_pp->get_root_node();
 	if(!root) {
 		throw std::runtime_error("get_root_node() failed");
 	}
@@ -133,15 +133,6 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 					link.url = content.substr(pos + 4);
 					result->links.push_back(link);
 				}
-			}
-		}
-	}
-	
-	for(auto node : root->find("/html/head/link")) {
-		if(auto element = dynamic_cast<const xmlpp::Element*>(node)) {
-			if(auto* href = element->get_attribute("href")) {
-				std::string tmp(href->get_value());
-				result->resources.push_back(clean(trim(tmp)));
 			}
 		}
 	}
@@ -168,11 +159,18 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 		}
 	}
 	
+	for(auto node : root->find("//link")) {
+		if(auto element = dynamic_cast<const xmlpp::Element*>(node)) {
+			if(auto href = element->get_attribute("href")) {
+				std::string tmp(href->get_value());
+				result->resources.push_back(clean(trim(tmp)));
+			}
+		}
+	}
+	
 	for(auto node : root->find("/html/body")) {
 		parse_node(node, result);
 	}
-	
-	delete doc_pp;
 	
 	std::map<std::string, page_link_t> links;
 	std::map<std::string, image_link_t> images;
