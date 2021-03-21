@@ -35,11 +35,6 @@ namespace search {
 class SearchEngine : public SearchEngineBase {
 public:
 	TopicPtr input_page_info;
-	TopicPtr input_url_index_sync;
-	TopicPtr input_page_index_sync;
-	TopicPtr input_page_content_sync;
-	TopicPtr input_page_info_sync;
-	TopicPtr input_word_context_sync;
 	
 	SearchEngine(const std::string& _vnx_name);
 	
@@ -297,6 +292,12 @@ private:
 	Handle<keyvalue::Server> module_word_array;
 	
 	std::shared_ptr<ThreadPool> update_threads;
+	
+	std::shared_ptr<Stream> url_index_stream;
+	std::shared_ptr<Stream> page_info_stream;
+	std::shared_ptr<Stream> page_index_stream;
+	std::shared_ptr<Stream> page_content_stream;
+	std::shared_ptr<Stream> word_context_stream;
 	
 	std::shared_ptr<SearchEngineAsyncClient> search_async;
 	std::shared_ptr<keyvalue::ServerAsyncClient> url_index_async;

@@ -43,9 +43,6 @@ module SearchEngine implements SearchInterface {
 	
 	vector<string> protocols;				// protocols to allow as links
 	
-	/*
-	 * Note: May return less items in case of unknown ids.
-	 */
 	vector<page_entry_t> get_page_entries(vector<uint> page_ids) const async;
 	
 	void handle(vnx.keyvalue.SyncUpdate sample);

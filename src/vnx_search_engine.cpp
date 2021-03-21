@@ -53,9 +53,6 @@ int main(int argc, char** argv)
 	proxy->import_list.push_back(module->input_url_index->get_name());
 	proxy->import_list.push_back(module->input_page_index->get_name());
 	proxy->import_list.push_back(module->input_page_content->get_name());
-	proxy->import_list.push_back(module->input_url_index_sync->get_name());
-	proxy->import_list.push_back(module->input_page_index_sync->get_name());
-	proxy->import_list.push_back(module->input_page_content_sync->get_name());
 	
 	proxy.start_detached();
 	module.start_detached();

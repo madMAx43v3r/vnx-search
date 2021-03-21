@@ -25,11 +25,6 @@ SearchEngine::SearchEngine(const std::string& _vnx_name)
 	:	SearchEngineBase(_vnx_name)
 {
 	input_page_info = vnx_name + ".page_info.updates";
-	input_url_index_sync = vnx_name + ".url_index.sync_" + std::to_string(vnx::rand64());
-	input_page_index_sync = vnx_name + ".page_index.sync_" + std::to_string(vnx::rand64());
-	input_page_content_sync = vnx_name + ".page_content.sync_" + std::to_string(vnx::rand64());
-	input_page_info_sync = vnx_name + ".page_info.sync_" + std::to_string(vnx::rand64());
-	input_word_context_sync = vnx_name + ".word_context.sync_" + std::to_string(vnx::rand64());
 	
 	protocols.push_back("http");
 	protocols.push_back("https");
@@ -47,12 +42,7 @@ void SearchEngine::main()
 	if(info_commit_interval > word_commit_interval) {
 		throw std::logic_error("info_commit_interval > word_commit_interval");
 	}
-	subscribe(input_page_info,				100, 1000);
-	subscribe(input_url_index_sync,			100, 1000);
-	subscribe(input_page_index_sync,		100, 1000);
-	subscribe(input_page_content_sync,		100, 1000);
-	subscribe(input_page_info_sync,			100, 1000);
-	subscribe(input_word_context_sync,		100, 1000);
+	subscribe(input_page_info, 100, 1000);
 	
 	protocols = unique(protocols);
 	
@@ -69,10 +59,22 @@ void SearchEngine::main()
 	module_word_array->collection = "word_array";
 	module_word_array.start();
 	
+	url_index_stream = std::make_shared<Stream>(url_index_server);
+	page_info_stream = std::make_shared<Stream>(module_page_info.get_name());
+	page_index_stream = std::make_shared<Stream>(page_index_server);
+	page_content_stream = std::make_shared<Stream>(page_content_server);
+	word_context_stream = std::make_shared<Stream>(module_word_context.get_name());
+	
+	url_index_stream->connect(this, 100, 1000);
+	page_info_stream->connect(this, 100, 1000);
+	page_index_stream->connect(this, 100, 1000);
+	page_content_stream->connect(this, 100, 1000);
+	word_context_stream->connect(this, 100, 1000);
+	
 	search_async = std::make_shared<SearchEngineAsyncClient>(private_addr);
-	page_info_async = std::make_shared<keyvalue::ServerAsyncClient>("PageInfo");
-	word_context_async = std::make_shared<keyvalue::ServerAsyncClient>("WordContext");
-	word_array_async = std::make_shared<keyvalue::ServerAsyncClient>("WordArray");
+	page_info_async = std::make_shared<keyvalue::ServerAsyncClient>(module_page_info.get_name());
+	word_context_async = std::make_shared<keyvalue::ServerAsyncClient>(module_word_context.get_name());
+	word_array_async = std::make_shared<keyvalue::ServerAsyncClient>(module_word_array.get_name());
 	url_index_async = std::make_shared<keyvalue::ServerAsyncClient>(url_index_server);
 	page_index_async = std::make_shared<keyvalue::ServerAsyncClient>(page_index_server);
 	page_content_async = std::make_shared<keyvalue::ServerAsyncClient>(page_content_server);
@@ -89,7 +91,7 @@ void SearchEngine::main()
 	set_timer_millis(stats_interval_ms, std::bind(&SearchEngine::print_stats, this));
 	set_timer_millis(600 * 1000, std::bind(&SearchEngine::write_info, this));
 	
-	page_info_async->sync_all(input_page_info_sync);
+	page_info_async->sync_all_private(page_info_stream->get_src_mac());
 	
 	update_threads = std::make_shared<ThreadPool>(num_update_threads);
 	
@@ -643,21 +645,21 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncInfo> value)
 		}
 		if(init_sync_count == 1)
 		{
-			word_context_async->sync_all(input_word_context_sync);
+			word_context_async->sync_all_private(word_context_stream->get_src_mac());
 			log(INFO).out << "Starting WordContext sync ...";
 		}
 		if(init_sync_count == 2)
 		{
 			subscribe(input_url_index, 100);
-			url_index_async->sync_all(input_url_index_sync);
+			url_index_async->sync_all_private(url_index_stream->get_src_mac());
 			log(INFO).out << "Starting UrlIndex sync ...";
 		}
 		if(init_sync_count == 3)
 		{
 			subscribe(input_page_index, 100);
 			subscribe(input_page_content, 100);
-			page_index_async->sync_all_keys(input_page_index_sync);
-			page_content_async->sync_all_keys(input_page_content_sync);
+			page_index_async->sync_all_keys_private(page_index_stream->get_src_mac());
+			page_content_async->sync_all_keys_private(page_content_stream->get_src_mac());
 			log(INFO).out << "Starting PageIndex / PageContent sync ...";
 		}
 		if(init_sync_count == 5)
