@@ -37,6 +37,7 @@ add_library(vnx_search SHARED
 	src/ArchiveServer.cpp
 	src/SearchFrontend.cpp
 	src/QueryEngine.cpp
+	src/WordContext.cpp
 	src/Util.cpp
 	src/page_link_t.cpp
 	src/image_link_t.cpp
