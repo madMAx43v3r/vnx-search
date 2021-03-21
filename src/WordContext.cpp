@@ -16,6 +16,12 @@ namespace search {
 std::shared_ptr<const WordContext>
 WordContext::apply(std::shared_ptr<const WordContext> delta) const
 {
+	if(!delta) {
+		throw std::logic_error("!delta");
+	}
+	if(delta->id != id) {
+		throw std::logic_error("delta->id != id");
+	}
 	auto out = WordContext::create();
 	out->id = id;
 	out->last_update = delta->last_update;
@@ -29,15 +35,12 @@ WordContext::apply(std::shared_ptr<const WordContext> delta) const
 	
 	auto iter = pages.begin();
 	auto iter2 = delta->pages.begin();
-	while(true)
-	{
+	while(true) {
 		if(iter2 != delta->pages.end()) {
-			if(iter2->second < 0) {
-				iter2++;
-				continue;
-			}
-			if(iter == pages.end() || iter2->second >= iter->second) {
-				out->pages.emplace_back(*iter2);
+			if(iter == pages.end() || iter2->second < 0 || iter2->second >= iter->second) {
+				if(iter2->second >= 0) {
+					out->pages.emplace_back(*iter2);
+				}
 				iter2++;
 				continue;
 			}
