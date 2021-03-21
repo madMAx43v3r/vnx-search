@@ -1423,9 +1423,10 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 		const auto& old_list = context->pages;
 		list.reserve(old_list.size() + new_list.size());
 		
-		std::unordered_map<uint32_t, float> update_pages;
+		std::unordered_set<uint32_t> update_set;
+		update_set.reserve(cached->update_pages.size());
 		for(const auto& entry : cached->update_pages) {
-			update_pages[entry.first] = entry.second;
+			update_set.insert(entry.first);
 		}
 		std::shared_lock lock(index_mutex);
 		
@@ -1444,11 +1445,11 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 			}
 			const auto& entry_i = old_list[i];
 			const auto page_id = entry_i.first;
-			if(page_id && !update_pages.count(page_id) && page_index.count(page_id)) {
+			if(page_id && !update_set.count(page_id) && page_index.count(page_id)) {
 				list.emplace_back(entry_i);
 			}
 			i++;
-			if(i % 10000 == 0) {
+			if(i % 4096 == 0) {
 				lock.unlock();
 				lock.lock();
 			}
