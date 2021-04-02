@@ -1,4 +1,3 @@
 {
-	"do_compress": true,
-	"num_threads": 16
+	"do_compress": true
 }

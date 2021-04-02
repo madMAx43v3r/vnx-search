@@ -1,4 +1,3 @@
 {
-	"rewrite_threshold": 0.1,
-	"num_threads": 8
+	"rewrite_threshold": 0.1
 }

@@ -1,4 +1,3 @@
 {
-	"max_block_size": 67108864,
-	"num_threads": 8
+	"max_block_size": 67108864
 }
