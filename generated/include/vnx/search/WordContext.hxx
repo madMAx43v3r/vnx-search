@@ -29,6 +29,8 @@ public:
 	std::string get_type_name() const override;
 	const vnx::TypeCode* get_type_code() const override;
 	
+	virtual std::shared_ptr<const ::vnx::search::WordContext> apply(const std::vector<std::pair<uint32_t, vnx::float32_t>>& delta, const int64_t& update_time) const;
+	
 	static std::shared_ptr<WordContext> create();
 	std::shared_ptr<vnx::Value> clone() const override;
 	
