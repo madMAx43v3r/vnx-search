@@ -498,8 +498,8 @@ int64_t SearchEngine::get_rank_update_interval(float rank_value) const
 
 void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 {
-	auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-	if(info) {
+	if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value))
+	{
 		if(info->id && !info->is_deleted)
 		{
 			if(page_ranking.size() < page_ranking_size
@@ -560,8 +560,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		return;
 	}
 	
-	auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value);
-	if(url_index)
+	if(auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value))
 	{
 		const auto org_url_key = entry->key.to_string_value();
 		auto* page = find_page_url(org_url_key);
@@ -582,8 +581,7 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		return;
 	}
 	
-	auto word_context = std::dynamic_pointer_cast<const WordContext>(entry->value);
-	if(word_context)
+	if(auto word_context = std::dynamic_pointer_cast<const WordContext>(entry->value))
 	{
 		std::unique_lock lock(index_mutex);
 		
