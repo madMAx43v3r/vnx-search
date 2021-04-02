@@ -1190,7 +1190,7 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 			}
 			const auto iter = word_index.find(word_id);
 			if(iter != word_index.end()) {
-				iter->second.num_pages = job->num_pages;
+				iter->second.num_pages = job->result->pages.size();
 			}
 			word_update_counter++;
 		});
@@ -1377,7 +1377,7 @@ void SearchEngine::word_process_task(std::shared_ptr<word_process_job_t> job) no
 	std::shared_lock lock(index_mutex);
 	
 	auto array = WordArray::create();
-	array->last_update = vnx::get_wall_time_seconds();
+	array->last_update = vnx::get_time_seconds();
 	array->list.resize(job->word_list.size());
 	
 	for(size_t i = 0; i < job->word_list.size(); ++i)
@@ -1402,64 +1402,25 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 {
 	auto cached = job->cached;
 	auto context = job->context;
+	const auto time = vnx::get_time_seconds();
 	
-	std::vector<std::pair<float, uint32_t>> new_list;
-	new_list.reserve(cached->update_pages.size());
-	for(const auto& entry : cached->update_pages) {
-		if(entry.second >= 0 && entry.first) {
-			new_list.emplace_back(entry.second, entry.first);
-		}
-	}
-	std::sort(new_list.begin(), new_list.end(), std::greater<std::pair<float, uint32_t>>());
-	
-	auto result = WordContext::create();
-	result->id = cached->word_id;
-	result->last_update = vnx::get_wall_time_seconds();
-	
-	auto& list = result->pages;
 	if(context) {
-		const auto& old_list = context->pages;
-		list.reserve(old_list.size() + new_list.size());
-		
-		std::unordered_set<uint32_t> update_set;
-		update_set.reserve(cached->update_pages.size());
-		for(const auto& entry : cached->update_pages) {
-			update_set.insert(entry.first);
-		}
-		std::shared_lock lock(index_mutex);
-		
-		size_t i = 0;
-		size_t k = 0;
-		while(true) {
-			if(k < new_list.size()) {
-				const auto& entry_k = new_list[k];
-				if(i >= old_list.size() || entry_k.first >= old_list[i].second) {
-					list.emplace_back(entry_k.second, entry_k.first);
-					k++;
-					continue;
+		auto delta = cached->update_pages;
+		{
+			std::shared_lock lock(index_mutex);
+			for(const auto& entry : context->pages) {
+				if(!page_index.count(entry.first)) {
+					delta.emplace_back(entry.first, -1);
 				}
-			} else if(i >= old_list.size()) {
-				break;
-			}
-			const auto& entry_i = old_list[i];
-			const auto page_id = entry_i.first;
-			if(page_id && !update_set.count(page_id) && page_index.count(page_id)) {
-				list.emplace_back(entry_i);
-			}
-			i++;
-			if(i % 4096 == 0) {
-				lock.unlock();
-				lock.lock();
 			}
 		}
-	} else {
-		list.reserve(new_list.size());
-		for(const auto& entry : new_list) {
-			list.emplace_back(entry.second, entry.first);
-		}
+		job->result = context->apply(delta, time);
 	}
-	job->result = result;
-	job->num_pages = list.size();
+	else {
+		auto context = WordContext::create();
+		context->id = cached->word_id;
+		job->result = context->apply(cached->update_pages, time);
+	}
 	
 	add_task(std::bind(&SearchEngine::word_update_finished, this, job));
 }

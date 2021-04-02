@@ -9,6 +9,6 @@ class WordContext {
 	vector<pair<uint, float>> pages;		// [page_id, rank_value]
 	
 	
-	WordContext* apply(WordContext* delta) const;
+	WordContext* apply(vector<pair<uint, float>> delta, long update_time = 0) const;
 	
 }

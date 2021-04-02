@@ -91,7 +91,7 @@ protected:
 	
 	struct word_cache_t {
 		uint32_t word_id = 0;
-		std::vector<std::pair<uint32_t, float>> update_pages;
+		std::vector<std::pair<uint32_t, float32_t>> update_pages;
 	};
 	
 	struct info_cache_t {
@@ -136,11 +136,10 @@ protected:
 	};
 	
 	struct word_update_job_t {
-		size_t num_pages = 0;
 		std::string word;
 		std::shared_ptr<word_cache_t> cached;
 		std::shared_ptr<const WordContext> context;
-		std::shared_ptr<WordContext> result;
+		std::shared_ptr<const WordContext> result;
 	};
 	
 	struct word_process_job_t {
