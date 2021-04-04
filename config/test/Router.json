@@ -1,0 +1,6 @@
+{
+	"forward_map": [
+		["10.1.7.20:9999", ["CrawlFrontend"]]
+	],
+	"unix_path": ".vnx_search_frontend.sock"
+}

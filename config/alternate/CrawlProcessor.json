@@ -2,9 +2,9 @@
 	"max_depth": 5,
 	"max_per_minute": 12,
 	"check_interval_ms": 500,
-	"reload_interval": 21600,
+	"reload_interval": 14400,
 	"sync_interval": 100000,
-	"reload_power": 4,
+	"reload_power": 6,
 	"max_num_pending": 100,
 	"max_url_length": 384
 }
