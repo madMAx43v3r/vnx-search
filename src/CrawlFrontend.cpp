@@ -169,7 +169,7 @@ void CrawlFrontend::fetch_callback(	std::shared_ptr<const HttpResponse> response
 	} else {
 		fetch_async_return(request->req_id, result);
 	}
-	publish(response, output_http);
+	publish(response, output_http, BLOCKING);
 }
 
 void CrawlFrontend::parse_callback(	std::shared_ptr<const TextResponse> response,
@@ -182,7 +182,7 @@ void CrawlFrontend::parse_callback(	std::shared_ptr<const TextResponse> response
 	request->result->response = response;
 	fetch_async_return(request->req_id, request->result);
 	
-	publish(response, output_text);
+	publish(response, output_text, BLOCKING);
 }
 
 void CrawlFrontend::parse_error(Hash64 address, std::shared_ptr<request_t> request, const vnx::exception& ex)
