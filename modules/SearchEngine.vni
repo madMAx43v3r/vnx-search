@@ -28,6 +28,8 @@ module SearchEngine implements SearchInterface {
 	
 	int page_ranking_size = 1000;			// number of pages
 	
+	int word_suggest_threshold = 10;		// minimum number of pages for a word
+	
 	int queue_interval_ms = 10;				// queue check interval [ms]
 	
 	int stats_interval_ms = 10000;

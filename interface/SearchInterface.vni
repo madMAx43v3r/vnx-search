@@ -20,6 +20,4 @@ interface SearchInterface {
 	
 	vector<string> suggest_words(string prefix, int limit) const;
 	
-	vector<string> suggest_domains(string prefix, int limit) const;
-	
 }

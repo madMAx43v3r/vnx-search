@@ -304,16 +304,7 @@ void SearchEngine::reverse_domain_lookup_callback(	const std::string& url_key,
 std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
 {
 	std::vector<std::string> result;
-//	for(auto it = word_map.lower_bound(prefix); it != word_map.end() && result.size() < size_t(limit); ++it) {
-//		result.push_back(it->first.str());
-//	}
-	return result;
-}
-
-std::vector<std::string> SearchEngine::suggest_domains(const std::string& prefix, const int32_t& limit) const
-{
-	std::vector<std::string> result;
-	for(auto it = domain_map.lower_bound(prefix); it != domain_map.end() && result.size() < size_t(limit); ++it) {
+	for(auto it = word_suggest_map.lower_bound(prefix); it != word_suggest_map.end() && result.size() < size_t(limit); ++it) {
 		result.push_back(it->first.str());
 	}
 	return result;
@@ -565,12 +556,17 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		std::unique_lock lock(index_mutex);
 		
 		const auto key = entry->key.to_string_value();
-		word_map[key] = word_context->id;
+		const auto word_id = word_context->id;
+		word_map[key] = word_id;
 		
-		word_t& word = word_index[word_context->id];
-		word.id = word_context->id;
+		word_t& word = word_index[word_id];
+		word.id = word_id;
 		word.num_pages = word_context->pages.size();
 		word.value = key;
+		
+		if(word.num_pages >= word_suggest_threshold) {
+			word_suggest_map[key] = word_id;
+		}
 		next_word_id = std::max(next_word_id, word_context->id + 1);
 		return;
 	}
@@ -1190,7 +1186,11 @@ void SearchEngine::word_update_finished(std::shared_ptr<word_update_job_t> job)
 			}
 			const auto iter = word_index.find(word_id);
 			if(iter != word_index.end()) {
-				iter->second.num_pages = job->result->pages.size();
+				auto& word = iter->second;
+				word.num_pages = job->result->pages.size();
+				if(word.num_pages >= word_suggest_threshold) {
+					word_suggest_map[word.value.str()] = word_id;
+				}
 			}
 			word_update_counter++;
 		});

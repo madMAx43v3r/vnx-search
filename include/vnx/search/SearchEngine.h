@@ -192,8 +192,6 @@ protected:
 	
 	std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit) const;
 	
-	std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit) const;
-	
 	void handle(std::shared_ptr<const keyvalue::SyncUpdate> pair) override;
 	
 	void handle(std::shared_ptr<const keyvalue::SyncInfo> value) override;
@@ -307,8 +305,9 @@ private:
 	std::shared_ptr<keyvalue::ServerAsyncClient> word_array_async;
 	
 	// protected by index_mutex (only main thread may modify)
-	std::map<stx::cstring, uint32_t, std::less<>> domain_map;
 	std::map<stx::pstring, uint32_t, std::less<>> page_map;
+	std::map<stx::fstring<24>, uint32_t> word_suggest_map;
+	std::unordered_map<std::string, uint32_t> domain_map;
 	std::unordered_map<std::string, uint32_t> word_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
 	std::unordered_map<uint32_t, page_t> page_index;
