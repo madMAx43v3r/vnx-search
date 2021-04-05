@@ -43,6 +43,8 @@ module SearchEngine implements SearchInterface {
 	bool update_page_info;					// if to re-compute page_info data
 	bool reset_rank_values;					// if to re-initialize rank_values
 	
+	string bad_word_chars = "._";
+	
 	vector<string> protocols;				// protocols to allow as links
 	
 	vector<page_entry_t> get_page_entries(vector<uint> page_ids) const async;

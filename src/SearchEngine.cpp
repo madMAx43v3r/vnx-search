@@ -307,7 +307,10 @@ std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, 
 	for(auto it = word_suggest_map.lower_bound(prefix); it != word_suggest_map.end() && result.size() < size_t(limit); ++it) {
 		auto iter = word_index.find(it->second);
 		if(iter != word_index.end()) {
-			result.push_back(iter->second.value.str());
+			const auto word = iter->second.value.str();
+			if(word.find_first_of(bad_word_chars) == std::string::npos) {
+				result.push_back(word);
+			}
 		}
 	}
 	return result;
