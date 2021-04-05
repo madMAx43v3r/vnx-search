@@ -306,7 +306,7 @@ private:
 	
 	// protected by index_mutex (only main thread may modify)
 	std::map<stx::pstring, uint32_t, std::less<>> page_map;
-	std::map<stx::fstring<24>, uint32_t> word_suggest_map;
+	std::map<stx::fstring<20>, uint32_t> word_suggest_map;
 	std::unordered_map<std::string, uint32_t> domain_map;
 	std::unordered_map<std::string, uint32_t> word_map;
 	std::unordered_map<uint32_t, domain_t> domain_index;
