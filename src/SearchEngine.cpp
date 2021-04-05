@@ -560,11 +560,26 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 		return;
 	}
 	
+	if(auto word_context = std::dynamic_pointer_cast<const WordContext>(entry->value))
+	{
+		std::unique_lock lock(index_mutex);
+		
+		const auto key = entry->key.to_string_value();
+		word_map[key] = word_context->id;
+		
+		word_t& word = word_index[word_context->id];
+		word.id = word_context->id;
+		word.num_pages = word_context->pages.size();
+		word.value = key;
+		next_word_id = std::max(next_word_id, word_context->id + 1);
+		return;
+	}
+	
 	if(auto url_index = std::dynamic_pointer_cast<const UrlIndex>(entry->value))
 	{
 		const auto org_url_key = entry->key.to_string_value();
-		auto* page = find_page_url(org_url_key);
-		if(page) {
+		if(auto* page = find_page_url(org_url_key))
+		{
 			page->scheme = url_index->scheme;
 			page->first_seen = url_index->first_seen;
 			page->last_modified = url_index->last_modified;
@@ -578,21 +593,6 @@ void SearchEngine::handle(std::shared_ptr<const keyvalue::SyncUpdate> entry)
 						std::bind(&SearchEngine::redirect_callback, this, org_url_key, new_url_key, std::placeholders::_1));
 			}
 		}
-		return;
-	}
-	
-	if(auto word_context = std::dynamic_pointer_cast<const WordContext>(entry->value))
-	{
-		std::unique_lock lock(index_mutex);
-		
-		const auto key = entry->key.to_string_value();
-		word_map[key] = word_context->id;
-		
-		word_t& word = word_index[word_context->id];
-		word.id = word_context->id;
-		word.num_pages = word_context->pages.size();
-		word.value = key;
-		next_word_id = std::max(next_word_id, word_context->id + 1);
 		return;
 	}
 	
