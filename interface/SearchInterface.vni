@@ -18,6 +18,6 @@ interface SearchInterface {
 	
 	vector<pair<string, uint>> reverse_domain_lookup(string url_key) const async;
 	
-	vector<string> suggest_words(string prefix, int limit) const;
+	vector<pair<string, uint>> suggest_words(string prefix, int limit) const;
 	
 }

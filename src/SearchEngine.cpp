@@ -301,15 +301,15 @@ void SearchEngine::reverse_domain_lookup_callback(	const std::string& url_key,
 	reverse_domain_lookup_async_return(req_id, sorted);
 }
 
-std::vector<std::string> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
+std::vector<std::pair<std::string, uint32_t>> SearchEngine::suggest_words(const std::string& prefix, const int32_t& limit) const
 {
-	std::vector<std::string> result;
+	std::vector<std::pair<std::string, uint32_t>> result;
 	for(auto it = word_suggest_map.lower_bound(prefix); it != word_suggest_map.end() && result.size() < size_t(limit); ++it) {
 		auto iter = word_index.find(it->second);
 		if(iter != word_index.end()) {
 			const auto word = iter->second.value.str();
 			if(word.find_first_of(bad_word_chars) == std::string::npos) {
-				result.push_back(word);
+				result.emplace_back(word, iter->second.num_pages);
 			}
 		}
 	}
