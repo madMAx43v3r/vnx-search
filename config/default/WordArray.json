@@ -1,4 +1,5 @@
 {
+	"num_threads": 8,
 	"do_compress": true,
 	"rewrite_threshold": 0.8
 }

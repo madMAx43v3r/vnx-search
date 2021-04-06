@@ -1,3 +1,4 @@
 {
+	"num_threads": 16,
 	"max_pivot_size": 262144
 }
