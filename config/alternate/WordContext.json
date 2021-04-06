@@ -1,4 +1,4 @@
 {
 	"num_threads": 16,
-	"num_threads_rewrite": 4
+	"num_threads_rewrite": 2
 }
