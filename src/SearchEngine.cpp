@@ -1413,10 +1413,15 @@ void SearchEngine::word_update_task(std::shared_ptr<word_update_job_t> job) noex
 	if(context) {
 		auto delta = cached->update_pages;
 		{
+			size_t i = 0;
 			std::shared_lock lock(index_mutex);
 			for(const auto& entry : context->pages) {
 				if(!page_index.count(entry.first)) {
 					delta.emplace_back(entry.first, -1);
+				}
+				if(i++ % 65535 == 0) {
+					lock.unlock();
+					lock.lock();
 				}
 			}
 		}
