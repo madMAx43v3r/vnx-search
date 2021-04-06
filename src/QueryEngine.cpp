@@ -400,15 +400,30 @@ void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index) 
 		}
 	}
 	
-	const int window = 16;
-	std::vector<float> coeff;
-	std::vector<float> word_hits;
+	struct window_t {
+		const int size;
+		std::vector<float> coeff;
+		std::vector<float> word_hits;
+		window_t(int size_) : size(size_) {
+			coeff.resize(size * 2 + 1);
+			for(int i = -size; i <= size; ++i) {
+				coeff[i + size] = float(size - std::abs(i) + 1) / (size + 1) / size;
+			}
+		}
+	};
 	
-	coeff.resize(window * 2 + 1);
-	for(int i = -window; i <= window; ++i) {
-		coeff[i + window] = fabsf(window - i + 1) / float(window + 1);
+	window_t win_1(1);
+	window_t win_2(2);
+	window_t win_3(3);
+	window_t win_5(5);
+	window_t win_8(8);
+	window_t win_13(13);
+	
+	const std::array<window_t*, 6> windows = {&win_1, &win_2, &win_3, &win_5, &win_8, &win_13};
+	
+	for(auto win : windows) {
+		win->word_hits.resize(job->words.size());
 	}
-	word_hits.resize(job->words.size());
 	
 	ssize_t best_pos = -1;
 	float best_score = 0;
@@ -416,22 +431,29 @@ void QueryEngine::query_task_1(	std::shared_ptr<query_job_t> job, size_t index) 
 	
 	for(size_t k = 0; k < word_list.size(); ++k)
 	{
-		for(int i = -window; i <= window; ++i) {
-			const auto k_i = ssize_t(k) + i;
-			if(k_i >= 0 && k_i < word_list.size()) {
-				const auto w_i = word_list[k_i];
-				if(w_i > 0) {
-					auto& value = word_hits[w_i - 1];
-					value = fmaxf(value, coeff[i + window]);
+		float score = 0;
+		for(size_t j = 0; j < windows.size(); ++j)
+		{
+			auto* const win = windows[j];
+			for(int i = -win->size; i <= win->size; ++i)
+			{
+				const auto k_i = ssize_t(k) + i;
+				if(k_i >= 0 && k_i < word_list.size())
+				{
+					const auto w_i = word_list[k_i];
+					if(w_i > 0) {
+						auto& value = win->word_hits[w_i - 1];
+						value = fmaxf(value, win->coeff[i + win->size]);
+					}
 				}
 			}
+			float sum = 0;
+			for(auto& value : win->word_hits) {
+				sum += value;
+				value = 0;
+			}
+			score += powf(sum, job->options.score_power);
 		}
-		float score = 0;
-		for(auto& value : word_hits) {
-			score += value;
-			value = 0;
-		}
-		score = powf(score, job->options.score_power);
 		if(score > best_score) {
 			best_pos = k;
 			best_score = score;
