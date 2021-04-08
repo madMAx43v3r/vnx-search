@@ -573,7 +573,7 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 				}
 				int64_t next_load = index->last_fetched + pow(reload_power, exponent) * reload_interval;
 				next_load -= next_load % reload_interval;
-				next_load += std::hash<std::string>{}(host) % reload_interval;
+				next_load += std::hash<std::string>{}(url_key) % reload_interval;
 				enqueue(url, depth, next_load);
 			} else {
 				enqueue(url, depth);
