@@ -570,7 +570,8 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 				if(index->http_status < 0) {
 					exponent = std::min(exponent, index->fetch_count);
 				}
-				const int64_t load_delay = pow(reload_power, exponent) * reload_interval;
+				const double rand_factor = 0.5 + (index->fetch_duration_us % 1000) / 1000.;
+				const int64_t load_delay = pow(reload_power, exponent) * rand_factor * reload_interval;
 				enqueue(url, depth, index->last_fetched + load_delay);
 			} else {
 				enqueue(url, depth);
