@@ -536,6 +536,7 @@ void CrawlProcessor::check_url(const std::string& url, const Url::Url& parent, c
 void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth, std::shared_ptr<const keyvalue::Entry> entry)
 {
 	const auto url = parsed.str();
+	const auto host = parsed.host();
 	const auto url_key = get_url_key(parsed);
 	const bool is_robots = is_robots_txt(parsed);
 	
@@ -545,7 +546,7 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 			if(index->last_fetched > 0) {
 				const bool is_enqueued = enqueue(url, depth, index->last_fetched + robots_reload_interval);
 				
-				if(auto* domain = find_domain(parsed.host())) {
+				if(auto* domain = find_domain(host)) {
 					if(is_enqueued) {
 						domain->robots_state = ROBOTS_TXT_PENDING;
 					} else {
@@ -570,9 +571,10 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 				if(index->http_status < 0) {
 					exponent = std::min(exponent, index->fetch_count);
 				}
-				const double rand_factor = 0.5 + (index->fetch_duration_us % 1000) / 1000.;
-				const int64_t load_delay = pow(reload_power, exponent) * rand_factor * reload_interval;
-				enqueue(url, depth, index->last_fetched + load_delay);
+				int64_t next_load = index->last_fetched + pow(reload_power, exponent) * reload_interval;
+				next_load -= next_load % reload_interval;
+				next_load += std::hash<std::string>{}(host) % reload_interval;
+				enqueue(url, depth, next_load);
 			} else {
 				enqueue(url, depth);
 			}
