@@ -320,7 +320,7 @@ CrawlProcessor::domain_t* CrawlProcessor::find_domain(const std::string& host)
 	if(iter != domain_map.end()) {
 		return &iter->second;
 	}
-	return 0;
+	return nullptr;
 }
 
 bool CrawlProcessor::filter_url(const Url::Url& parsed) const
@@ -355,10 +355,10 @@ bool CrawlProcessor::filter_url(const Url::Url& parsed) const
 	return true;
 }
 
-int CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t load_time)
+bool CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t load_time)
 {
 	if(url.size() > max_url_length) {
-		return 0;
+		return false;
 	}
 	const Url::Url parsed(url);
 	const auto url_key = get_url_key(parsed);
@@ -366,32 +366,32 @@ int CrawlProcessor::enqueue(const std::string& url, const int depth, int64_t loa
 		auto iter = url_map.find(url_key);
 		if(iter != url_map.end()) {
 			if(depth >= iter->second.depth) {
-				return 0;
+				return false;
 			}
 		}
 	}
 	if(std::find(protocols.begin(), protocols.end(), parsed.scheme()) == protocols.end()) {
-		return 0;
+		return false;
 	}
 	
 	const auto& host = parsed.host();
 	if(host.empty()) {
-		return 0;
+		return false;
 	}
 	
-	const auto delta = load_time - std::time(0);
+	const auto delta = load_time - std::time(nullptr);
 	if(delta <= 0) {
 		auto& domain = get_domain(host);
 		domain.queue.emplace(depth, url);
 	} else {
-		return 0;
+		return false;
 	}
 	
 	url_t& entry = url_map[url_key];
 	entry.domain = host;
 	entry.depth = depth;
 	entry.is_reload = load_time > 0;
-	return 1;
+	return true;
 }
 
 void CrawlProcessor::check_queues()
@@ -403,7 +403,7 @@ void CrawlProcessor::check_fetch_queue()
 {
 	queue_block_count = 0;
 	pending_robots_txt = 0;
-	const int64_t now_posix = std::time(0);
+	const int64_t now_posix = std::time(nullptr);
 	const int64_t now_wall_us = vnx::get_wall_time_micros();
 	std::multimap<std::pair<int, int64_t>, domain_t*> queue;
 	
@@ -543,27 +543,22 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 	if(index) {
 		if(is_robots) {
 			if(index->last_fetched > 0) {
-				int64_t load_delay = robots_reload_interval;
-				if(index->http_status < 0) {
-					load_delay = std::min(int64_t(pow(reload_power, index->fetch_count - 1) * error_reload_interval), load_delay);
-				}
-				const auto is_queued = enqueue(url, depth, index->last_fetched + load_delay);
+				const bool is_enqueued = enqueue(url, depth, index->last_fetched + robots_reload_interval);
 				
-				auto* domain = find_domain(parsed.host());
-				if(domain) {
-					if(is_queued != 1) {
+				if(auto* domain = find_domain(parsed.host())) {
+					if(is_enqueued) {
+						domain->robots_state = ROBOTS_TXT_PENDING;
+					} else {
 						if(index->is_fail) {
 							if(domain->robots_state != ROBOTS_TXT_MISSING) {
 								missing_robots_txt++;
 							}
 							domain->robots_state = ROBOTS_TXT_MISSING;
-							domain->robots_txt = 0;
+							domain->robots_txt = nullptr;
 						} else {
 							page_content_async->get_value(Variant(url_key),
 									std::bind(&CrawlProcessor::robots_txt_callback, this, url_key, ROBOTS_TXT_MISSING, std::placeholders::_1));
 						}
-					} else {
-						domain->robots_state = ROBOTS_TXT_PENDING;
 					}
 				}
 			} else {
@@ -571,10 +566,11 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 			}
 		} else if(depth >= 0) {
 			if(index->last_fetched > 0) {
-				int64_t load_delay = pow(reload_power, depth) * reload_interval;
+				uint32_t exponent = depth;
 				if(index->http_status < 0) {
-					load_delay = std::min(int64_t(pow(reload_power, index->fetch_count - 1) * error_reload_interval), load_delay);
+					exponent = std::min(exponent, index->fetch_count);
 				}
+				const int64_t load_delay = pow(reload_power, exponent) * reload_interval;
 				enqueue(url, depth, index->last_fetched + load_delay);
 			} else {
 				enqueue(url, depth);
@@ -586,7 +582,7 @@ void CrawlProcessor::check_url_callback(const Url::Url& parsed, const int depth,
 		auto index = UrlIndex::create();
 		index->scheme = parsed.scheme();
 		index->depth = depth;
-		index->first_seen = std::time(0);
+		index->first_seen = std::time(nullptr);
 		url_index_async->store_value(Variant(url_key), index);
 		enqueue(url, depth);
 	}
@@ -736,7 +732,7 @@ void CrawlProcessor::url_fetch_error(const std::string& url, const vnx::exceptio
 		enqueue(url, entry.depth);
 	} else {
 		auto info = UrlInfo::create();
-		info->last_fetched = std::time(0);
+		info->last_fetched = std::time(nullptr);
 		info->is_fail = true;
 		url_update(url_key, parsed.scheme(), entry.depth, info);
 	}
