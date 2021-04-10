@@ -156,18 +156,6 @@ protected:
 	
 	void main() override;
 	
-	void get_page_info_callback(const std::string& url_key,
-								std::shared_ptr<const keyvalue::Entry> entry,
-								const request_id_t& req_id) const;
-	
-	void reverse_lookup_callback(	const std::string& url_key,
-									std::shared_ptr<const keyvalue::Entry> entry,
-									const request_id_t& req_id) const;
-	
-	void reverse_domain_lookup_callback(const std::string& url_key,
-										std::shared_ptr<const keyvalue::Entry> entry,
-										const request_id_t& req_id) const;
-	
 	void get_domain_info_async(	const std::string& host,
 								const int32_t& limit,
 								const uint32_t& offset,
@@ -184,6 +172,9 @@ protected:
 	std::vector<Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const;
 	
 	void get_page_ranking_async(const int32_t& limit, const uint32_t& offset,
+								const request_id_t& req_id) const;
+	
+	void get_word_context_async(const std::string& word, const int32_t& limit, const uint32_t& offset,
 								const request_id_t& req_id) const;
 	
 	void reverse_lookup_async(const std::string& url_key, const request_id_t& req_id) const;

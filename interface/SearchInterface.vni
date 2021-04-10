@@ -4,7 +4,7 @@ import vnx.Object;
 
 interface SearchInterface {
 	
-	Object get_domain_info(string host, int limit, uint offset) const async;
+	Object get_domain_info(string host, int limit = 10, uint offset) const async;
 	
 	Object get_page_info(string url_key) const async;
 	
@@ -12,9 +12,11 @@ interface SearchInterface {
 	
 	vector<Object> get_domain_list(int limit, uint offset) const;
 	
-	vector<pair<string, uint>> get_page_ranking(int limit, uint offset) const async;
+	vector<pair<string, float>> get_page_ranking(int limit, uint offset) const async;
 	
-	vector<string> reverse_lookup(string url_key) const async;
+	vector<pair<string, float>> get_word_context(string word, int limit = 10, uint offset) const async;
+	
+	vector<pair<string, float>> reverse_lookup(string url_key) const async;
 	
 	vector<pair<string, uint>> reverse_domain_lookup(string url_key) const async;
 	
