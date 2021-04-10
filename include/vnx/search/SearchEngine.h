@@ -177,9 +177,11 @@ protected:
 	void get_word_context_async(const std::string& word, const int32_t& limit, const uint32_t& offset,
 								const request_id_t& req_id) const;
 	
-	void reverse_lookup_async(const std::string& url_key, const request_id_t& req_id) const;
+	void reverse_lookup_async(	const std::string& url_key, const int32_t& limit, const uint32_t& offset,
+								const request_id_t& req_id) const;
 	
-	void reverse_domain_lookup_async(const std::string& url_key, const request_id_t& req_id) const;
+	void reverse_domain_lookup_async(	const std::string& url_key, const int32_t& limit, const uint32_t& offset,
+										const request_id_t& req_id) const;
 	
 	std::vector<std::pair<std::string, uint32_t>> suggest_words(const std::string& prefix, const int32_t& limit) const;
 	

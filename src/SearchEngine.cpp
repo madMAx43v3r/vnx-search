@@ -139,9 +139,7 @@ void SearchEngine::get_page_info_async(const std::string& url_key, const request
 	page_info_async->get_value(Variant(url_key),
 		[this, req_id](std::shared_ptr<const keyvalue::Entry> entry) {
 			Object result;
-			auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value);
-			const auto* page = info ? find_page(info->id) : nullptr;
-			if(info) {
+			if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
 				result["is_deleted"] = info->is_deleted;
 				result["rank_value"] = info->rank_value;
 				result["last_updated"] = info->last_updated;
@@ -149,16 +147,16 @@ void SearchEngine::get_page_info_async(const std::string& url_key, const request
 				result["links"] = info->links.size();
 				result["reverse_links"] = info->reverse_links.size();
 				result["reverse_domains"] = info->reverse_domains.size();
-			}
-			if(page) {
-				result["id"] = page->id;
-				result["url"] = page->get_url();
-				result["rank_value"] = page->rank_value;
-				result["last_modified"] = page->last_modified;
-				result["first_seen"] = page->first_seen;
-				result["next_rank_update"] = page->next_rank_update;
-				if(const auto* domain = find_domain(page->domain_id)) {
-					result["domain"] = domain->host.str();
+				if(const auto* page = find_page(info->id)) {
+					result["id"] = page->id;
+					result["url"] = page->get_url();
+					result["rank_value"] = page->rank_value;
+					result["last_modified"] = page->last_modified;
+					result["first_seen"] = page->first_seen;
+					result["next_rank_update"] = page->next_rank_update;
+					if(const auto* domain = find_domain(page->domain_id)) {
+						result["domain"] = domain->host.str();
+					}
 				}
 			}
 			get_page_info_async_return(req_id, result);
@@ -205,12 +203,15 @@ std::vector<Object> SearchEngine::get_domain_list(const int32_t& limit, const ui
 	std::sort(sorted.begin(), sorted.end(), std::greater<std::pair<size_t, const domain_t*>>());
 	
 	std::vector<Object> result;
-	for(uint32_t i = 0; i < uint32_t(limit) && offset + i < sorted.size(); ++i) {
-		const auto* domain = sorted[offset + i].second;
-		Object info;
-		info["host"] = domain->host.str();
-		info["num_pages"] = domain->pages.size();
-		result.push_back(info);
+	for(int i = 0; i < limit; ++i) {
+		const size_t k = offset + i;
+		if(k < sorted.size()) {
+			Object info;
+			const auto* domain = sorted[k].second;
+			info["host"] = domain->host.str();
+			info["num_pages"] = domain->pages.size();
+			result.push_back(info);
+		}
 	}
 	return result;
 }
@@ -255,44 +256,44 @@ void SearchEngine::get_word_context_async(	const std::string& word, const int32_
 		std::bind(&SearchEngine::vnx_async_return_ex, this, req_id, std::placeholders::_1));
 }
 
-void SearchEngine::reverse_lookup_async(const std::string& url_key,
+void SearchEngine::reverse_lookup_async(const std::string& url_key, const int32_t& limit, const uint32_t& offset,
 										const request_id_t& req_id) const
 {
 	page_info_async->get_value(Variant(url_key),
-		[this, req_id](std::shared_ptr<const keyvalue::Entry> entry) {
-			std::vector<std::pair<std::string, float>> result;
+		[this, limit, offset, req_id](std::shared_ptr<const keyvalue::Entry> entry) {
+			std::vector<std::pair<std::string, float>> sorted;
 			if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
 				for(const auto& link : info->reverse_links) {
 					if(const auto* parent = find_page_url(link.url_key)) {
-						result.emplace_back(parent->url_key.str(), parent->rank_value);
+						sorted.emplace_back(parent->url_key.str(), parent->rank_value);
 					}
 				}
 			}
-			std::sort(result.begin(), result.end(),
+			std::sort(sorted.begin(), sorted.end(),
 					[] (const std::pair<std::string, float>& A, const std::pair<std::string, float>& B) -> bool {
 						return A.second > B.second;
 					});
-			reverse_lookup_async_return(req_id, result);
+			reverse_lookup_async_return(req_id, get_vector_range(sorted, limit, offset));
 		},
 		std::bind(&SearchEngine::vnx_async_return_ex, this, req_id, std::placeholders::_1));
 }
 
-void SearchEngine::reverse_domain_lookup_async(	const std::string& url_key,
+void SearchEngine::reverse_domain_lookup_async(	const std::string& url_key, const int32_t& limit, const uint32_t& offset,
 												const request_id_t& req_id) const
 {
 	page_info_async->get_value(Variant(url_key),
-		[this, req_id](std::shared_ptr<const keyvalue::Entry> entry) {
-			std::vector<std::pair<std::string, uint32_t>> result;
+		[this, limit, offset, req_id](std::shared_ptr<const keyvalue::Entry> entry) {
+			std::vector<std::pair<std::string, uint32_t>> sorted;
 			if(auto info = std::dynamic_pointer_cast<const PageInfo>(entry->value)) {
 				for(const auto& entry : info->reverse_domains) {
-					result.emplace_back(entry);
+					sorted.emplace_back(entry);
 				}
 			}
-			std::sort(result.begin(), result.end(),
+			std::sort(sorted.begin(), sorted.end(),
 					[] (const std::pair<std::string, uint32_t>& A, const std::pair<std::string, uint32_t>& B) -> bool {
 						return A.second > B.second;
 					});
-			reverse_domain_lookup_async_return(req_id, result);
+			reverse_domain_lookup_async_return(req_id, get_vector_range(sorted, limit, offset));
 		},
 		std::bind(&SearchEngine::vnx_async_return_ex, this, req_id, std::placeholders::_1));
 }

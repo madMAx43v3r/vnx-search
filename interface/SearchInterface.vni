@@ -10,16 +10,16 @@ interface SearchInterface {
 	
 	vector<float> get_page_ranks(vector<string> url_keys, bool direct) const async;
 	
-	vector<Object> get_domain_list(int limit, uint offset) const;
+	vector<Object> get_domain_list(int limit = 10, uint offset) const;
 	
-	vector<pair<string, float>> get_page_ranking(int limit, uint offset) const async;
+	vector<pair<string, float>> get_page_ranking(int limit = 10, uint offset) const async;
 	
 	vector<pair<string, float>> get_word_context(string word, int limit = 10, uint offset) const async;
 	
-	vector<pair<string, float>> reverse_lookup(string url_key) const async;
+	vector<pair<string, float>> reverse_lookup(string url_key, int limit = 10, uint offset) const async;
 	
-	vector<pair<string, uint>> reverse_domain_lookup(string url_key) const async;
+	vector<pair<string, uint>> reverse_domain_lookup(string url_key, int limit = 10, uint offset) const async;
 	
-	vector<pair<string, uint>> suggest_words(string prefix, int limit) const;
+	vector<pair<string, uint>> suggest_words(string prefix, int limit = 10) const;
 	
 }
