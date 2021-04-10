@@ -50,6 +50,7 @@ target_include_directories(vnx_search
 		generated/include
 		lib/libstx/include
 	PRIVATE
+		lib/utf8.h
 		lib/libxmlplusplus
 		lib/robotstxt
 		lib/robotstxt/build/libs/abseil-cpp-src

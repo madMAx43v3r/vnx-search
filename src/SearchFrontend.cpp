@@ -8,6 +8,8 @@
 #include <vnx/search/SearchFrontend.h>
 #include <vnx/search/Util.h>
 
+#include <utf8.h>
+
 
 namespace vnx {
 namespace search {
@@ -92,6 +94,12 @@ void SearchFrontend::query_callback(const vnx::request_id_t& req_id,
 	auto out = vnx::clone(result);
 	for(auto& item : out->items)
 	{
+		if(!utf8valid(item.title.c_str())) {
+			item.title = item.url;
+		}
+		if(!utf8valid(item.context.c_str())) {
+			item.context.clear();
+		}
 		size_t offset = 0;
 		std::vector<std::pair<uint32_t, uint32_t>> positions;
 		const auto words = parse_text(item.context, &positions);

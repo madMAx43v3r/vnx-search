@@ -13,3 +13,6 @@
 [submodule "lib/libstx"]
 	path = lib/libstx
 	url = https://github.com/madMAx43v3r/libstx.git
+[submodule "lib/utf8.h"]
+	path = lib/utf8.h
+	url = https://github.com/sheredom/utf8.h.git
