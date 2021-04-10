@@ -181,6 +181,21 @@ T advance_until(T iter, const T& end, const ssize_t offset)
 	return iter;
 }
 
+template<typename T>
+std::vector<T> get_vector_range(const std::vector<T>& src, size_t limit, size_t offset) {
+	std::vector<T> result;
+	result.reserve(limit);
+	for(size_t i = 0; i < limit; ++i) {
+		const size_t k = offset + i;
+		if(k < src.size()) {
+			result.emplace_back(src[k]);
+		} else {
+			break;
+		}
+	}
+	return result;
+}
+
 std::vector<std::string> parse_text(const std::string& content, std::vector<std::pair<uint32_t, uint32_t>>* byte_positions = nullptr);
 
 
