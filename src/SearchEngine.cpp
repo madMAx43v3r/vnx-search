@@ -123,7 +123,7 @@ void SearchEngine::get_domain_info_async(	const std::string& host,
 				const size_t k = offset + i;
 				if(k < sorted.size()) {
 					const auto* page = sorted[k].second;
-					pages.push_back(page->get_url());
+					pages.push_back(page->url_key.str());
 				}
 			}
 			result["host"] = host;
