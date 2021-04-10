@@ -94,10 +94,10 @@ void SearchFrontend::query_callback(const vnx::request_id_t& req_id,
 	auto out = vnx::clone(result);
 	for(auto& item : out->items)
 	{
-		if(!utf8valid(item.title.c_str())) {
+		if(utf8valid(item.title.c_str())) {
 			item.title = item.url;
 		}
-		if(!utf8valid(item.context.c_str())) {
+		if(utf8valid(item.context.c_str())) {
 			item.context.clear();
 		}
 		size_t offset = 0;

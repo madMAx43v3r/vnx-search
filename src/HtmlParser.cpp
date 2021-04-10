@@ -110,7 +110,7 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 	result->base_url = response->url;
 	
 	const auto content = response->payload.as_string();
-	if(!utf8valid(content.c_str())) {
+	if(utf8valid(content.c_str())) {
 		throw std::runtime_error("invalid UTF-8");
 	}
 	

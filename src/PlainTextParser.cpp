@@ -42,7 +42,7 @@ PlainTextParser::parse(std::shared_ptr<const HttpResponse> response) const
 	auto result = TextResponse::create();
 	result->Response::operator=(*response);
 	result->text = std::string((const char*)response->payload.data(), response->payload.size());
-	if(!utf8valid(result->text.c_str())) {
+	if(utf8valid(result->text.c_str())) {
 		throw std::runtime_error("invalid UTF-8");
 	}
 	return result;
