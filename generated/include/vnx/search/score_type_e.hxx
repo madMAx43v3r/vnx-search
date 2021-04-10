@@ -49,6 +49,7 @@ struct score_type_e {
 	
 	void accept(vnx::Visitor& _visitor) const;
 	
+	vnx::bool_t is_valid() const;
 	std::string to_string() const;
 	std::string to_string_value() const;
 	std::string to_string_value_full() const;

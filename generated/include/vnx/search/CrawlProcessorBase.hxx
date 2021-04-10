@@ -26,7 +26,6 @@ public:
 	int32_t jump_cost = 3;
 	int32_t max_depth = 5;
 	int32_t reload_interval = 10000;
-	int32_t error_reload_interval = 100000;
 	int32_t sync_interval = 10000;
 	int32_t max_per_minute = 12;
 	int32_t max_num_pending = 100;

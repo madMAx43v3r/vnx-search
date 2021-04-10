@@ -13,7 +13,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchInterface_get_page_ranking_return::VNX_TYPE_HASH(0x1f9d1774b55d550eull);
-const vnx::Hash64 SearchInterface_get_page_ranking_return::VNX_CODE_HASH(0x52471d58cec01b37ull);
+const vnx::Hash64 SearchInterface_get_page_ranking_return::VNX_CODE_HASH(0xd731cf339020bf36ull);
 
 vnx::Hash64 SearchInterface_get_page_ranking_return::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -116,7 +116,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_get_page_ranking_return::static_c
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchInterface.get_page_ranking.return";
 	type_code->type_hash = vnx::Hash64(0x1f9d1774b55d550eull);
-	type_code->code_hash = vnx::Hash64(0x52471d58cec01b37ull);
+	type_code->code_hash = vnx::Hash64(0xd731cf339020bf36ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_return = true;
@@ -127,7 +127,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_get_page_ranking_return::static_c
 		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "_ret_0";
-		field.code = {12, 23, 2, 4, 5, 32, 3};
+		field.code = {12, 23, 2, 4, 5, 32, 9};
 	}
 	type_code->build();
 	return type_code;

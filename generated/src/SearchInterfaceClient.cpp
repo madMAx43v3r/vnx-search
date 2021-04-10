@@ -14,12 +14,12 @@
 #include <vnx/search/SearchInterface_get_page_ranking_return.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks_return.hxx>
+#include <vnx/search/SearchInterface_get_word_context.hxx>
+#include <vnx/search/SearchInterface_get_word_context_return.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup_return.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup_return.hxx>
-#include <vnx/search/SearchInterface_suggest_domains.hxx>
-#include <vnx/search/SearchInterface_suggest_domains_return.hxx>
 #include <vnx/search/SearchInterface_suggest_words.hxx>
 #include <vnx/search/SearchInterface_suggest_words_return.hxx>
 
@@ -96,7 +96,7 @@ std::vector<::vnx::Object> SearchInterfaceClient::get_domain_list(const int32_t&
 	}
 }
 
-std::vector<std::pair<std::string, uint32_t>> SearchInterfaceClient::get_page_ranking(const int32_t& limit, const uint32_t& offset) {
+std::vector<std::pair<std::string, vnx::float32_t>> SearchInterfaceClient::get_page_ranking(const int32_t& limit, const uint32_t& offset) {
 	auto _method = ::vnx::search::SearchInterface_get_page_ranking::create();
 	_method->limit = limit;
 	_method->offset = offset;
@@ -104,28 +104,47 @@ std::vector<std::pair<std::string, uint32_t>> SearchInterfaceClient::get_page_ra
 	if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_page_ranking_return>(_return_value)) {
 		return _result->_ret_0;
 	} else if(_return_value && !_return_value->is_void()) {
-		return _return_value->get_field_by_index(0).to<std::vector<std::pair<std::string, uint32_t>>>();
+		return _return_value->get_field_by_index(0).to<std::vector<std::pair<std::string, vnx::float32_t>>>();
 	} else {
 		throw std::logic_error("SearchInterfaceClient: invalid return value");
 	}
 }
 
-std::vector<std::string> SearchInterfaceClient::reverse_lookup(const std::string& url_key) {
+std::vector<std::pair<std::string, vnx::float32_t>> SearchInterfaceClient::get_word_context(const std::string& word, const int32_t& limit, const uint32_t& offset) {
+	auto _method = ::vnx::search::SearchInterface_get_word_context::create();
+	_method->word = word;
+	_method->limit = limit;
+	_method->offset = offset;
+	auto _return_value = vnx_request(_method, false);
+	if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_get_word_context_return>(_return_value)) {
+		return _result->_ret_0;
+	} else if(_return_value && !_return_value->is_void()) {
+		return _return_value->get_field_by_index(0).to<std::vector<std::pair<std::string, vnx::float32_t>>>();
+	} else {
+		throw std::logic_error("SearchInterfaceClient: invalid return value");
+	}
+}
+
+std::vector<std::pair<std::string, vnx::float32_t>> SearchInterfaceClient::reverse_lookup(const std::string& url_key, const int32_t& limit, const uint32_t& offset) {
 	auto _method = ::vnx::search::SearchInterface_reverse_lookup::create();
 	_method->url_key = url_key;
+	_method->limit = limit;
+	_method->offset = offset;
 	auto _return_value = vnx_request(_method, false);
 	if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_reverse_lookup_return>(_return_value)) {
 		return _result->_ret_0;
 	} else if(_return_value && !_return_value->is_void()) {
-		return _return_value->get_field_by_index(0).to<std::vector<std::string>>();
+		return _return_value->get_field_by_index(0).to<std::vector<std::pair<std::string, vnx::float32_t>>>();
 	} else {
 		throw std::logic_error("SearchInterfaceClient: invalid return value");
 	}
 }
 
-std::vector<std::pair<std::string, uint32_t>> SearchInterfaceClient::reverse_domain_lookup(const std::string& url_key) {
+std::vector<std::pair<std::string, uint32_t>> SearchInterfaceClient::reverse_domain_lookup(const std::string& url_key, const int32_t& limit, const uint32_t& offset) {
 	auto _method = ::vnx::search::SearchInterface_reverse_domain_lookup::create();
 	_method->url_key = url_key;
+	_method->limit = limit;
+	_method->offset = offset;
 	auto _return_value = vnx_request(_method, false);
 	if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_reverse_domain_lookup_return>(_return_value)) {
 		return _result->_ret_0;
@@ -136,7 +155,7 @@ std::vector<std::pair<std::string, uint32_t>> SearchInterfaceClient::reverse_dom
 	}
 }
 
-std::vector<std::string> SearchInterfaceClient::suggest_words(const std::string& prefix, const int32_t& limit) {
+std::vector<std::pair<std::string, uint32_t>> SearchInterfaceClient::suggest_words(const std::string& prefix, const int32_t& limit) {
 	auto _method = ::vnx::search::SearchInterface_suggest_words::create();
 	_method->prefix = prefix;
 	_method->limit = limit;
@@ -144,21 +163,7 @@ std::vector<std::string> SearchInterfaceClient::suggest_words(const std::string&
 	if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_suggest_words_return>(_return_value)) {
 		return _result->_ret_0;
 	} else if(_return_value && !_return_value->is_void()) {
-		return _return_value->get_field_by_index(0).to<std::vector<std::string>>();
-	} else {
-		throw std::logic_error("SearchInterfaceClient: invalid return value");
-	}
-}
-
-std::vector<std::string> SearchInterfaceClient::suggest_domains(const std::string& prefix, const int32_t& limit) {
-	auto _method = ::vnx::search::SearchInterface_suggest_domains::create();
-	_method->prefix = prefix;
-	_method->limit = limit;
-	auto _return_value = vnx_request(_method, false);
-	if(auto _result = std::dynamic_pointer_cast<const ::vnx::search::SearchInterface_suggest_domains_return>(_return_value)) {
-		return _result->_ret_0;
-	} else if(_return_value && !_return_value->is_void()) {
-		return _return_value->get_field_by_index(0).to<std::vector<std::string>>();
+		return _return_value->get_field_by_index(0).to<std::vector<std::pair<std::string, uint32_t>>>();
 	} else {
 		throw std::logic_error("SearchInterfaceClient: invalid return value");
 	}

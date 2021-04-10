@@ -13,7 +13,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchInterface_reverse_lookup_return::VNX_TYPE_HASH(0x2d987f3548ffd9e8ull);
-const vnx::Hash64 SearchInterface_reverse_lookup_return::VNX_CODE_HASH(0x486337d078fcc375ull);
+const vnx::Hash64 SearchInterface_reverse_lookup_return::VNX_CODE_HASH(0xf3b707edf3b01069ull);
 
 vnx::Hash64 SearchInterface_reverse_lookup_return::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -116,7 +116,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_reverse_lookup_return::static_cre
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchInterface.reverse_lookup.return";
 	type_code->type_hash = vnx::Hash64(0x2d987f3548ffd9e8ull);
-	type_code->code_hash = vnx::Hash64(0x486337d078fcc375ull);
+	type_code->code_hash = vnx::Hash64(0xf3b707edf3b01069ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_return = true;
@@ -127,7 +127,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_reverse_lookup_return::static_cre
 		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "_ret_0";
-		field.code = {12, 32};
+		field.code = {12, 23, 2, 4, 5, 32, 9};
 	}
 	type_code->build();
 	return type_code;

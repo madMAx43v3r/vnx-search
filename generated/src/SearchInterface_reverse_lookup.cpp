@@ -14,7 +14,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchInterface_reverse_lookup::VNX_TYPE_HASH(0x5610708b5fe56530ull);
-const vnx::Hash64 SearchInterface_reverse_lookup::VNX_CODE_HASH(0xffa774786f633606ull);
+const vnx::Hash64 SearchInterface_reverse_lookup::VNX_CODE_HASH(0x99efdf57aeb5dc65ull);
 
 vnx::Hash64 SearchInterface_reverse_lookup::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -48,12 +48,16 @@ void SearchInterface_reverse_lookup::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchInterface_reverse_lookup;
 	_visitor.type_begin(*_type_code);
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, url_key);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, limit);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, offset);
 	_visitor.type_end(*_type_code);
 }
 
 void SearchInterface_reverse_lookup::write(std::ostream& _out) const {
 	_out << "{\"__type\": \"vnx.search.SearchInterface.reverse_lookup\"";
 	_out << ", \"url_key\": "; vnx::write(_out, url_key);
+	_out << ", \"limit\": "; vnx::write(_out, limit);
+	_out << ", \"offset\": "; vnx::write(_out, offset);
 	_out << "}";
 }
 
@@ -67,12 +71,18 @@ vnx::Object SearchInterface_reverse_lookup::to_object() const {
 	vnx::Object _object;
 	_object["__type"] = "vnx.search.SearchInterface.reverse_lookup";
 	_object["url_key"] = url_key;
+	_object["limit"] = limit;
+	_object["offset"] = offset;
 	return _object;
 }
 
 void SearchInterface_reverse_lookup::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "url_key") {
+		if(_entry.first == "limit") {
+			_entry.second.to(limit);
+		} else if(_entry.first == "offset") {
+			_entry.second.to(offset);
+		} else if(_entry.first == "url_key") {
 			_entry.second.to(url_key);
 		}
 	}
@@ -82,12 +92,22 @@ vnx::Variant SearchInterface_reverse_lookup::get_field(const std::string& _name)
 	if(_name == "url_key") {
 		return vnx::Variant(url_key);
 	}
+	if(_name == "limit") {
+		return vnx::Variant(limit);
+	}
+	if(_name == "offset") {
+		return vnx::Variant(offset);
+	}
 	return vnx::Variant();
 }
 
 void SearchInterface_reverse_lookup::set_field(const std::string& _name, const vnx::Variant& _value) {
 	if(_name == "url_key") {
 		_value.to(url_key);
+	} else if(_name == "limit") {
+		_value.to(limit);
+	} else if(_name == "offset") {
+		_value.to(offset);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -117,7 +137,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_reverse_lookup::static_create_typ
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchInterface.reverse_lookup";
 	type_code->type_hash = vnx::Hash64(0x5610708b5fe56530ull);
-	type_code->code_hash = vnx::Hash64(0xffa774786f633606ull);
+	type_code->code_hash = vnx::Hash64(0x99efdf57aeb5dc65ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
@@ -126,12 +146,25 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_reverse_lookup::static_create_typ
 	type_code->is_const = true;
 	type_code->is_async = true;
 	type_code->return_type = ::vnx::search::SearchInterface_reverse_lookup_return::static_get_type_code();
-	type_code->fields.resize(1);
+	type_code->fields.resize(3);
 	{
 		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "url_key";
 		field.code = {32};
+	}
+	{
+		auto& field = type_code->fields[1];
+		field.data_size = 4;
+		field.name = "limit";
+		field.value = vnx::to_string(10);
+		field.code = {7};
+	}
+	{
+		auto& field = type_code->fields[2];
+		field.data_size = 4;
+		field.name = "offset";
+		field.code = {3};
 	}
 	type_code->build();
 	return type_code;
@@ -174,7 +207,14 @@ void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup& value, c
 			}
 		}
 	}
+	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
+		if(const auto* const _field = type_code->field_map[1]) {
+			vnx::read_value(_buf + _field->offset, value.limit, _field->code.data());
+		}
+		if(const auto* const _field = type_code->field_map[2]) {
+			vnx::read_value(_buf + _field->offset, value.offset, _field->code.data());
+		}
 	}
 	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
@@ -197,6 +237,9 @@ void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup&
 	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
+	char* const _buf = out.write(8);
+	vnx::write_value(_buf + 0, value.limit);
+	vnx::write_value(_buf + 4, value.offset);
 	vnx::write(out, value.url_key, type_code, type_code->fields[0].code.data());
 }
 

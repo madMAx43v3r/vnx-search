@@ -58,12 +58,12 @@ class SearchInterface_get_page_ranking;
 class SearchInterface_get_page_ranking_return;
 class SearchInterface_get_page_ranks;
 class SearchInterface_get_page_ranks_return;
+class SearchInterface_get_word_context;
+class SearchInterface_get_word_context_return;
 class SearchInterface_reverse_domain_lookup;
 class SearchInterface_reverse_domain_lookup_return;
 class SearchInterface_reverse_lookup;
 class SearchInterface_reverse_lookup_return;
-class SearchInterface_suggest_domains;
-class SearchInterface_suggest_domains_return;
 class SearchInterface_suggest_words;
 class SearchInterface_suggest_words_return;
 class SearchResult;
@@ -125,12 +125,12 @@ extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranking_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks_return; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_word_context; ///< \private
+extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_word_context_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup_return; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains; ///< \private
-extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words_return; ///< \private
 extern const vnx::TypeCode* const vnx_native_type_code_SearchResult; ///< \private
@@ -200,12 +200,12 @@ void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranking& value,
 void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranking_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_word_context& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void read(TypeInput& in, ::vnx::search::SearchInterface_get_word_context_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_words& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void read(TypeInput& in, ::vnx::search::SearchResult& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -269,12 +269,12 @@ void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_rankin
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_ranking_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_ranks& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_page_ranks_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_word_context& value, const TypeCode* type_code, const uint16_t* code); ///< \private
+void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_word_context_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_domain_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_reverse_lookup_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code); ///< \private
-void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_words& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_words_return& value, const TypeCode* type_code, const uint16_t* code); ///< \private
 void write(TypeOutput& out, const ::vnx::search::SearchResult& value, const TypeCode* type_code, const uint16_t* code); ///< \private
@@ -338,12 +338,12 @@ void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranking& val
 void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranking_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranks& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_get_page_ranks_return& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_word_context& value); ///< \private
+void read(std::istream& in, ::vnx::search::SearchInterface_get_word_context_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_reverse_domain_lookup& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_reverse_domain_lookup_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_reverse_lookup& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_reverse_lookup_return& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains& value); ///< \private
-void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_suggest_words& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchInterface_suggest_words_return& value); ///< \private
 void read(std::istream& in, ::vnx::search::SearchResult& value); ///< \private
@@ -407,12 +407,12 @@ void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_rank
 void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_ranking_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_ranks& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_get_page_ranks_return& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_word_context& value); ///< \private
+void write(std::ostream& out, const ::vnx::search::SearchInterface_get_word_context_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_domain_lookup& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_lookup& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_reverse_lookup_return& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains& value); ///< \private
-void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_words& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_words_return& value); ///< \private
 void write(std::ostream& out, const ::vnx::search::SearchResult& value); ///< \private
@@ -476,12 +476,12 @@ void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_rank
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_ranking_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_ranks& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_page_ranks_return& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_word_context& value); ///< \private
+void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_word_context_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_domain_lookup& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_lookup& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_reverse_lookup_return& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains& value); ///< \private
-void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_words& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_words_return& value); ///< \private
 void accept(Visitor& visitor, const ::vnx::search::SearchResult& value); ///< \private
@@ -579,9 +579,7 @@ struct type<::vnx::search::ContentParser_parse> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::ContentParser_parse& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::ContentParser_parse& value, bool special = false);
 };
 
 /// \private
@@ -603,9 +601,7 @@ struct type<::vnx::search::ContentParser_parse_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::ContentParser_parse_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::ContentParser_parse_return& value, bool special = false);
 };
 
 /// \private
@@ -647,9 +643,7 @@ struct type<::vnx::search::CrawlFrontend_fetch> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_fetch& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_fetch& value, bool special = false);
 };
 
 /// \private
@@ -671,9 +665,7 @@ struct type<::vnx::search::CrawlFrontend_fetch_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_fetch_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_fetch_return& value, bool special = false);
 };
 
 /// \private
@@ -695,9 +687,7 @@ struct type<::vnx::search::CrawlFrontend_load> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_load& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_load& value, bool special = false);
 };
 
 /// \private
@@ -719,9 +709,7 @@ struct type<::vnx::search::CrawlFrontend_load_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_load_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_load_return& value, bool special = false);
 };
 
 /// \private
@@ -743,9 +731,7 @@ struct type<::vnx::search::CrawlFrontend_register_parser> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_register_parser& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_register_parser& value, bool special = false);
 };
 
 /// \private
@@ -767,9 +753,7 @@ struct type<::vnx::search::CrawlFrontend_register_parser_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_register_parser_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_register_parser_return& value, bool special = false);
 };
 
 /// \private
@@ -811,9 +795,7 @@ struct type<::vnx::search::CrawlProcessor_check_all_urls> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_all_urls& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_all_urls& value, bool special = false);
 };
 
 /// \private
@@ -835,9 +817,7 @@ struct type<::vnx::search::CrawlProcessor_check_all_urls_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_all_urls_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_all_urls_return& value, bool special = false);
 };
 
 /// \private
@@ -859,9 +839,7 @@ struct type<::vnx::search::CrawlProcessor_check_root_urls> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_root_urls& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_root_urls& value, bool special = false);
 };
 
 /// \private
@@ -883,9 +861,7 @@ struct type<::vnx::search::CrawlProcessor_check_root_urls_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_root_urls_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_root_urls_return& value, bool special = false);
 };
 
 /// \private
@@ -907,9 +883,7 @@ struct type<::vnx::search::CrawlProcessor_get_stats> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_get_stats& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_get_stats& value, bool special = false);
 };
 
 /// \private
@@ -931,9 +905,7 @@ struct type<::vnx::search::CrawlProcessor_get_stats_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_get_stats_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_get_stats_return& value, bool special = false);
 };
 
 /// \private
@@ -955,9 +927,7 @@ struct type<::vnx::search::FetchResult> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::FetchResult& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::FetchResult& value, bool special = false);
 };
 
 /// \private
@@ -979,9 +949,7 @@ struct type<::vnx::search::HttpResponse> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::HttpResponse& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::HttpResponse& value, bool special = false);
 };
 
 /// \private
@@ -1003,9 +971,7 @@ struct type<::vnx::search::LoadResult> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::LoadResult& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::LoadResult& value, bool special = false);
 };
 
 /// \private
@@ -1027,9 +993,7 @@ struct type<::vnx::search::PageContent> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageContent& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageContent& value, bool special = false);
 };
 
 /// \private
@@ -1051,9 +1015,7 @@ struct type<::vnx::search::PageIndex> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageIndex& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageIndex& value, bool special = false);
 };
 
 /// \private
@@ -1075,9 +1037,7 @@ struct type<::vnx::search::PageInfo> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageInfo& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageInfo& value, bool special = false);
 };
 
 /// \private
@@ -1139,9 +1099,7 @@ struct type<::vnx::search::QueryInterface_query> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::QueryInterface_query& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::QueryInterface_query& value, bool special = false);
 };
 
 /// \private
@@ -1163,9 +1121,7 @@ struct type<::vnx::search::QueryInterface_query_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::QueryInterface_query_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::QueryInterface_query_return& value, bool special = false);
 };
 
 /// \private
@@ -1187,9 +1143,7 @@ struct type<::vnx::search::Response> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::Response& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::Response& value, bool special = false);
 };
 
 /// \private
@@ -1231,9 +1185,7 @@ struct type<::vnx::search::SearchEngine_get_page_entries> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchEngine_get_page_entries& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchEngine_get_page_entries& value, bool special = false);
 };
 
 /// \private
@@ -1255,9 +1207,7 @@ struct type<::vnx::search::SearchEngine_get_page_entries_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchEngine_get_page_entries_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchEngine_get_page_entries_return& value, bool special = false);
 };
 
 /// \private
@@ -1319,9 +1269,7 @@ struct type<::vnx::search::SearchInterface_get_domain_info> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_info& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_info& value, bool special = false);
 };
 
 /// \private
@@ -1343,9 +1291,7 @@ struct type<::vnx::search::SearchInterface_get_domain_info_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_info_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_info_return& value, bool special = false);
 };
 
 /// \private
@@ -1367,9 +1313,7 @@ struct type<::vnx::search::SearchInterface_get_domain_list> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_list& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_list& value, bool special = false);
 };
 
 /// \private
@@ -1391,9 +1335,7 @@ struct type<::vnx::search::SearchInterface_get_domain_list_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_list_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_list_return& value, bool special = false);
 };
 
 /// \private
@@ -1415,9 +1357,7 @@ struct type<::vnx::search::SearchInterface_get_page_info> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_info& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_info& value, bool special = false);
 };
 
 /// \private
@@ -1439,9 +1379,7 @@ struct type<::vnx::search::SearchInterface_get_page_info_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_info_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_info_return& value, bool special = false);
 };
 
 /// \private
@@ -1463,9 +1401,7 @@ struct type<::vnx::search::SearchInterface_get_page_ranking> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranking& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranking& value, bool special = false);
 };
 
 /// \private
@@ -1487,9 +1423,7 @@ struct type<::vnx::search::SearchInterface_get_page_ranking_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranking_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranking_return& value, bool special = false);
 };
 
 /// \private
@@ -1511,9 +1445,7 @@ struct type<::vnx::search::SearchInterface_get_page_ranks> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranks& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranks& value, bool special = false);
 };
 
 /// \private
@@ -1535,9 +1467,51 @@ struct type<::vnx::search::SearchInterface_get_page_ranks_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranks_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranks_return& value, bool special = false);
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_word_context> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_word_context& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
 	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_word_context& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_word_context& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_word_context& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_word_context& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code);
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_word_context& value, bool special = false);
+};
+
+/// \private
+template<>
+struct type<::vnx::search::SearchInterface_get_word_context_return> {
+	void read(TypeInput& in, ::vnx::search::SearchInterface_get_word_context_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::read(in, value, type_code, code);
+	}
+	void write(TypeOutput& out, const ::vnx::search::SearchInterface_get_word_context_return& value, const TypeCode* type_code, const uint16_t* code) {
+		vnx::write(out, value, type_code, code);
+	}
+	void read(std::istream& in, ::vnx::search::SearchInterface_get_word_context_return& value) {
+		vnx::read(in, value);
+	}
+	void write(std::ostream& out, const ::vnx::search::SearchInterface_get_word_context_return& value) {
+		vnx::write(out, value);
+	}
+	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_get_word_context_return& value) {
+		vnx::accept(visitor, value);
+	}
+	void create_dynamic_code(std::vector<uint16_t>& code);
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_word_context_return& value, bool special = false);
 };
 
 /// \private
@@ -1559,9 +1533,7 @@ struct type<::vnx::search::SearchInterface_reverse_domain_lookup> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_domain_lookup& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_domain_lookup& value, bool special = false);
 };
 
 /// \private
@@ -1583,9 +1555,7 @@ struct type<::vnx::search::SearchInterface_reverse_domain_lookup_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, bool special = false);
 };
 
 /// \private
@@ -1607,9 +1577,7 @@ struct type<::vnx::search::SearchInterface_reverse_lookup> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_lookup& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_lookup& value, bool special = false);
 };
 
 /// \private
@@ -1631,57 +1599,7 @@ struct type<::vnx::search::SearchInterface_reverse_lookup_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_lookup_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchInterface_suggest_domains> {
-	void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_domains& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
-};
-
-/// \private
-template<>
-struct type<::vnx::search::SearchInterface_suggest_domains_return> {
-	void read(TypeInput& in, ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::read(in, value, type_code, code);
-	}
-	void write(TypeOutput& out, const ::vnx::search::SearchInterface_suggest_domains_return& value, const TypeCode* type_code, const uint16_t* code) {
-		vnx::write(out, value, type_code, code);
-	}
-	void read(std::istream& in, ::vnx::search::SearchInterface_suggest_domains_return& value) {
-		vnx::read(in, value);
-	}
-	void write(std::ostream& out, const ::vnx::search::SearchInterface_suggest_domains_return& value) {
-		vnx::write(out, value);
-	}
-	void accept(Visitor& visitor, const ::vnx::search::SearchInterface_suggest_domains_return& value) {
-		vnx::accept(visitor, value);
-	}
-	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_domains_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_lookup_return& value, bool special = false);
 };
 
 /// \private
@@ -1703,9 +1621,7 @@ struct type<::vnx::search::SearchInterface_suggest_words> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_words& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_words& value, bool special = false);
 };
 
 /// \private
@@ -1727,9 +1643,7 @@ struct type<::vnx::search::SearchInterface_suggest_words_return> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_words_return& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_words_return& value, bool special = false);
 };
 
 /// \private
@@ -1751,9 +1665,7 @@ struct type<::vnx::search::SearchResult> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchResult& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchResult& value, bool special = false);
 };
 
 /// \private
@@ -1775,9 +1687,7 @@ struct type<::vnx::search::TextResponse> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::TextResponse& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::TextResponse& value, bool special = false);
 };
 
 /// \private
@@ -1799,9 +1709,7 @@ struct type<::vnx::search::UrlIndex> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::UrlIndex& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::UrlIndex& value, bool special = false);
 };
 
 /// \private
@@ -1823,9 +1731,7 @@ struct type<::vnx::search::UrlInfo> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::UrlInfo& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::UrlInfo& value, bool special = false);
 };
 
 /// \private
@@ -1847,9 +1753,7 @@ struct type<::vnx::search::WordArray> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::WordArray& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::WordArray& value, bool special = false);
 };
 
 /// \private
@@ -1871,9 +1775,7 @@ struct type<::vnx::search::WordContext> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::WordContext& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::WordContext& value, bool special = false);
 };
 
 /// \private
@@ -1895,9 +1797,7 @@ struct type<::vnx::search::image_link_t> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::image_link_t& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::image_link_t& value, bool special = false);
 };
 
 /// \private
@@ -1919,9 +1819,7 @@ struct type<::vnx::search::page_entry_t> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::page_entry_t& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::page_entry_t& value, bool special = false);
 };
 
 /// \private
@@ -1943,9 +1841,7 @@ struct type<::vnx::search::page_link_t> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::page_link_t& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::page_link_t& value, bool special = false);
 };
 
 /// \private
@@ -1967,9 +1863,7 @@ struct type<::vnx::search::query_options_t> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::query_options_t& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::query_options_t& value, bool special = false);
 };
 
 /// \private
@@ -1991,9 +1885,7 @@ struct type<::vnx::search::result_item_t> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::result_item_t& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::result_item_t& value, bool special = false);
 };
 
 /// \private
@@ -2015,9 +1907,7 @@ struct type<::vnx::search::reverse_link_t> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::reverse_link_t& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::reverse_link_t& value, bool special = false);
 };
 
 /// \private
@@ -2039,9 +1929,7 @@ struct type<::vnx::search::score_type_e> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::score_type_e& value, bool special = false) {
-		code.push_back(CODE_STRING);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::score_type_e& value, bool special = false);
 };
 
 /// \private
@@ -2063,9 +1951,7 @@ struct type<::vnx::search::search_flags_e> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::search_flags_e& value, bool special = false) {
-		code.push_back(CODE_STRING);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::search_flags_e& value, bool special = false);
 };
 
 /// \private
@@ -2087,9 +1973,7 @@ struct type<::vnx::search::word_entry_t> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code);
-	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::word_entry_t& value, bool special = false) {
-		code.push_back(CODE_OBJECT);
-	}
+	void create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::word_entry_t& value, bool special = false);
 };
 
 

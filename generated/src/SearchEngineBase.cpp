@@ -39,12 +39,12 @@
 #include <vnx/search/SearchInterface_get_page_ranking_return.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks_return.hxx>
+#include <vnx/search/SearchInterface_get_word_context.hxx>
+#include <vnx/search/SearchInterface_get_word_context_return.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup_return.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup_return.hxx>
-#include <vnx/search/SearchInterface_suggest_domains.hxx>
-#include <vnx/search/SearchInterface_suggest_domains_return.hxx>
 #include <vnx/search/SearchInterface_suggest_words.hxx>
 #include <vnx/search/SearchInterface_suggest_words_return.hxx>
 #include <vnx/search/page_entry_t.hxx>
@@ -57,7 +57,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchEngineBase::VNX_TYPE_HASH(0x4e0f26d3496896a1ull);
-const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0x4c8a70c7f5aafddull);
+const vnx::Hash64 SearchEngineBase::VNX_CODE_HASH(0x4a312ffbc9ee79c0ull);
 
 SearchEngineBase::SearchEngineBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -78,6 +78,7 @@ SearchEngineBase::SearchEngineBase(const std::string& _vnx_name)
 	vnx::read_config(vnx_name + ".word_commit_interval", word_commit_interval);
 	vnx::read_config(vnx_name + ".lock_timeout", lock_timeout);
 	vnx::read_config(vnx_name + ".page_ranking_size", page_ranking_size);
+	vnx::read_config(vnx_name + ".word_suggest_threshold", word_suggest_threshold);
 	vnx::read_config(vnx_name + ".queue_interval_ms", queue_interval_ms);
 	vnx::read_config(vnx_name + ".stats_interval_ms", stats_interval_ms);
 	vnx::read_config(vnx_name + ".rank_update_interval", rank_update_interval);
@@ -86,6 +87,7 @@ SearchEngineBase::SearchEngineBase(const std::string& _vnx_name)
 	vnx::read_config(vnx_name + ".update_word_context", update_word_context);
 	vnx::read_config(vnx_name + ".update_page_info", update_page_info);
 	vnx::read_config(vnx_name + ".reset_rank_values", reset_rank_values);
+	vnx::read_config(vnx_name + ".bad_word_chars", bad_word_chars);
 	vnx::read_config(vnx_name + ".protocols", protocols);
 }
 
@@ -120,15 +122,17 @@ void SearchEngineBase::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[13], 13); vnx::accept(_visitor, word_commit_interval);
 	_visitor.type_field(_type_code->fields[14], 14); vnx::accept(_visitor, lock_timeout);
 	_visitor.type_field(_type_code->fields[15], 15); vnx::accept(_visitor, page_ranking_size);
-	_visitor.type_field(_type_code->fields[16], 16); vnx::accept(_visitor, queue_interval_ms);
-	_visitor.type_field(_type_code->fields[17], 17); vnx::accept(_visitor, stats_interval_ms);
-	_visitor.type_field(_type_code->fields[18], 18); vnx::accept(_visitor, rank_update_interval);
-	_visitor.type_field(_type_code->fields[19], 19); vnx::accept(_visitor, rank_decay);
-	_visitor.type_field(_type_code->fields[20], 20); vnx::accept(_visitor, update_word_array);
-	_visitor.type_field(_type_code->fields[21], 21); vnx::accept(_visitor, update_word_context);
-	_visitor.type_field(_type_code->fields[22], 22); vnx::accept(_visitor, update_page_info);
-	_visitor.type_field(_type_code->fields[23], 23); vnx::accept(_visitor, reset_rank_values);
-	_visitor.type_field(_type_code->fields[24], 24); vnx::accept(_visitor, protocols);
+	_visitor.type_field(_type_code->fields[16], 16); vnx::accept(_visitor, word_suggest_threshold);
+	_visitor.type_field(_type_code->fields[17], 17); vnx::accept(_visitor, queue_interval_ms);
+	_visitor.type_field(_type_code->fields[18], 18); vnx::accept(_visitor, stats_interval_ms);
+	_visitor.type_field(_type_code->fields[19], 19); vnx::accept(_visitor, rank_update_interval);
+	_visitor.type_field(_type_code->fields[20], 20); vnx::accept(_visitor, rank_decay);
+	_visitor.type_field(_type_code->fields[21], 21); vnx::accept(_visitor, update_word_array);
+	_visitor.type_field(_type_code->fields[22], 22); vnx::accept(_visitor, update_word_context);
+	_visitor.type_field(_type_code->fields[23], 23); vnx::accept(_visitor, update_page_info);
+	_visitor.type_field(_type_code->fields[24], 24); vnx::accept(_visitor, reset_rank_values);
+	_visitor.type_field(_type_code->fields[25], 25); vnx::accept(_visitor, bad_word_chars);
+	_visitor.type_field(_type_code->fields[26], 26); vnx::accept(_visitor, protocols);
 	_visitor.type_end(*_type_code);
 }
 
@@ -150,6 +154,7 @@ void SearchEngineBase::write(std::ostream& _out) const {
 	_out << ", \"word_commit_interval\": "; vnx::write(_out, word_commit_interval);
 	_out << ", \"lock_timeout\": "; vnx::write(_out, lock_timeout);
 	_out << ", \"page_ranking_size\": "; vnx::write(_out, page_ranking_size);
+	_out << ", \"word_suggest_threshold\": "; vnx::write(_out, word_suggest_threshold);
 	_out << ", \"queue_interval_ms\": "; vnx::write(_out, queue_interval_ms);
 	_out << ", \"stats_interval_ms\": "; vnx::write(_out, stats_interval_ms);
 	_out << ", \"rank_update_interval\": "; vnx::write(_out, rank_update_interval);
@@ -158,6 +163,7 @@ void SearchEngineBase::write(std::ostream& _out) const {
 	_out << ", \"update_word_context\": "; vnx::write(_out, update_word_context);
 	_out << ", \"update_page_info\": "; vnx::write(_out, update_page_info);
 	_out << ", \"reset_rank_values\": "; vnx::write(_out, reset_rank_values);
+	_out << ", \"bad_word_chars\": "; vnx::write(_out, bad_word_chars);
 	_out << ", \"protocols\": "; vnx::write(_out, protocols);
 	_out << "}";
 }
@@ -187,6 +193,7 @@ vnx::Object SearchEngineBase::to_object() const {
 	_object["word_commit_interval"] = word_commit_interval;
 	_object["lock_timeout"] = lock_timeout;
 	_object["page_ranking_size"] = page_ranking_size;
+	_object["word_suggest_threshold"] = word_suggest_threshold;
 	_object["queue_interval_ms"] = queue_interval_ms;
 	_object["stats_interval_ms"] = stats_interval_ms;
 	_object["rank_update_interval"] = rank_update_interval;
@@ -195,13 +202,16 @@ vnx::Object SearchEngineBase::to_object() const {
 	_object["update_word_context"] = update_word_context;
 	_object["update_page_info"] = update_page_info;
 	_object["reset_rank_values"] = reset_rank_values;
+	_object["bad_word_chars"] = bad_word_chars;
 	_object["protocols"] = protocols;
 	return _object;
 }
 
 void SearchEngineBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "commit_delay") {
+		if(_entry.first == "bad_word_chars") {
+			_entry.second.to(bad_word_chars);
+		} else if(_entry.first == "commit_delay") {
 			_entry.second.to(commit_delay);
 		} else if(_entry.first == "info_commit_interval") {
 			_entry.second.to(info_commit_interval);
@@ -251,6 +261,8 @@ void SearchEngineBase::from_object(const vnx::Object& _object) {
 			_entry.second.to(url_index_server);
 		} else if(_entry.first == "word_commit_interval") {
 			_entry.second.to(word_commit_interval);
+		} else if(_entry.first == "word_suggest_threshold") {
+			_entry.second.to(word_suggest_threshold);
 		}
 	}
 }
@@ -304,6 +316,9 @@ vnx::Variant SearchEngineBase::get_field(const std::string& _name) const {
 	if(_name == "page_ranking_size") {
 		return vnx::Variant(page_ranking_size);
 	}
+	if(_name == "word_suggest_threshold") {
+		return vnx::Variant(word_suggest_threshold);
+	}
 	if(_name == "queue_interval_ms") {
 		return vnx::Variant(queue_interval_ms);
 	}
@@ -327,6 +342,9 @@ vnx::Variant SearchEngineBase::get_field(const std::string& _name) const {
 	}
 	if(_name == "reset_rank_values") {
 		return vnx::Variant(reset_rank_values);
+	}
+	if(_name == "bad_word_chars") {
+		return vnx::Variant(bad_word_chars);
 	}
 	if(_name == "protocols") {
 		return vnx::Variant(protocols);
@@ -367,6 +385,8 @@ void SearchEngineBase::set_field(const std::string& _name, const vnx::Variant& _
 		_value.to(lock_timeout);
 	} else if(_name == "page_ranking_size") {
 		_value.to(page_ranking_size);
+	} else if(_name == "word_suggest_threshold") {
+		_value.to(word_suggest_threshold);
 	} else if(_name == "queue_interval_ms") {
 		_value.to(queue_interval_ms);
 	} else if(_name == "stats_interval_ms") {
@@ -383,6 +403,8 @@ void SearchEngineBase::set_field(const std::string& _name, const vnx::Variant& _
 		_value.to(update_page_info);
 	} else if(_name == "reset_rank_values") {
 		_value.to(reset_rank_values);
+	} else if(_name == "bad_word_chars") {
+		_value.to(bad_word_chars);
 	} else if(_name == "protocols") {
 		_value.to(protocols);
 	} else {
@@ -414,7 +436,7 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchEngine";
 	type_code->type_hash = vnx::Hash64(0x4e0f26d3496896a1ull);
-	type_code->code_hash = vnx::Hash64(0x4c8a70c7f5aafddull);
+	type_code->code_hash = vnx::Hash64(0x4a312ffbc9ee79c0ull);
 	type_code->is_native = true;
 	type_code->native_size = sizeof(::vnx::search::SearchEngineBase);
 	type_code->methods.resize(19);
@@ -433,11 +455,11 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	type_code->methods[12] = ::vnx::search::SearchInterface_get_page_ranks::static_get_type_code();
 	type_code->methods[13] = ::vnx::search::SearchInterface_get_domain_list::static_get_type_code();
 	type_code->methods[14] = ::vnx::search::SearchInterface_get_page_ranking::static_get_type_code();
-	type_code->methods[15] = ::vnx::search::SearchInterface_reverse_lookup::static_get_type_code();
-	type_code->methods[16] = ::vnx::search::SearchInterface_reverse_domain_lookup::static_get_type_code();
-	type_code->methods[17] = ::vnx::search::SearchInterface_suggest_words::static_get_type_code();
-	type_code->methods[18] = ::vnx::search::SearchInterface_suggest_domains::static_get_type_code();
-	type_code->fields.resize(25);
+	type_code->methods[15] = ::vnx::search::SearchInterface_get_word_context::static_get_type_code();
+	type_code->methods[16] = ::vnx::search::SearchInterface_reverse_lookup::static_get_type_code();
+	type_code->methods[17] = ::vnx::search::SearchInterface_reverse_domain_lookup::static_get_type_code();
+	type_code->methods[18] = ::vnx::search::SearchInterface_suggest_words::static_get_type_code();
+	type_code->fields.resize(27);
 	{
 		auto& field = type_code->fields[0];
 		field.is_extended = true;
@@ -553,57 +575,71 @@ std::shared_ptr<vnx::TypeCode> SearchEngineBase::static_create_type_code() {
 	{
 		auto& field = type_code->fields[16];
 		field.data_size = 4;
-		field.name = "queue_interval_ms";
+		field.name = "word_suggest_threshold";
 		field.value = vnx::to_string(10);
 		field.code = {7};
 	}
 	{
 		auto& field = type_code->fields[17];
 		field.data_size = 4;
+		field.name = "queue_interval_ms";
+		field.value = vnx::to_string(10);
+		field.code = {7};
+	}
+	{
+		auto& field = type_code->fields[18];
+		field.data_size = 4;
 		field.name = "stats_interval_ms";
 		field.value = vnx::to_string(10000);
 		field.code = {7};
 	}
 	{
-		auto& field = type_code->fields[18];
+		auto& field = type_code->fields[19];
 		field.data_size = 4;
 		field.name = "rank_update_interval";
 		field.value = vnx::to_string(1440);
 		field.code = {9};
 	}
 	{
-		auto& field = type_code->fields[19];
+		auto& field = type_code->fields[20];
 		field.data_size = 4;
 		field.name = "rank_decay";
 		field.value = vnx::to_string(0.5);
 		field.code = {9};
 	}
 	{
-		auto& field = type_code->fields[20];
+		auto& field = type_code->fields[21];
 		field.data_size = 1;
 		field.name = "update_word_array";
 		field.code = {31};
 	}
 	{
-		auto& field = type_code->fields[21];
+		auto& field = type_code->fields[22];
 		field.data_size = 1;
 		field.name = "update_word_context";
 		field.code = {31};
 	}
 	{
-		auto& field = type_code->fields[22];
+		auto& field = type_code->fields[23];
 		field.data_size = 1;
 		field.name = "update_page_info";
 		field.code = {31};
 	}
 	{
-		auto& field = type_code->fields[23];
+		auto& field = type_code->fields[24];
 		field.data_size = 1;
 		field.name = "reset_rank_values";
 		field.code = {31};
 	}
 	{
-		auto& field = type_code->fields[24];
+		auto& field = type_code->fields[25];
+		field.is_extended = true;
+		field.name = "bad_word_chars";
+		field.value = vnx::to_string(".,:_");
+		field.code = {32};
+	}
+	{
+		auto& field = type_code->fields[26];
 		field.is_extended = true;
 		field.name = "protocols";
 		field.code = {12, 32};
@@ -716,26 +752,25 @@ std::shared_ptr<vnx::Value> SearchEngineBase::vnx_call_switch(std::shared_ptr<co
 			get_page_ranking_async(_args->limit, _args->offset, _request_id);
 			return nullptr;
 		}
+		case 0x712fabd33e7fb55bull: {
+			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_get_word_context>(_method);
+			get_word_context_async(_args->word, _args->limit, _args->offset, _request_id);
+			return nullptr;
+		}
 		case 0x5610708b5fe56530ull: {
 			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_reverse_lookup>(_method);
-			reverse_lookup_async(_args->url_key, _request_id);
+			reverse_lookup_async(_args->url_key, _args->limit, _args->offset, _request_id);
 			return nullptr;
 		}
 		case 0x4fbc87c18553f7c6ull: {
 			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_reverse_domain_lookup>(_method);
-			reverse_domain_lookup_async(_args->url_key, _request_id);
+			reverse_domain_lookup_async(_args->url_key, _args->limit, _args->offset, _request_id);
 			return nullptr;
 		}
 		case 0xe51abc2dddd35827ull: {
 			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_suggest_words>(_method);
 			auto _return_value = ::vnx::search::SearchInterface_suggest_words_return::create();
 			_return_value->_ret_0 = suggest_words(_args->prefix, _args->limit);
-			return _return_value;
-		}
-		case 0x658934ab6e353dfeull: {
-			auto _args = std::static_pointer_cast<const ::vnx::search::SearchInterface_suggest_domains>(_method);
-			auto _return_value = ::vnx::search::SearchInterface_suggest_domains_return::create();
-			_return_value->_ret_0 = suggest_domains(_args->prefix, _args->limit);
 			return _return_value;
 		}
 	}
@@ -769,13 +804,19 @@ void SearchEngineBase::get_page_ranks_async_return(const vnx::request_id_t& _req
 	vnx_async_return(_request_id, _return_value);
 }
 
-void SearchEngineBase::get_page_ranking_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, uint32_t>>& _ret_0) const {
+void SearchEngineBase::get_page_ranking_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, vnx::float32_t>>& _ret_0) const {
 	auto _return_value = ::vnx::search::SearchInterface_get_page_ranking_return::create();
 	_return_value->_ret_0 = _ret_0;
 	vnx_async_return(_request_id, _return_value);
 }
 
-void SearchEngineBase::reverse_lookup_async_return(const vnx::request_id_t& _request_id, const std::vector<std::string>& _ret_0) const {
+void SearchEngineBase::get_word_context_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, vnx::float32_t>>& _ret_0) const {
+	auto _return_value = ::vnx::search::SearchInterface_get_word_context_return::create();
+	_return_value->_ret_0 = _ret_0;
+	vnx_async_return(_request_id, _return_value);
+}
+
+void SearchEngineBase::reverse_lookup_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, vnx::float32_t>>& _ret_0) const {
 	auto _return_value = ::vnx::search::SearchInterface_reverse_lookup_return::create();
 	_return_value->_ret_0 = _ret_0;
 	vnx_async_return(_request_id, _return_value);
@@ -857,27 +898,30 @@ void read(TypeInput& in, ::vnx::search::SearchEngineBase& value, const TypeCode*
 			vnx::read_value(_buf + _field->offset, value.page_ranking_size, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[16]) {
-			vnx::read_value(_buf + _field->offset, value.queue_interval_ms, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.word_suggest_threshold, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[17]) {
-			vnx::read_value(_buf + _field->offset, value.stats_interval_ms, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.queue_interval_ms, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[18]) {
-			vnx::read_value(_buf + _field->offset, value.rank_update_interval, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.stats_interval_ms, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[19]) {
-			vnx::read_value(_buf + _field->offset, value.rank_decay, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.rank_update_interval, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[20]) {
-			vnx::read_value(_buf + _field->offset, value.update_word_array, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.rank_decay, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[21]) {
-			vnx::read_value(_buf + _field->offset, value.update_word_context, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.update_word_array, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[22]) {
-			vnx::read_value(_buf + _field->offset, value.update_page_info, _field->code.data());
+			vnx::read_value(_buf + _field->offset, value.update_word_context, _field->code.data());
 		}
 		if(const auto* const _field = type_code->field_map[23]) {
+			vnx::read_value(_buf + _field->offset, value.update_page_info, _field->code.data());
+		}
+		if(const auto* const _field = type_code->field_map[24]) {
 			vnx::read_value(_buf + _field->offset, value.reset_rank_values, _field->code.data());
 		}
 	}
@@ -889,7 +933,8 @@ void read(TypeInput& in, ::vnx::search::SearchEngineBase& value, const TypeCode*
 			case 3: vnx::read(in, value.url_index_server, type_code, _field->code.data()); break;
 			case 4: vnx::read(in, value.page_index_server, type_code, _field->code.data()); break;
 			case 5: vnx::read(in, value.page_content_server, type_code, _field->code.data()); break;
-			case 24: vnx::read(in, value.protocols, type_code, _field->code.data()); break;
+			case 25: vnx::read(in, value.bad_word_chars, type_code, _field->code.data()); break;
+			case 26: vnx::read(in, value.protocols, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -908,7 +953,7 @@ void write(TypeOutput& out, const ::vnx::search::SearchEngineBase& value, const 
 	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	char* const _buf = out.write(60);
+	char* const _buf = out.write(64);
 	vnx::write_value(_buf + 0, value.max_info_cache);
 	vnx::write_value(_buf + 4, value.max_page_cache);
 	vnx::write_value(_buf + 8, value.max_word_cache);
@@ -919,21 +964,23 @@ void write(TypeOutput& out, const ::vnx::search::SearchEngineBase& value, const 
 	vnx::write_value(_buf + 28, value.word_commit_interval);
 	vnx::write_value(_buf + 32, value.lock_timeout);
 	vnx::write_value(_buf + 36, value.page_ranking_size);
-	vnx::write_value(_buf + 40, value.queue_interval_ms);
-	vnx::write_value(_buf + 44, value.stats_interval_ms);
-	vnx::write_value(_buf + 48, value.rank_update_interval);
-	vnx::write_value(_buf + 52, value.rank_decay);
-	vnx::write_value(_buf + 56, value.update_word_array);
-	vnx::write_value(_buf + 57, value.update_word_context);
-	vnx::write_value(_buf + 58, value.update_page_info);
-	vnx::write_value(_buf + 59, value.reset_rank_values);
+	vnx::write_value(_buf + 40, value.word_suggest_threshold);
+	vnx::write_value(_buf + 44, value.queue_interval_ms);
+	vnx::write_value(_buf + 48, value.stats_interval_ms);
+	vnx::write_value(_buf + 52, value.rank_update_interval);
+	vnx::write_value(_buf + 56, value.rank_decay);
+	vnx::write_value(_buf + 60, value.update_word_array);
+	vnx::write_value(_buf + 61, value.update_word_context);
+	vnx::write_value(_buf + 62, value.update_page_info);
+	vnx::write_value(_buf + 63, value.reset_rank_values);
 	vnx::write(out, value.input_url_index, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.input_page_index, type_code, type_code->fields[1].code.data());
 	vnx::write(out, value.input_page_content, type_code, type_code->fields[2].code.data());
 	vnx::write(out, value.url_index_server, type_code, type_code->fields[3].code.data());
 	vnx::write(out, value.page_index_server, type_code, type_code->fields[4].code.data());
 	vnx::write(out, value.page_content_server, type_code, type_code->fields[5].code.data());
-	vnx::write(out, value.protocols, type_code, type_code->fields[24].code.data());
+	vnx::write(out, value.bad_word_chars, type_code, type_code->fields[25].code.data());
+	vnx::write(out, value.protocols, type_code, type_code->fields[26].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::SearchEngineBase& value) {

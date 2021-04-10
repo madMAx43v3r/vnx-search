@@ -44,12 +44,12 @@
 #include <vnx/search/SearchInterface_get_page_ranking_return.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks_return.hxx>
+#include <vnx/search/SearchInterface_get_word_context.hxx>
+#include <vnx/search/SearchInterface_get_word_context_return.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup_return.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup_return.hxx>
-#include <vnx/search/SearchInterface_suggest_domains.hxx>
-#include <vnx/search/SearchInterface_suggest_domains_return.hxx>
 #include <vnx/search/SearchInterface_suggest_words.hxx>
 #include <vnx/search/SearchInterface_suggest_words_return.hxx>
 #include <vnx/search/SearchResult.hxx>
@@ -79,232 +79,472 @@ void type<::vnx::search::ContentParser_parse>::create_dynamic_code(std::vector<u
 	create_dynamic_code(code, ::vnx::search::ContentParser_parse());
 }
 
+void type<::vnx::search::ContentParser_parse>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::ContentParser_parse& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::ContentParser_parse_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::ContentParser_parse_return());
+}
+
+void type<::vnx::search::ContentParser_parse_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::ContentParser_parse_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::CrawlFrontend_fetch>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlFrontend_fetch());
 }
 
+void type<::vnx::search::CrawlFrontend_fetch>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_fetch& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::CrawlFrontend_fetch_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlFrontend_fetch_return());
+}
+
+void type<::vnx::search::CrawlFrontend_fetch_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_fetch_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::CrawlFrontend_load>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlFrontend_load());
 }
 
+void type<::vnx::search::CrawlFrontend_load>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_load& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::CrawlFrontend_load_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlFrontend_load_return());
+}
+
+void type<::vnx::search::CrawlFrontend_load_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_load_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::CrawlFrontend_register_parser>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlFrontend_register_parser());
 }
 
+void type<::vnx::search::CrawlFrontend_register_parser>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_register_parser& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::CrawlFrontend_register_parser_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlFrontend_register_parser_return());
+}
+
+void type<::vnx::search::CrawlFrontend_register_parser_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlFrontend_register_parser_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::CrawlProcessor_check_all_urls>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_all_urls());
 }
 
+void type<::vnx::search::CrawlProcessor_check_all_urls>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_all_urls& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::CrawlProcessor_check_all_urls_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_all_urls_return());
+}
+
+void type<::vnx::search::CrawlProcessor_check_all_urls_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_all_urls_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::CrawlProcessor_check_root_urls>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_root_urls());
 }
 
+void type<::vnx::search::CrawlProcessor_check_root_urls>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_root_urls& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::CrawlProcessor_check_root_urls_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlProcessor_check_root_urls_return());
+}
+
+void type<::vnx::search::CrawlProcessor_check_root_urls_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_check_root_urls_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::CrawlProcessor_get_stats>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlProcessor_get_stats());
 }
 
+void type<::vnx::search::CrawlProcessor_get_stats>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_get_stats& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::CrawlProcessor_get_stats_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::CrawlProcessor_get_stats_return());
+}
+
+void type<::vnx::search::CrawlProcessor_get_stats_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::CrawlProcessor_get_stats_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::FetchResult>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::FetchResult());
 }
 
+void type<::vnx::search::FetchResult>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::FetchResult& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::HttpResponse>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::HttpResponse());
+}
+
+void type<::vnx::search::HttpResponse>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::HttpResponse& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::LoadResult>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::LoadResult());
 }
 
+void type<::vnx::search::LoadResult>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::LoadResult& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::PageContent>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::PageContent());
+}
+
+void type<::vnx::search::PageContent>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageContent& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::PageIndex>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::PageIndex());
 }
 
+void type<::vnx::search::PageIndex>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageIndex& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::PageInfo>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::PageInfo());
+}
+
+void type<::vnx::search::PageInfo>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::PageInfo& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::QueryInterface_query>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::QueryInterface_query());
 }
 
+void type<::vnx::search::QueryInterface_query>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::QueryInterface_query& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::QueryInterface_query_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::QueryInterface_query_return());
+}
+
+void type<::vnx::search::QueryInterface_query_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::QueryInterface_query_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::Response>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::Response());
 }
 
+void type<::vnx::search::Response>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::Response& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchEngine_get_page_entries>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchEngine_get_page_entries());
+}
+
+void type<::vnx::search::SearchEngine_get_page_entries>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchEngine_get_page_entries& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchEngine_get_page_entries_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchEngine_get_page_entries_return());
 }
 
+void type<::vnx::search::SearchEngine_get_page_entries_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchEngine_get_page_entries_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_get_domain_info>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_info());
+}
+
+void type<::vnx::search::SearchInterface_get_domain_info>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_info& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_get_domain_info_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_info_return());
 }
 
+void type<::vnx::search::SearchInterface_get_domain_info_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_info_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_get_domain_list>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_list());
+}
+
+void type<::vnx::search::SearchInterface_get_domain_list>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_list& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_get_domain_list_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_domain_list_return());
 }
 
+void type<::vnx::search::SearchInterface_get_domain_list_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_domain_list_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_get_page_info>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_info());
+}
+
+void type<::vnx::search::SearchInterface_get_page_info>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_info& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_get_page_info_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_info_return());
 }
 
+void type<::vnx::search::SearchInterface_get_page_info_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_info_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_get_page_ranking>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranking());
+}
+
+void type<::vnx::search::SearchInterface_get_page_ranking>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranking& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_get_page_ranking_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranking_return());
 }
 
+void type<::vnx::search::SearchInterface_get_page_ranking_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranking_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_get_page_ranks>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranks());
+}
+
+void type<::vnx::search::SearchInterface_get_page_ranks>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranks& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_get_page_ranks_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_get_page_ranks_return());
 }
 
+void type<::vnx::search::SearchInterface_get_page_ranks_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_page_ranks_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
+void type<::vnx::search::SearchInterface_get_word_context>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_word_context());
+}
+
+void type<::vnx::search::SearchInterface_get_word_context>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_word_context& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
+void type<::vnx::search::SearchInterface_get_word_context_return>::create_dynamic_code(std::vector<uint16_t>& code) {
+	create_dynamic_code(code, ::vnx::search::SearchInterface_get_word_context_return());
+}
+
+void type<::vnx::search::SearchInterface_get_word_context_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_get_word_context_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_reverse_domain_lookup>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_domain_lookup());
+}
+
+void type<::vnx::search::SearchInterface_reverse_domain_lookup>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_domain_lookup& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_reverse_domain_lookup_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_domain_lookup_return());
 }
 
+void type<::vnx::search::SearchInterface_reverse_domain_lookup_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_domain_lookup_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_reverse_lookup>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_lookup());
+}
+
+void type<::vnx::search::SearchInterface_reverse_lookup>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_lookup& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_reverse_lookup_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_reverse_lookup_return());
 }
 
-void type<::vnx::search::SearchInterface_suggest_domains>::create_dynamic_code(std::vector<uint16_t>& code) {
-	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_domains());
-}
-
-void type<::vnx::search::SearchInterface_suggest_domains_return>::create_dynamic_code(std::vector<uint16_t>& code) {
-	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_domains_return());
+void type<::vnx::search::SearchInterface_reverse_lookup_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_reverse_lookup_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchInterface_suggest_words>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_words());
 }
 
+void type<::vnx::search::SearchInterface_suggest_words>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_words& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::SearchInterface_suggest_words_return>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchInterface_suggest_words_return());
+}
+
+void type<::vnx::search::SearchInterface_suggest_words_return>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchInterface_suggest_words_return& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::SearchResult>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::SearchResult());
 }
 
+void type<::vnx::search::SearchResult>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::SearchResult& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::TextResponse>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::TextResponse());
+}
+
+void type<::vnx::search::TextResponse>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::TextResponse& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::UrlIndex>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::UrlIndex());
 }
 
+void type<::vnx::search::UrlIndex>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::UrlIndex& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::UrlInfo>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::UrlInfo());
+}
+
+void type<::vnx::search::UrlInfo>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::UrlInfo& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::WordArray>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::WordArray());
 }
 
+void type<::vnx::search::WordArray>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::WordArray& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::WordContext>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::WordContext());
+}
+
+void type<::vnx::search::WordContext>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::WordContext& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::image_link_t>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::image_link_t());
 }
 
+void type<::vnx::search::image_link_t>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::image_link_t& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::page_entry_t>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::page_entry_t());
+}
+
+void type<::vnx::search::page_entry_t>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::page_entry_t& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::page_link_t>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::page_link_t());
 }
 
+void type<::vnx::search::page_link_t>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::page_link_t& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::query_options_t>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::query_options_t());
+}
+
+void type<::vnx::search::query_options_t>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::query_options_t& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::result_item_t>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::result_item_t());
 }
 
+void type<::vnx::search::result_item_t>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::result_item_t& value, bool special) {
+	code.push_back(CODE_OBJECT);
+}
+
 void type<::vnx::search::reverse_link_t>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::reverse_link_t());
+}
+
+void type<::vnx::search::reverse_link_t>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::reverse_link_t& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 void type<::vnx::search::score_type_e>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::score_type_e());
 }
 
+void type<::vnx::search::score_type_e>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::score_type_e& value, bool special) {
+	if(value.is_valid()) {
+		code.push_back(CODE_STRING);
+	} else {
+		code.push_back(CODE_UINT32);
+	}
+}
+
 void type<::vnx::search::search_flags_e>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::search_flags_e());
 }
 
+void type<::vnx::search::search_flags_e>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::search_flags_e& value, bool special) {
+	if(value.is_valid()) {
+		code.push_back(CODE_STRING);
+	} else {
+		code.push_back(CODE_UINT32);
+	}
+}
+
 void type<::vnx::search::word_entry_t>::create_dynamic_code(std::vector<uint16_t>& code) {
 	create_dynamic_code(code, ::vnx::search::word_entry_t());
+}
+
+void type<::vnx::search::word_entry_t>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::word_entry_t& value, bool special) {
+	code.push_back(CODE_OBJECT);
 }
 
 
@@ -359,12 +599,12 @@ static void register_all_types() {
 	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranking_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranks::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_get_page_ranks_return::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_word_context::static_create_type_code());
+	vnx::register_type_code(::vnx::search::SearchInterface_get_word_context_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_reverse_domain_lookup::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_reverse_domain_lookup_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_reverse_lookup::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_reverse_lookup_return::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchInterface_suggest_domains::static_create_type_code());
-	vnx::register_type_code(::vnx::search::SearchInterface_suggest_domains_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_suggest_words::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchInterface_suggest_words_return::static_create_type_code());
 	vnx::register_type_code(::vnx::search::SearchResult::static_create_type_code());
@@ -433,12 +673,12 @@ const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranking
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranking_return = vnx::get_type_code(vnx::Hash64(0x1f9d1774b55d550eull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks = vnx::get_type_code(vnx::Hash64(0x4962db7ff53f4da4ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_page_ranks_return = vnx::get_type_code(vnx::Hash64(0xf9c1a5118aa24f11ull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_word_context = vnx::get_type_code(vnx::Hash64(0x712fabd33e7fb55bull));
+const vnx::TypeCode* const vnx_native_type_code_SearchInterface_get_word_context_return = vnx::get_type_code(vnx::Hash64(0x28490a3b02ca4460ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup = vnx::get_type_code(vnx::Hash64(0x4fbc87c18553f7c6ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_domain_lookup_return = vnx::get_type_code(vnx::Hash64(0xcc5d543d65fe9b5cull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup = vnx::get_type_code(vnx::Hash64(0x5610708b5fe56530ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_reverse_lookup_return = vnx::get_type_code(vnx::Hash64(0x2d987f3548ffd9e8ull));
-const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains = vnx::get_type_code(vnx::Hash64(0x658934ab6e353dfeull));
-const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_domains_return = vnx::get_type_code(vnx::Hash64(0xc7aecd4d17cd5113ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words = vnx::get_type_code(vnx::Hash64(0xe51abc2dddd35827ull));
 const vnx::TypeCode* const vnx_native_type_code_SearchInterface_suggest_words_return = vnx::get_type_code(vnx::Hash64(0xba84698543a24d9dull));
 const vnx::TypeCode* const vnx_native_type_code_SearchResult = vnx::get_type_code(vnx::Hash64(0x659ce58d97581ddull));

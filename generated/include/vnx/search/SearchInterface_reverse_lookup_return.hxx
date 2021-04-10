@@ -14,7 +14,7 @@ namespace search {
 class SearchInterface_reverse_lookup_return : public ::vnx::Value {
 public:
 	
-	std::vector<std::string> _ret_0;
+	std::vector<std::pair<std::string, vnx::float32_t>> _ret_0;
 	
 	typedef ::vnx::Value Super;
 	

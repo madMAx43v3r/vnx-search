@@ -35,6 +35,7 @@ public:
 	int32_t word_commit_interval = 3600;
 	int32_t lock_timeout = 100;
 	int32_t page_ranking_size = 1000;
+	int32_t word_suggest_threshold = 10;
 	int32_t queue_interval_ms = 10;
 	int32_t stats_interval_ms = 10000;
 	vnx::float32_t rank_update_interval = 1440;
@@ -43,6 +44,7 @@ public:
 	vnx::bool_t update_word_context = 0;
 	vnx::bool_t update_page_info = 0;
 	vnx::bool_t reset_rank_values = 0;
+	std::string bad_word_chars = ".,:_";
 	std::vector<std::string> protocols;
 	
 	typedef ::vnx::Module Super;
@@ -90,13 +92,14 @@ protected:
 	void get_page_ranks_async_return(const vnx::request_id_t& _request_id, const std::vector<vnx::float32_t>& _ret_0) const;
 	virtual std::vector<::vnx::Object> get_domain_list(const int32_t& limit, const uint32_t& offset) const = 0;
 	virtual void get_page_ranking_async(const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
-	void get_page_ranking_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, uint32_t>>& _ret_0) const;
-	virtual void reverse_lookup_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;
-	void reverse_lookup_async_return(const vnx::request_id_t& _request_id, const std::vector<std::string>& _ret_0) const;
-	virtual void reverse_domain_lookup_async(const std::string& url_key, const vnx::request_id_t& _request_id) const = 0;
+	void get_page_ranking_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, vnx::float32_t>>& _ret_0) const;
+	virtual void get_word_context_async(const std::string& word, const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
+	void get_word_context_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, vnx::float32_t>>& _ret_0) const;
+	virtual void reverse_lookup_async(const std::string& url_key, const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
+	void reverse_lookup_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, vnx::float32_t>>& _ret_0) const;
+	virtual void reverse_domain_lookup_async(const std::string& url_key, const int32_t& limit, const uint32_t& offset, const vnx::request_id_t& _request_id) const = 0;
 	void reverse_domain_lookup_async_return(const vnx::request_id_t& _request_id, const std::vector<std::pair<std::string, uint32_t>>& _ret_0) const;
-	virtual std::vector<std::string> suggest_words(const std::string& prefix, const int32_t& limit) const = 0;
-	virtual std::vector<std::string> suggest_domains(const std::string& prefix, const int32_t& limit) const = 0;
+	virtual std::vector<std::pair<std::string, uint32_t>> suggest_words(const std::string& prefix, const int32_t& limit) const = 0;
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;

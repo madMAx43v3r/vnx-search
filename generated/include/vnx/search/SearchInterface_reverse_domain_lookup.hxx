@@ -15,6 +15,8 @@ class SearchInterface_reverse_domain_lookup : public ::vnx::Value {
 public:
 	
 	std::string url_key;
+	int32_t limit = 10;
+	uint32_t offset = 0;
 	
 	typedef ::vnx::Value Super;
 	

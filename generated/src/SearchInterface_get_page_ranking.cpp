@@ -14,7 +14,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchInterface_get_page_ranking::VNX_TYPE_HASH(0xd3878abff5f383d6ull);
-const vnx::Hash64 SearchInterface_get_page_ranking::VNX_CODE_HASH(0xe6ba2e2d2d09619aull);
+const vnx::Hash64 SearchInterface_get_page_ranking::VNX_CODE_HASH(0x37baf207396af96ull);
 
 vnx::Hash64 SearchInterface_get_page_ranking::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -127,7 +127,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_get_page_ranking::static_create_t
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchInterface.get_page_ranking";
 	type_code->type_hash = vnx::Hash64(0xd3878abff5f383d6ull);
-	type_code->code_hash = vnx::Hash64(0xe6ba2e2d2d09619aull);
+	type_code->code_hash = vnx::Hash64(0x37baf207396af96ull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
@@ -141,6 +141,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_get_page_ranking::static_create_t
 		auto& field = type_code->fields[0];
 		field.data_size = 4;
 		field.name = "limit";
+		field.value = vnx::to_string(10);
 		field.code = {7};
 	}
 	{

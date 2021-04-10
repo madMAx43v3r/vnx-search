@@ -14,12 +14,12 @@
 #include <vnx/search/SearchInterface_get_page_ranking_return.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks.hxx>
 #include <vnx/search/SearchInterface_get_page_ranks_return.hxx>
+#include <vnx/search/SearchInterface_get_word_context.hxx>
+#include <vnx/search/SearchInterface_get_word_context_return.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_domain_lookup_return.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup.hxx>
 #include <vnx/search/SearchInterface_reverse_lookup_return.hxx>
-#include <vnx/search/SearchInterface_suggest_domains.hxx>
-#include <vnx/search/SearchInterface_suggest_domains_return.hxx>
 #include <vnx/search/SearchInterface_suggest_words.hxx>
 #include <vnx/search/SearchInterface_suggest_words_return.hxx>
 

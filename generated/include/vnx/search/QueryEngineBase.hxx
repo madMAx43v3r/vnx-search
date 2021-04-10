@@ -21,7 +21,7 @@ public:
 	std::string word_context_server = "WordContext";
 	std::string word_array_server = "WordArray";
 	std::string search_engine_server = "SearchEngine";
-	int32_t num_threads = 16;
+	int32_t num_threads = 8;
 	int32_t max_pivot_size = 65536;
 	
 	typedef ::vnx::Module Super;

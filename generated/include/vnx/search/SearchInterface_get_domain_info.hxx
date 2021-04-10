@@ -15,7 +15,7 @@ class SearchInterface_get_domain_info : public ::vnx::Value {
 public:
 	
 	std::string host;
-	int32_t limit = 0;
+	int32_t limit = 10;
 	uint32_t offset = 0;
 	
 	typedef ::vnx::Value Super;

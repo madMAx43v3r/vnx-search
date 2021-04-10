@@ -14,7 +14,7 @@ namespace search {
 class SearchInterface_get_page_ranking : public ::vnx::Value {
 public:
 	
-	int32_t limit = 0;
+	int32_t limit = 10;
 	uint32_t offset = 0;
 	
 	typedef ::vnx::Value Super;

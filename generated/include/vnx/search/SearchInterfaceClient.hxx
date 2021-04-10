@@ -17,23 +17,23 @@ public:
 	
 	SearchInterfaceClient(vnx::Hash64 service_addr);
 	
-	::vnx::Object get_domain_info(const std::string& host = "", const int32_t& limit = 0, const uint32_t& offset = 0);
+	::vnx::Object get_domain_info(const std::string& host = "", const int32_t& limit = 10, const uint32_t& offset = 0);
 	
 	::vnx::Object get_page_info(const std::string& url_key = "");
 	
 	std::vector<vnx::float32_t> get_page_ranks(const std::vector<std::string>& url_keys = {}, const vnx::bool_t& direct = 0);
 	
-	std::vector<::vnx::Object> get_domain_list(const int32_t& limit = 0, const uint32_t& offset = 0);
+	std::vector<::vnx::Object> get_domain_list(const int32_t& limit = 10, const uint32_t& offset = 0);
 	
-	std::vector<std::pair<std::string, uint32_t>> get_page_ranking(const int32_t& limit = 0, const uint32_t& offset = 0);
+	std::vector<std::pair<std::string, vnx::float32_t>> get_page_ranking(const int32_t& limit = 10, const uint32_t& offset = 0);
 	
-	std::vector<std::string> reverse_lookup(const std::string& url_key = "");
+	std::vector<std::pair<std::string, vnx::float32_t>> get_word_context(const std::string& word = "", const int32_t& limit = 10, const uint32_t& offset = 0);
 	
-	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key = "");
+	std::vector<std::pair<std::string, vnx::float32_t>> reverse_lookup(const std::string& url_key = "", const int32_t& limit = 10, const uint32_t& offset = 0);
 	
-	std::vector<std::string> suggest_words(const std::string& prefix = "", const int32_t& limit = 0);
+	std::vector<std::pair<std::string, uint32_t>> reverse_domain_lookup(const std::string& url_key = "", const int32_t& limit = 10, const uint32_t& offset = 0);
 	
-	std::vector<std::string> suggest_domains(const std::string& prefix = "", const int32_t& limit = 0);
+	std::vector<std::pair<std::string, uint32_t>> suggest_words(const std::string& prefix = "", const int32_t& limit = 10);
 	
 };
 

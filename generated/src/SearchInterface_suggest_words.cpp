@@ -14,7 +14,7 @@ namespace search {
 
 
 const vnx::Hash64 SearchInterface_suggest_words::VNX_TYPE_HASH(0xe51abc2dddd35827ull);
-const vnx::Hash64 SearchInterface_suggest_words::VNX_CODE_HASH(0x573f1a5feca40c19ull);
+const vnx::Hash64 SearchInterface_suggest_words::VNX_CODE_HASH(0x5ea6d79702fe60ccull);
 
 vnx::Hash64 SearchInterface_suggest_words::get_type_hash() const {
 	return VNX_TYPE_HASH;
@@ -127,7 +127,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_suggest_words::static_create_type
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchInterface.suggest_words";
 	type_code->type_hash = vnx::Hash64(0xe51abc2dddd35827ull);
-	type_code->code_hash = vnx::Hash64(0x573f1a5feca40c19ull);
+	type_code->code_hash = vnx::Hash64(0x5ea6d79702fe60ccull);
 	type_code->is_native = true;
 	type_code->is_class = true;
 	type_code->is_method = true;
@@ -146,6 +146,7 @@ std::shared_ptr<vnx::TypeCode> SearchInterface_suggest_words::static_create_type
 		auto& field = type_code->fields[1];
 		field.data_size = 4;
 		field.name = "limit";
+		field.value = vnx::to_string(10);
 		field.code = {7};
 	}
 	type_code->build();

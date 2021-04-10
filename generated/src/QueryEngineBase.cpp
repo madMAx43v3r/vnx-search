@@ -36,7 +36,7 @@ namespace search {
 
 
 const vnx::Hash64 QueryEngineBase::VNX_TYPE_HASH(0x9b39d0de19a6c209ull);
-const vnx::Hash64 QueryEngineBase::VNX_CODE_HASH(0x19a60016aa9acdd8ull);
+const vnx::Hash64 QueryEngineBase::VNX_CODE_HASH(0x2b46f82b35f88ebeull);
 
 QueryEngineBase::QueryEngineBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -195,7 +195,7 @@ std::shared_ptr<vnx::TypeCode> QueryEngineBase::static_create_type_code() {
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.QueryEngine";
 	type_code->type_hash = vnx::Hash64(0x9b39d0de19a6c209ull);
-	type_code->code_hash = vnx::Hash64(0x19a60016aa9acdd8ull);
+	type_code->code_hash = vnx::Hash64(0x2b46f82b35f88ebeull);
 	type_code->is_native = true;
 	type_code->native_size = sizeof(::vnx::search::QueryEngineBase);
 	type_code->methods.resize(10);
@@ -249,7 +249,7 @@ std::shared_ptr<vnx::TypeCode> QueryEngineBase::static_create_type_code() {
 		auto& field = type_code->fields[5];
 		field.data_size = 4;
 		field.name = "num_threads";
-		field.value = vnx::to_string(16);
+		field.value = vnx::to_string(8);
 		field.code = {7};
 	}
 	{

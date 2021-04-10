@@ -15,7 +15,7 @@ class SearchInterface_suggest_words : public ::vnx::Value {
 public:
 	
 	std::string prefix;
-	int32_t limit = 0;
+	int32_t limit = 10;
 	
 	typedef ::vnx::Value Super;
 	
