@@ -10,6 +10,7 @@
 
 #include <libxml/HTMLparser.h>
 #include <libxml++/libxml++.h>
+#include <utf8.h>
 
 
 namespace vnx {
@@ -109,6 +110,9 @@ HtmlParser::parse(std::shared_ptr<const HttpResponse> response) const
 	result->base_url = response->url;
 	
 	const auto content = response->payload.as_string();
+	if(!utf8valid(content.c_str())) {
+		throw std::runtime_error("invalid UTF-8");
+	}
 	
 	xmlDoc* doc = ::htmlReadDoc((const xmlChar*)content.data(), 0, response->content_charset.c_str(),
 			HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
