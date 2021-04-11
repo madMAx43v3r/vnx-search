@@ -1,8 +1,4 @@
 
-<a href="/">
-<img src="apple-touch-icon.png"/>
-</a>
-
 <div id="search_form">
 <form method="get">
 	<span style="font-size: 100%;">Search: </span>
@@ -15,7 +11,10 @@
 <% if(result) { %>
 
 <div id="header">
-Page <%= parseInt(page) + 1 %> of <% if(result.has_more) { %>&#62;<% } %><%= result.num_results_total %> results
+Page <%= parseInt(page) + 1 %> of <% if(result.has_more) { %>&#62;<% } %><%= result.num_results_total %> results for
+<% result.words.forEach(function(word) { %>
+<a class="bare" href="/word_context?w=<%- word %>"><%= word %> </a>
+<% }); %>
 </div>
 
 <div id="results">
@@ -26,8 +25,8 @@ Page <%= parseInt(page) + 1 %> of <% if(result.has_more) { %>&#62;<% } %><%= res
 	<br>
 	<span class="date"><%= item.date_str %></span>
 	| <span class="context"><%- item.context %></span>
-	| <span class="info"><a class="bare" href="/page_info?k=//<%- item.url_str %>" target="__blank">info</a></span>
-	| <span class="archive"><a class="bare" href="/archive/<%- item.url_str %>" target="__blank">archive</a></span>
+	| <a class="bare" href="/page_info?k=//<%- item.url_str %>" target="__blank">info</a>
+	| <a class="bare" href="/archive/<%- item.url_str %>" target="__blank">archive</a>
 	<br>
 </div>
 <% }); %>

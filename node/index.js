@@ -104,7 +104,43 @@ app.get('/page_info', (req, res) => {
 	}
 })
 
-app.use('/archive', createProxyMiddleware({target: 'http://localhost:8081', changeOrigin: true}));
+app.get('/page_ranking', (req, res) => {
+	let page = req.query.p;
+	if(!page) {
+		page = 0;
+	}
+	axios.get('http://localhost:8080/search/get_page_ranking?p=' + page)
+		.then((ret) => {
+			let args = {};
+			args.body = 'page_ranking';
+			args.page = page;
+			args.data = ret.data;
+			res.render('index', args);
+		}).catch(on_error.bind(null, res));
+})
+
+app.get('/word_context', (req, res) => {
+	const word = req.query.w;
+	let page = req.query.p;
+	if(!page) {
+		page = 0;
+	}
+	if(word) {
+		axios.get('http://localhost:8080/search/get_word_context?w=' + word + '&p=' + page)
+			.then((ret) => {
+				let args = {};
+				args.body = 'word_context';
+				args.word = word;
+				args.page = page;
+				args.data = ret.data;
+				res.render('index', args);
+			}).catch(on_error.bind(null, res));
+	} else {
+		res.status(404).send();
+	}
+})
+
+app.use('/archive', createProxyMiddleware({target: 'http://localhost:8080', changeOrigin: true}));
 
 app.listen(port, '0.0.0.0', () => {
 	console.log(`Listening at http://0.0.0.0:${port}`);

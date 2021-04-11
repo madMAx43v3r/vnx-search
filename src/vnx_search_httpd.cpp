@@ -19,12 +19,16 @@ int main(int argc, char** argv)
 {
 	std::map<std::string, std::string> options;
 	options["s"] = "engine";
+	options["a"] = "archive";
 	options["engine"] = "engine server url";
+	options["archive"] = "archive server url";
 	
 	vnx::init("vnx_search_httpd", argc, argv, options);
 	
 	std::string engine = ".vnx_search_query_engine.sock";
+	std::string archive = ".vnx_search_archive.sock";
 	vnx::read_config("engine", engine);
+	vnx::read_config("archive", archive);
 	
 	{
 		vnx::Handle<vnx::Terminal> terminal = new vnx::Terminal("Terminal");
@@ -35,15 +39,21 @@ int main(int argc, char** argv)
 		server.start_detached();
 	}
 	{
-		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(engine));
+		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("EngineProxy", vnx::Endpoint::from_url(engine));
 		proxy->forward_list.push_back("QueryEngine");
 		proxy->forward_list.push_back("SearchEngine");
+		proxy.start_detached();
+	}
+	{
+		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("ArchiveProxy", vnx::Endpoint::from_url(archive));
+		proxy->forward_list.push_back("ArchiveServer");
 		proxy.start_detached();
 	}
 	{
 		vnx::Handle<vnx::addons::HttpServerBase> module = vnx::addons::new_HttpServer("HttpServer");
 		module->components["/"] = "FileServer";
 		module->components["/search/"] = "SearchFrontend";
+		module->components["/archive/"] = "ArchiveServer";
 		module.start_detached();
 	}
 	{

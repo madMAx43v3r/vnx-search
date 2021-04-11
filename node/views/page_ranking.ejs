@@ -1,0 +1,27 @@
+
+<p>
+<b>Ranking - Page <%= parseInt(page) + 1 %></b>
+</p>
+
+<table class="data">
+<tr><th class="data">rank_value</th><th class="data">page</th></tr>
+<% data.forEach(function(row) { %>
+<tr>
+	<td class="data" align="center"><%= row[1] %></td>
+	<td class="data">
+		<span class="url"><%= row[0] %></span>
+		(<a class="bare" href="http:<%- row[0] %>">http</a>,
+		<a class="bare" href="https:<%- row[0] %>">https</a>,
+		<a class="bare" href="/page_info?k=<%- row[0] %>">info</a>,
+		<a class="bare" href="/archive/<%- row[0].substring(2) %>">archive</a>)
+	</td>
+</tr>
+<% }); %>
+</table>
+
+<p>
+<% if(page != "0") { %>
+	<a class="page" href="/page_ranking?p=<%= parseInt(page) - 1 %>">Prev</a>
+<% } %>
+<a class="page" href="/page_ranking?p=<%= parseInt(page) + 1 %>">Next</a>
+</p>

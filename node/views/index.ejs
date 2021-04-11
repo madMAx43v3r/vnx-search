@@ -35,6 +35,9 @@
 		color: rgb(50,50,50);
 		word-wrap: break-word;
 	}
+	span.right {
+		float: right
+	}
 	.center {
 		display: block;
 		margin-left: auto;
@@ -63,9 +66,23 @@
 	a.bare {
 		text-decoration: none;
 	}
+	table.data, th.data, td.data {
+		border: 1px solid gray;
+	}
 </style>
 </head>
 <body>
+
+<table>
+<tr>
+<td>
+<a href="/"><img src="apple-touch-icon.png"/></a>
+</td>
+<td valign="top" style="padding-left: 10px">
+<a href="/page_ranking">Ranking</a><br>
+</td>
+</tr>
+</table>
 
 <%- include(body) %>
 
