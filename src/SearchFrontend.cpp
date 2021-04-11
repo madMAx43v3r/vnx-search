@@ -26,10 +26,14 @@ void SearchFrontend::init()
 
 void SearchFrontend::main()
 {
-	engine_async = std::make_shared<QueryEngineAsyncClient>(engine_server);
-	engine_async->vnx_set_non_blocking(true);
+	query_engine_async = std::make_shared<QueryEngineAsyncClient>(query_engine_server);
+	search_engine_async = std::make_shared<SearchEngineAsyncClient>(search_engine_server);
 	
-	add_async_client(engine_async);
+	query_engine_async->vnx_set_non_blocking(true);
+	search_engine_async->vnx_set_non_blocking(true);
+	
+	add_async_client(query_engine_async);
+	add_async_client(search_engine_async);
 	
 	Super::main();
 }
@@ -38,8 +42,7 @@ void SearchFrontend::http_request_async(std::shared_ptr<const addons::HttpReques
 										const std::string& sub_path,
 										const vnx::request_id_t& req_id) const
 {
-	if(sub_path == "/query")
-	{
+	if(sub_path == "/query") {
 		int page = 0;
 		std::string text;
 		{
@@ -52,7 +55,6 @@ void SearchFrontend::http_request_async(std::shared_ptr<const addons::HttpReques
 			const auto iter = request->query_params.find("p");
 			if(iter != request->query_params.end()) {
 				vnx::from_string(iter->second, page);
-				page = std::max(page, 0);
 			}
 		}
 		const auto words = parse_text(text);
@@ -61,13 +63,68 @@ void SearchFrontend::http_request_async(std::shared_ptr<const addons::HttpReques
 			return;
 		}
 		query_options_t options_ = options;
-		options_.offset = page * options.limit;
+		options_.offset = std::max(page, 0) * options.limit;
 		
-		engine_async->query(words, options_,
+		query_engine_async->query(words, options_,
 			std::bind(&SearchFrontend::query_callback, this, req_id, std::placeholders::_1),
 			[this, req_id](const std::exception& ex) {
 				log(WARN) << "query() failed with: " << ex.what();
-				http_request_async_return(req_id, addons::HttpResponse::from_status(500));
+				http_request_async_return(req_id, addons::HttpResponse::from_text_ex(ex.what(), 500));
+			});
+	}
+	else if(sub_path == "/get_page_info") {
+		std::string url_key;
+		{
+			const auto iter = request->query_params.find("k");
+			if(iter != request->query_params.end()) {
+				url_key = iter->second;
+			}
+		}
+		search_engine_async->get_page_info(url_key,
+			[this, req_id](const Object& result) {
+				http_request_async_return(req_id, addons::HttpResponse::from_object_json(result));
+			},
+			[this, req_id](const std::exception& ex) {
+				http_request_async_return(req_id, addons::HttpResponse::from_text_ex(ex.what(), 500));
+			});
+	}
+	else if(sub_path == "/get_page_ranking") {
+		int page = 0;
+		{
+			const auto iter = request->query_params.find("p");
+			if(iter != request->query_params.end()) {
+				vnx::from_string(iter->second, page);
+			}
+		}
+		search_engine_async->get_page_ranking(table_page_size, std::max(page, 0) * table_page_size,
+			[this, req_id](const std::vector<std::pair<std::string, float>>& result) {
+				http_request_async_return(req_id, addons::HttpResponse::from_string_json(vnx::to_string(result)));
+			},
+			[this, req_id](const std::exception& ex) {
+				http_request_async_return(req_id, addons::HttpResponse::from_text_ex(ex.what(), 500));
+			});
+	}
+	else if(sub_path == "/get_word_context") {
+		std::string word;
+		int page = 0;
+		{
+			const auto iter = request->query_params.find("w");
+			if(iter != request->query_params.end()) {
+				word = iter->second;
+			}
+		}
+		{
+			const auto iter = request->query_params.find("p");
+			if(iter != request->query_params.end()) {
+				vnx::from_string(iter->second, page);
+			}
+		}
+		search_engine_async->get_word_context(word, table_page_size, std::max(page, 0) * table_page_size,
+			[this, req_id](const std::vector<std::pair<std::string, float>>& result) {
+				http_request_async_return(req_id, addons::HttpResponse::from_string_json(vnx::to_string(result)));
+			},
+			[this, req_id](const std::exception& ex) {
+				http_request_async_return(req_id, addons::HttpResponse::from_text_ex(ex.what(), 500));
 			});
 	}
 	else {
@@ -95,7 +152,7 @@ void SearchFrontend::query_callback(const vnx::request_id_t& req_id,
 	for(auto& item : out->items)
 	{
 		if(utf8valid(item.title.c_str())) {
-			item.title = item.url;
+			item.title.clear();
 		}
 		if(utf8valid(item.context.c_str())) {
 			item.context.clear();

@@ -37,6 +37,7 @@ int main(int argc, char** argv)
 	{
 		vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(engine));
 		proxy->forward_list.push_back("QueryEngine");
+		proxy->forward_list.push_back("SearchEngine");
 		proxy.start_detached();
 	}
 	{

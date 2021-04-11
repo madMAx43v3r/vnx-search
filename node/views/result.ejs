@@ -1,4 +1,19 @@
 
+<a href="/">
+<img src="apple-touch-icon.png"/>
+</a>
+
+<div id="search_form">
+<form method="get">
+	<span style="font-size: 100%;">Search: </span>
+	<input id="query" name="t" type="text" value="<%= query %>" style="width: 50%; font-size: 100%;">
+	<input id="page" name="p" value="0" type="hidden">
+	<input type="submit" value="Submit" style="font-size: 100%;">
+</form>
+</div>
+
+<% if(result) { %>
+
 <div id="header">
 Page <%= parseInt(page) + 1 %> of <% if(result.has_more) { %>&#62;<% } %><%= result.num_results_total %> results
 </div>
@@ -7,9 +22,13 @@ Page <%= parseInt(page) + 1 %> of <% if(result.has_more) { %>&#62;<% } %><%= res
 <% result.items.forEach(function(item) { %>
 <div class="item">
 	<span class="url"><%= item.url_str %></span><br>
-	<a class="title" href="<%= item.url %>" target="_blank"><%= item.title %></a><br>
-	<span class="date"><%= item.date_str %> | </span>
-	<span class="context"><%- item.context %></span><br>
+	<a class="title" href="<%- item.url %>" target="_blank"><%= item.title %></a>
+	<br>
+	<span class="date"><%= item.date_str %></span>
+	| <span class="context"><%- item.context %></span>
+	| <span class="info"><a class="bare" href="/page_info?k=//<%- item.url_str %>" target="__blank">info</a></span>
+	| <span class="archive"><a class="bare" href="/archive/<%- item.url_str %>" target="__blank">archive</a></span>
+	<br>
 </div>
 <% }); %>
 <% if(!result.items.length) { %>
@@ -36,3 +55,5 @@ Total: <%= (result.load_time_us + result.compute_time_us) / 1000 %> ms
 <div id="timing_info" style="display: none">
 <%- JSON.stringify(result.timing_info) %>
 </div>
+
+<% } %>

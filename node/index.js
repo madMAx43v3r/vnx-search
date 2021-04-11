@@ -1,5 +1,6 @@
 const express = require('express')
 const axios = require('axios')
+const {createProxyMiddleware} = require('http-proxy-middleware');
 const app = express()
 const port = 3000
 
@@ -71,6 +72,7 @@ app.get('/', (req, res) => {
 	const page = req.query.p;
 	
 	let args = {};
+	args.body = 'result';
 	args.query = query;
 	args.page = parseInt(page);
 	args.result = null;
@@ -85,6 +87,24 @@ app.get('/', (req, res) => {
 		res.render('index', args);
 	}
 })
+
+app.get('/page_info', (req, res) => {
+	const url_key = req.query.k;
+	if(url_key) {
+		axios.get('http://localhost:8080/search/get_page_info?k=' + url_key)
+			.then((ret) => {
+				let args = {};
+				args.body = 'page_info';
+				args.url_key = url_key;
+				args.data = ret.data;
+				res.render('index', args);
+			}).catch(on_error.bind(null, res));
+	} else {
+		res.status(404).send();
+	}
+})
+
+app.use('/archive', createProxyMiddleware({target: 'http://localhost:8081', changeOrigin: true}));
 
 app.listen(port, '0.0.0.0', () => {
 	console.log(`Listening at http://0.0.0.0:${port}`);

@@ -2,8 +2,11 @@ package vnx.search;
 
 module SearchFrontend implements vnx.addons.HttpComponent {
 	
-	string engine_server = "QueryEngine";
+	string query_engine_server = "QueryEngine";
+	string search_engine_server = "SearchEngine";
 	
 	query_options_t options;
+	
+	int table_page_size = 50;
 	
 }

@@ -16,22 +16,22 @@
 		margin: 20px;
 		max-width: 70em;
 	}
-	.item {
+	div.item {
 		margin-top: 30px;
 		margin-bottom: 30px;
 	}
-	.title {
+	a.title {
 		font-size: 120%;
 		word-wrap: break-word;
 	}
-	.url {
+	span.url {
 		color: rgb(0,100,0);
 		word-wrap: break-word;
 	}
-	.date {
+	span.date {
 		color: rgb(0,0,0);
 	}
-	.context {
+	span.context {
 		color: rgb(50,50,50);
 		word-wrap: break-word;
 	}
@@ -56,29 +56,18 @@
 		font-size: 120%;
 		text-align: center
 	}
-	a#page {
+	a.page {
 		margin-left: 5px;
 		margin-right: 5px;
 	}
+	a.bare {
+		text-decoration: none;
+	}
 </style>
 </head>
-
 <body>
 
-<img src="apple-touch-icon.png"/>
-
-<div id="search_form">
-<form method="get">
-	<span style="font-size: 100%;">Search: </span>
-	<input id="query" name="t" type="text" value="<%= query %>" style="width: 50%; font-size: 100%;">
-	<input id="page" name="p" value="0" type="hidden">
-	<input type="submit" value="Submit" style="font-size: 100%;">
-</form>
-</div>
-
-<% if(result) { %>
-<%- include('results', {result: result, page_list: page_list}) %>
-<% } %>
+<%- include(body) %>
 
 </body>
 </html>

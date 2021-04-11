@@ -17,8 +17,10 @@ namespace search {
 class SearchFrontendBase : public ::vnx::Module {
 public:
 	
-	std::string engine_server = "QueryEngine";
+	std::string query_engine_server = "QueryEngine";
+	std::string search_engine_server = "SearchEngine";
 	::vnx::search::query_options_t options;
+	int32_t table_page_size = 50;
 	
 	typedef ::vnx::Module Super;
 	

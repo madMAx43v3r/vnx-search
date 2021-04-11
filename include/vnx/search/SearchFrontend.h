@@ -7,6 +7,7 @@
 
 #include <vnx/search/SearchFrontendBase.hxx>
 #include <vnx/search/QueryEngineAsyncClient.hxx>
+#include <vnx/search/SearchEngineAsyncClient.hxx>
 
 
 namespace vnx {
@@ -35,7 +36,8 @@ protected:
 						std::shared_ptr<const SearchResult> result) const;
 	
 private:
-	std::shared_ptr<QueryEngineAsyncClient> engine_async;
+	std::shared_ptr<SearchEngineAsyncClient> search_engine_async;
+	std::shared_ptr<QueryEngineAsyncClient> query_engine_async;
 	
 };
 

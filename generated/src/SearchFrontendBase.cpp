@@ -39,13 +39,15 @@ namespace search {
 
 
 const vnx::Hash64 SearchFrontendBase::VNX_TYPE_HASH(0x7de65cc9f49e8667ull);
-const vnx::Hash64 SearchFrontendBase::VNX_CODE_HASH(0xc755fff30a711a3full);
+const vnx::Hash64 SearchFrontendBase::VNX_CODE_HASH(0x29868947fb76e148ull);
 
 SearchFrontendBase::SearchFrontendBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
-	vnx::read_config(vnx_name + ".engine_server", engine_server);
+	vnx::read_config(vnx_name + ".query_engine_server", query_engine_server);
+	vnx::read_config(vnx_name + ".search_engine_server", search_engine_server);
 	vnx::read_config(vnx_name + ".options", options);
+	vnx::read_config(vnx_name + ".table_page_size", table_page_size);
 }
 
 vnx::Hash64 SearchFrontendBase::get_type_hash() const {
@@ -63,15 +65,19 @@ const vnx::TypeCode* SearchFrontendBase::get_type_code() const {
 void SearchFrontendBase::accept(vnx::Visitor& _visitor) const {
 	const vnx::TypeCode* _type_code = vnx::search::vnx_native_type_code_SearchFrontendBase;
 	_visitor.type_begin(*_type_code);
-	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, engine_server);
-	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, options);
+	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, query_engine_server);
+	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, search_engine_server);
+	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, options);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, table_page_size);
 	_visitor.type_end(*_type_code);
 }
 
 void SearchFrontendBase::write(std::ostream& _out) const {
 	_out << "{";
-	_out << "\"engine_server\": "; vnx::write(_out, engine_server);
+	_out << "\"query_engine_server\": "; vnx::write(_out, query_engine_server);
+	_out << ", \"search_engine_server\": "; vnx::write(_out, search_engine_server);
 	_out << ", \"options\": "; vnx::write(_out, options);
+	_out << ", \"table_page_size\": "; vnx::write(_out, table_page_size);
 	_out << "}";
 }
 
@@ -84,36 +90,52 @@ void SearchFrontendBase::read(std::istream& _in) {
 vnx::Object SearchFrontendBase::to_object() const {
 	vnx::Object _object;
 	_object["__type"] = "vnx.search.SearchFrontend";
-	_object["engine_server"] = engine_server;
+	_object["query_engine_server"] = query_engine_server;
+	_object["search_engine_server"] = search_engine_server;
 	_object["options"] = options;
+	_object["table_page_size"] = table_page_size;
 	return _object;
 }
 
 void SearchFrontendBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "engine_server") {
-			_entry.second.to(engine_server);
-		} else if(_entry.first == "options") {
+		if(_entry.first == "options") {
 			_entry.second.to(options);
+		} else if(_entry.first == "query_engine_server") {
+			_entry.second.to(query_engine_server);
+		} else if(_entry.first == "search_engine_server") {
+			_entry.second.to(search_engine_server);
+		} else if(_entry.first == "table_page_size") {
+			_entry.second.to(table_page_size);
 		}
 	}
 }
 
 vnx::Variant SearchFrontendBase::get_field(const std::string& _name) const {
-	if(_name == "engine_server") {
-		return vnx::Variant(engine_server);
+	if(_name == "query_engine_server") {
+		return vnx::Variant(query_engine_server);
+	}
+	if(_name == "search_engine_server") {
+		return vnx::Variant(search_engine_server);
 	}
 	if(_name == "options") {
 		return vnx::Variant(options);
+	}
+	if(_name == "table_page_size") {
+		return vnx::Variant(table_page_size);
 	}
 	return vnx::Variant();
 }
 
 void SearchFrontendBase::set_field(const std::string& _name, const vnx::Variant& _value) {
-	if(_name == "engine_server") {
-		_value.to(engine_server);
+	if(_name == "query_engine_server") {
+		_value.to(query_engine_server);
+	} else if(_name == "search_engine_server") {
+		_value.to(search_engine_server);
 	} else if(_name == "options") {
 		_value.to(options);
+	} else if(_name == "table_page_size") {
+		_value.to(table_page_size);
 	} else {
 		throw std::logic_error("no such field: '" + _name + "'");
 	}
@@ -143,7 +165,7 @@ std::shared_ptr<vnx::TypeCode> SearchFrontendBase::static_create_type_code() {
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "vnx.search.SearchFrontend";
 	type_code->type_hash = vnx::Hash64(0x7de65cc9f49e8667ull);
-	type_code->code_hash = vnx::Hash64(0xc755fff30a711a3full);
+	type_code->code_hash = vnx::Hash64(0x29868947fb76e148ull);
 	type_code->is_native = true;
 	type_code->native_size = sizeof(::vnx::search::SearchFrontendBase);
 	type_code->depends.resize(1);
@@ -160,19 +182,33 @@ std::shared_ptr<vnx::TypeCode> SearchFrontendBase::static_create_type_code() {
 	type_code->methods[8] = ::vnx::ModuleInterface_vnx_self_test::static_get_type_code();
 	type_code->methods[9] = ::vnx::addons::HttpComponent_http_request::static_get_type_code();
 	type_code->methods[10] = ::vnx::addons::HttpComponent_http_request_chunk::static_get_type_code();
-	type_code->fields.resize(2);
+	type_code->fields.resize(4);
 	{
 		auto& field = type_code->fields[0];
 		field.is_extended = true;
-		field.name = "engine_server";
+		field.name = "query_engine_server";
 		field.value = vnx::to_string("QueryEngine");
 		field.code = {32};
 	}
 	{
 		auto& field = type_code->fields[1];
 		field.is_extended = true;
+		field.name = "search_engine_server";
+		field.value = vnx::to_string("SearchEngine");
+		field.code = {32};
+	}
+	{
+		auto& field = type_code->fields[2];
+		field.is_extended = true;
 		field.name = "options";
 		field.code = {19, 0};
+	}
+	{
+		auto& field = type_code->fields[3];
+		field.data_size = 4;
+		field.name = "table_page_size";
+		field.value = vnx::to_string(50);
+		field.code = {7};
 	}
 	type_code->build();
 	return type_code;
@@ -311,12 +347,17 @@ void read(TypeInput& in, ::vnx::search::SearchFrontendBase& value, const TypeCod
 			}
 		}
 	}
+	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
+		if(const auto* const _field = type_code->field_map[3]) {
+			vnx::read_value(_buf + _field->offset, value.table_page_size, _field->code.data());
+		}
 	}
 	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
-			case 0: vnx::read(in, value.engine_server, type_code, _field->code.data()); break;
-			case 1: vnx::read(in, value.options, type_code, _field->code.data()); break;
+			case 0: vnx::read(in, value.query_engine_server, type_code, _field->code.data()); break;
+			case 1: vnx::read(in, value.search_engine_server, type_code, _field->code.data()); break;
+			case 2: vnx::read(in, value.options, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -335,8 +376,11 @@ void write(TypeOutput& out, const ::vnx::search::SearchFrontendBase& value, cons
 	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
-	vnx::write(out, value.engine_server, type_code, type_code->fields[0].code.data());
-	vnx::write(out, value.options, type_code, type_code->fields[1].code.data());
+	char* const _buf = out.write(4);
+	vnx::write_value(_buf + 0, value.table_page_size);
+	vnx::write(out, value.query_engine_server, type_code, type_code->fields[0].code.data());
+	vnx::write(out, value.search_engine_server, type_code, type_code->fields[1].code.data());
+	vnx::write(out, value.options, type_code, type_code->fields[2].code.data());
 }
 
 void read(std::istream& in, ::vnx::search::SearchFrontendBase& value) {

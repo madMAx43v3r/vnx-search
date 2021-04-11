@@ -39,7 +39,13 @@ void ArchiveServer::http_request_async(	std::shared_ptr<const addons::HttpReques
 										const std::string& sub_path,
 										const request_id_t& req_id) const
 {
-	const auto url_key = "//" + request->url.substr(path.size());
+	auto url = request->url;
+	if(url.find(path) == 0) {
+		url = url.substr(path.size());
+	} else {
+		url = url.substr(1);
+	}
+	const auto url_key = "//" + url;
 	log(DEBUG) << "GET '" << url_key << "'";
 	
 	http_archive_async->get_value(Variant(url_key),
