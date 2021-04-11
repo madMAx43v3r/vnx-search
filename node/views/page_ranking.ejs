@@ -10,10 +10,10 @@
 	<td class="data" align="center"><%= row[1] %></td>
 	<td class="data">
 		<span class="url"><%= row[0] %></span>
-		(<a class="bare" href="http:<%- row[0] %>">http</a>,
-		<a class="bare" href="https:<%- row[0] %>">https</a>,
+		(<a class="bare" href="http:<%- row[0] %>" target="__blank">http</a>,
+		<a class="bare" href="https:<%- row[0] %>" target="__blank">https</a>,
 		<a class="bare" href="/page_info?k=<%- row[0] %>">info</a>,
-		<a class="bare" href="/archive/<%- row[0].substring(2) %>">archive</a>)
+		<a class="bare" href="/archive/<%- row[0].substring(2) %>" target="__blank">archive</a>)
 	</td>
 </tr>
 <% }); %>
