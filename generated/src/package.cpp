@@ -520,7 +520,7 @@ void type<::vnx::search::score_type_e>::create_dynamic_code(std::vector<uint16_t
 }
 
 void type<::vnx::search::score_type_e>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::score_type_e& value, bool special) {
-	if(value.is_valid()) {
+	if(!special || value.is_valid()) {
 		code.push_back(CODE_STRING);
 	} else {
 		code.push_back(CODE_UINT32);
@@ -532,7 +532,7 @@ void type<::vnx::search::search_flags_e>::create_dynamic_code(std::vector<uint16
 }
 
 void type<::vnx::search::search_flags_e>::create_dynamic_code(std::vector<uint16_t>& code, const ::vnx::search::search_flags_e& value, bool special) {
-	if(value.is_valid()) {
+	if(!special || value.is_valid()) {
 		code.push_back(CODE_STRING);
 	} else {
 		code.push_back(CODE_UINT32);
