@@ -7,6 +7,7 @@
 
 #include <vnx/search/CrawlFrontend.h>
 #include <vnx/search/HtmlParser.h>
+#include <vnx/search/PdfParser.h>
 #include <vnx/search/PlainTextParser.h>
 #include <vnx/search/CrawlFrontendClient.hxx>
 
@@ -45,6 +46,11 @@ int main(int argc, char** argv)
 	}
 	{
 		vnx::Handle<vnx::search::PlainTextParser> module = new vnx::search::PlainTextParser("PlainTextParser");
+		module->frontend_server = "CrawlFrontend";
+		module.start_detached();
+	}
+	{
+		vnx::Handle<vnx::search::PdfParser> module = new vnx::search::PdfParser("PdfParser");
 		module->frontend_server = "CrawlFrontend";
 		module.start_detached();
 	}

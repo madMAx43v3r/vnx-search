@@ -33,6 +33,7 @@ add_library(vnx_search SHARED
 	src/CrawlProcessor.cpp
 	src/SearchEngine.cpp
 	src/PlainTextParser.cpp
+	src/PdfParser.cpp
 	src/ArchiveProxy.cpp
 	src/ArchiveServer.cpp
 	src/SearchFrontend.cpp
